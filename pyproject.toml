@@ -1,0 +1,42 @@
+[project]
+authors = [
+    {name = "Cameron Evans", email = "c.d.evans87@gmail.com"},
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Topic :: Software Development :: Libraries",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Topic :: System :: Logging",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3.13",
+]
+dependencies = [
+    "annotated-types",
+]
+keywords = [
+    "asyncio",
+    "back pressure",
+    "cache",
+    "memoize",
+    "rate limit",
+    "retry",
+    "throttle",
+]
+license = {file = "LICENSE"}
+name = "stranded"
+readme = "README.md"
+requires-python = ">=3.13"
+version = "0.0.1"
+
+[project.optional-dependencies]
+test = ["pytest", "pytest-asyncio", "pytest-cov"]
+
+[project.urls]
+Homepage = "https://github.com/cevans87/stranded"
+Issues = "https://github.com/cevans87/stranded/issues"
+Repository = "https://github.com/cevans87/stranded.git"
+
+[tool.setuptools.packages.find]
+include = ['argfarce', 'boltins', 'felling', 'funktools']
+where = ["src"]

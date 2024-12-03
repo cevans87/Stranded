@@ -1,0 +1,100 @@
+from __future__ import annotations
+
+import abc
+import dataclasses
+import threading
+import sys
+import typing
+import weakref
+
+import annotated_types
+
+import boltins.decorator.common as decorator
+
+
+class Exception(Exception): ...  # noqa
+
+
+@dataclasses.dataclass(kw_only=True)
+class State:
+    cap_running: int = 1
+    num_running: int = 0
+    num_waiting: int = 0
+
+
+@typing.runtime_checkable
+class Decoratee(decorator.Decoratee, typing.Protocol): ...
+
+
+@dataclasses.dataclass(frozen=True, kw_only=True)
+class Exit[_Enter, _Ret](
+    decorator.Exit[
+        _Enter,
+    ],
+    abc.ABC,
+):
+
+    def __call__(self, result: decorator.Raise | _Ret) -> ():
+        state = self.enter.decorated.state
+        if isinstance(result, decorator.Raise) and state.num_running <= state.cap_running:
+            state.cap_running //= 2
+        elif (
+            not isinstance(result, decorator.Raise)
+            and state.num_running == state.cap_running < self.enter.decorated.decorator.max_running
+        ):
+            state.cap_running += 1
+        state.num_running -= 1
+
+        if 0 < (n := state.cap_running - state.num_running):
+            self.enter.decorated.condition.notify(n=n)
+
+        return tuple()
+
+
+@dataclasses.dataclass(frozen=True, kw_only=True)
+class Enter[_Decoratee, _Exit, _Decorated, **_Param](
+    decorator.Enter[_Decoratee, _Exit, _Decorated, _Param],
+    abc.ABC,
+): ...
+
+
+@dataclasses.dataclass(frozen=True, kw_only=True)
+class Decorated[_Decoratee, _Exit, _Enter, _Decorator, _Condition](
+    decorator.Decorated[_Decoratee, _Exit, _Enter, _Decorator],
+    abc.ABC,
+):
+    condition: _Condition
+    decorated_by_instance: weakref.WeakKeyDictionary[
+        decorator.Instance, typing.Self,
+    ] = dataclasses.field(default_factory=weakref.WeakKeyDictionary)
+    lock: threading.Lock = dataclasses.field(default_factory=threading.Lock)
+    state: State = dataclasses.field(default_factory=State)
+
+    def __get__(self, instance, owner) -> typing.Self:
+        with self.lock:
+            return decorated if (decorated := self.decorated_by_instance.get(instance)) is not None else (
+                self.decorated_by_instance.setdefault(
+                    instance, dataclasses.replace(
+                        self,
+                        condition=self.decorator.condition_t(),
+                        decoratee=self.decoratee.__get__(instance, owner),
+                        state=State(),
+                    )
+                )
+            )
+
+
+@dataclasses.dataclass(frozen=True, kw_only=True)
+class Decorator[_Decoratee, _Exit, _Enter, _Decorated, _Condition](
+    decorator.Decorator[_Decoratee, _Exit, _Enter, _Decorated],
+    abc.ABC,
+):
+    # How many callees are allowed through concurrently before additional callees become waiters.
+    max_running: typing.Annotated[int, annotated_types.Gt(0)] = sys.maxsize
+
+    # How many callees are allowed through or to wait concurrently before additional callees are rejected.
+    max_waiting: typing.Annotated[int, annotated_types.Gt(0)] = sys.maxsize
+
+    @property
+    @abc.abstractmethod
+    def condition_t(self) -> type[_Condition]: ...
