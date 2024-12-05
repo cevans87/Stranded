@@ -6,7 +6,7 @@ import boltins.decorator.asyncio as decorator
 from . import _common as common
 
 
-type _Condition = asyncio.Condition
+type _Future[**_Param, _Ret] = asyncio.Future[_Ret]
 type _Decoratee[**_Param, _Ret] = Decoratee[_Param, _Ret]
 type _Exit[**_Param, _Ret] = Exit[_Param, _Ret]
 type _Enter[**_Param, _Ret] = Enter[_Param, _Ret]
@@ -25,47 +25,45 @@ class Decoratee[**_Param, _Ret](common.Decoratee, decorator.Decoratee, typing.Pr
 class Exit[**_Param, _Ret](
     common.Exit[
         _Enter[_Param, _Ret],
-        _Ret,
+        _Future[_Param, _Ret],
     ],
     decorator.Exit[
         _Enter[_Param, _Ret],
         _Ret,
     ],
 ):
+    future: _Future = dataclasses.field(default_factory=asyncio.Future)
+
     async def __call__(self, result: decorator.Raise | _Ret) -> ():
-        async with self.enter.decorated.condition:
-            return super.__call__(result)
+        self.future.set_result(result)
+
+        return tuple()
 
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[**_Param, _Ret](
     common.Enter[
-        _Decoratee[_Param, _Ret],
-        _Exit[_Param, _Ret],
         _Decorated[_Param, _Ret],
-        _Param,
     ],
     decorator.Enter[
         _Decoratee[_Param, _Ret],
-        _Exit[_Param, _Ret],
         _Decorated[_Param, _Ret],
         _Param,
     ],
 ):
-    async def __call__(self, *args: _Param.args, **kwargs: _Param.kwargs) -> tuple[_Exit, _Decoratee]:
-        # TODO: this is mostly duplicate with the threading version. Try to consolidate.
-        state = self.decorated.state
-        async with self.decorated.condition:
-            if state.num_waiting >= self.decorated.decorator.max_waiting:
-                raise Exception(f'Exceeded {self.decorated.decorator.max_waiting=}.')
-            elif 0 < state.num_waiting or state.cap_running <= state.num_running:
-                state.num_waiting += 1
-                await self.decorated.condition.wait_for(lambda: state.num_running < state.cap_running)
-                state.num_waiting -= 1
-            self.decorated.state.num_running += 1
+    async def __call__(self, *args: _Param.args, **kwargs: _Param.kwargs) -> tuple[_Decoratee] | tuple[_Exit, _Decoratee]:
+        key = self.decorated.base.generate_key(*args, **kwargs)
 
-        return self.decorated.decorator.exit_t(enter=self), self.decorated.decoratee,
+        future = self.decorated.future_by_key.pop(key, None)
+        while self.decorated.base.size <= len(self.decorated.future_by_key):
+            self.decorated.future_by_key.popitem(last=False)
+        if future is None:
+            future = self.decorated.future_by_key[key] = asyncio.Future()
+            return self.decorated.base.exit_t(enter=self, future=future), self.decorated.decoratee
+        else:
+            self.decorated.future_by_key[key] = future
+            return (lambda *_args, **_kwargs: future),
 
 
 @typing.final
@@ -76,7 +74,7 @@ class Decorated[**_Param, _Ret](
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
         _Decorator[_Param, _Ret],
-        _Condition,
+        _Future[_Param, _Ret],
     ],
     decorator.Decorated[
         _Decoratee[_Param, _Ret],
@@ -86,8 +84,7 @@ class Decorated[**_Param, _Ret](
         _Param,
         _Ret,
     ],
-):
-    condition: _Condition = dataclasses.field(default_factory=asyncio.Condition)
+): ...
 
 
 @typing.final
@@ -98,7 +95,6 @@ class Decorator[**_Param, _Ret](
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
         _Decorator[_Param, _Ret],
-        _Condition,
     ],
     decorator.Decorator[
         _Decoratee[_Param, _Ret],
@@ -106,7 +102,4 @@ class Decorator[**_Param, _Ret](
         _Enter[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-):
-    @property
-    def condition_t(self) -> type[_Condition]:
-        return asyncio.Condition
+): ...

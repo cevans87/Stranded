@@ -6,7 +6,7 @@ import inspect
 import logging
 import typing
 
-import boltins.decorator.common as decorator
+from . import decorator
 
 
 Level = typing.Literal['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'NOTSET']
@@ -20,7 +20,7 @@ class Decoratee(decorator.Decoratee, typing.Protocol): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Exit[_Enter, _Ret](decorator.Exit[_Enter], abc.ABC):
+class Exit[_Enter, _Ret](decorator.Exit[_Enter, _Ret], abc.ABC):
 
     bound_arguments: inspect.BoundArguments
 

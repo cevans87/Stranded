@@ -4,7 +4,7 @@ import sys
 
 import pytest
 
-from funktools.log.asyncio import Decorator as Log
+from funktools.asyncio.log import Decorator as Log
 
 
 logger = logging.getLogger(__name__)

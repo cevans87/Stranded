@@ -3,7 +3,7 @@ import typing
 
 import pytest
 
-from boltins.decorator import Decorator
+from funktools.decorator import Decorator
 
 
 @pytest.fixture(autouse=True)

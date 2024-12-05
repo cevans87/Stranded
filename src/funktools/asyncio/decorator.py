@@ -3,28 +3,28 @@ import dataclasses
 import sys
 import typing
 
-from . import common
+from ..abc import decorator
 
 
 @dataclasses.dataclass(frozen=True)
-class Raise(common.Raise): ...
+class Raise(decorator.Raise): ...
 
 
 @typing.runtime_checkable
-class Decoratee[** Param, Ret](common.Decoratee, typing.Protocol):
+class Decoratee[** Param, Ret](decorator.Decoratee, typing.Protocol):
 
     async def __call__(*args: Param.args, **kwargs: Param.kwargs) -> Ret: ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Exit[_Enter, _Ret](common.Exit[_Enter, _Ret], abc.ABC):
+class Exit[_Enter, _Ret](decorator.Exit[_Enter, _Ret], abc.ABC):
 
-    async def __call__(self, result: common.Raise | _Ret) -> ():
+    async def __call__(self, result: decorator.Raise | _Ret) -> ():
         return super().__call__(result)
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Enter[_Decoratee, _Exit, _Decorated, **_Param](common.Enter[_Decorated, _Exit, _Decorated, _Param], abc.ABC):
+class Enter[_Decoratee, _Exit, _Decorated, **_Param](decorator.Enter[_Decorated, _Exit, _Decorated, _Param], abc.ABC):
 
     async def __call__(self, *args: _Param.args, **kwargs: _Param.kwargs) -> tuple[_Exit, _Decoratee]:
         return super().__call__(*args, **kwargs)
@@ -32,12 +32,12 @@ class Enter[_Decoratee, _Exit, _Decorated, **_Param](common.Enter[_Decorated, _E
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorated[_Decoratee, _Exit, _Enter, _Decorator, ** _Param, _Ret](
-    common.Decorated[_Decoratee, _Exit, _Enter, _Decorator],
+    decorator.Decorated[_Decoratee, _Exit, _Enter, _Decorator],
     abc.ABC,
 ):
     @typing.final
     async def __call__(self, *args: _Param.args, **kwargs: _Param.kwargs) -> _Ret:
-        result: common.Raise | _Ret = ...
+        result: decorator.Raise | _Ret = ...
         stack = [self]
         while stack:
             try:
@@ -51,9 +51,9 @@ class Decorated[_Decoratee, _Exit, _Enter, _Decorator, ** _Param, _Ret](
                     case Decoratee() as decoratee:
                         result = await decoratee(*args, **kwargs)
             except Exception:  # noqa
-                result = common.Raise(*sys.exc_info())
+                result = decorator.Raise(*sys.exc_info())
 
-        if isinstance(result, common.Raise):
+        if isinstance(result, decorator.Raise):
             raise result.exc_val
 
         return result
@@ -61,6 +61,6 @@ class Decorated[_Decoratee, _Exit, _Enter, _Decorator, ** _Param, _Ret](
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorator[_Decoratee, _Exit, _Enter, _Decorated](
-    common.Decorator[_Decoratee, _Exit, _Enter, _Decorated],
+    decorator.Decorator[_Decoratee, _Exit, _Enter, _Decorated],
     abc.ABC,
 ): ...

@@ -2,7 +2,7 @@ import asyncio
 
 import pytest
 
-from funktools.lru_cache.asyncio import Decorator as LruCache
+from funktools.asyncio.lru_cache import Decorator as LruCache
 
 
 @pytest.fixture(autouse=True)

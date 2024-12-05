@@ -6,7 +6,7 @@ import inspect
 import logging
 import typing
 
-import boltins.decorator.common as decorator
+from . import decorator
 
 
 Level = typing.Literal['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'NOTSET']
@@ -22,27 +22,8 @@ class Decoratee(decorator.Decoratee, typing.Protocol): ...
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[_Enter, _Ret](decorator.Exit[_Enter], abc.ABC):
 
-    bound_arguments: inspect.BoundArguments
-
     @abc.abstractmethod
     def __call__(self, result: decorator.Raise | _Ret) -> ():
-        if isinstance(result, decorator.Raise):
-            self.enter.decorated.decorator.logger.log(
-                logging.getLevelNamesMapping()[self.enter.decorated.decorator.err_level],
-                '%s :: %s !! %s',
-                self.enter.decorated.__signature__,
-                self.bound_arguments.arguments,
-                result.exc_val,
-            )
-        else:
-            self.enter.decorated.decorator.logger.log(
-                logging.getLevelNamesMapping()[self.enter.decorated.decorator.ok_level],
-                '%s :: %s -> %s',
-                self.enter.decorated.__signature__,
-                self.bound_arguments.arguments,
-                result,
-            )
-
         return tuple()
 
 
@@ -56,13 +37,13 @@ class Enter[_Decoratee, _Exit, _Decorated, **_Param](
     def __call__(self, *args: _Param.args, **kwargs: _Param.kwargs) -> tuple[_Exit, _Decoratee]:
         bound_arguments = self.decorated.__signature__.bind(*args, **kwargs)
 
-        self.decorated.decorator.logger.log(
-            logging.getLevelNamesMapping()[self.decorated.decorator.call_level],
+        self.decorated.base.logger.log(
+            logging.getLevelNamesMapping()[self.decorated.base.call_level],
             '%s',
             bound_arguments,
         )
 
-        return self.decorated.decorator.exit_t(enter=self, bound_arguments=bound_arguments), self.decorated.decoratee,
+        return self.decorated.base.exit_t(enter=self, bound_arguments=bound_arguments), self.decorated.decoratee,
 
 
 
