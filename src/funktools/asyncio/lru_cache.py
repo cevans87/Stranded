@@ -2,8 +2,8 @@ import asyncio
 import dataclasses
 import typing
 
-import boltins.decorator.asyncio as decorator
-from . import _common as common
+from ..abc import lru_cache
+from . import decorator
 
 
 type _Future[**_Param, _Ret] = asyncio.Future[_Ret]
@@ -15,7 +15,7 @@ type _Decorator[**_Param, _Ret] = Decorator[_Param, _Ret]
 
 
 @typing.runtime_checkable
-class Decoratee[**_Param, _Ret](common.Decoratee, decorator.Decoratee, typing.Protocol):
+class Decoratee[**_Param, _Ret](lru_cache.Decoratee, decorator.Decoratee, typing.Protocol):
 
     async def __call__(*args: _Param.args, **kwargs: _Param.kwargs) -> _Ret: ...
 
@@ -23,8 +23,9 @@ class Decoratee[**_Param, _Ret](common.Decoratee, decorator.Decoratee, typing.Pr
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**_Param, _Ret](
-    common.Exit[
+    lru_cache.Exit[
         _Enter[_Param, _Ret],
+        _Ret,
         _Future[_Param, _Ret],
     ],
     decorator.Exit[
@@ -43,11 +44,15 @@ class Exit[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[**_Param, _Ret](
-    common.Enter[
+    lru_cache.Enter[
+        _Decoratee[_Param, _Ret],
+        _Exit[_Param, _Ret],
         _Decorated[_Param, _Ret],
+        _Param,
     ],
     decorator.Enter[
         _Decoratee[_Param, _Ret],
+        _Exit[_Param, _Ret],
         _Decorated[_Param, _Ret],
         _Param,
     ],
@@ -69,7 +74,7 @@ class Enter[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorated[**_Param, _Ret](
-    common.Decorated[
+    lru_cache.Decorated[
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
@@ -90,7 +95,7 @@ class Decorated[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorator[**_Param, _Ret](
-    common.Decorator[
+    lru_cache.Decorator[
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],

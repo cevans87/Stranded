@@ -53,14 +53,14 @@ class Enter[**_Param, _Ret](
     ],
 ):
     def __call__(self, *args: _Param.args, **kwargs: _Param.kwargs) -> tuple[_Decoratee] | tuple[_Exit, _Decoratee]:
-        key = self.decorated.decorator.generate_key(*args, **kwargs)
+        key = self.decorated.base.generate_key(*args, **kwargs)
 
         future = self.decorated.future_by_key.pop(key, None)
-        while self.decorated.decorator.size <= len(self.decorated.future_by_key):
+        while self.decorated.base.size <= len(self.decorated.future_by_key):
             self.decorated.future_by_key.popitem(last=False)
         if future is None:
             future = self.decorated.future_by_key[key] = concurrent.futures.Future()
-            return self.decorated.decorator.exit_t(enter=self, future=future), self.decorated.decoratee
+            return self.decorated.base.exit_t(enter=self, future=future), self.decorated.decoratee
         else:
             self.decorated.future_by_key[key] = future
             return (lambda *_args, **_kwargs: future.result()),

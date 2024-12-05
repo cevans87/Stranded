@@ -7,17 +7,11 @@ import typing
 import weakref
 import sys
 
-import boltins.decorator.common as decorator
+from . import decorator
 
 
 type GenerateKey = typing.Callable[..., Key]
 type Key = typing.Hashable
-
-type _Decoratee[** Param, Ret] = Decoratee[Param, Ret]
-type _Exit[** Param, Ret] = Exit[Param, Ret]
-type _Enter[** Param, Ret] = Enter[Param, Ret]
-type _Decorated[** Param, Ret] = Decorated[Param, Ret]
-type _Decorator[** Param, Ret] = Decorator[Param, Ret]
 
 
 class Exception(Exception): ...  # noqa
@@ -28,12 +22,15 @@ class Decoratee(decorator.Decoratee, typing.Protocol): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Exit[_Enter, _Future](decorator.Exit[_Enter], abc.ABC):
+class Exit[_Enter, _Ret, _Future](decorator.Exit[_Enter, _Ret], abc.ABC):
     future: _Future
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Enter[_Decorated](decorator.Enter[_Decorated], abc.ABC): ...
+class Enter[_Decoratee, _Exit, _Decorated, **_Param](
+    decorator.Enter[_Decoratee, _Exit, _Decorated, _Param],
+    abc.ABC,
+): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)

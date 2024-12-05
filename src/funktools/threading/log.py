@@ -1,8 +1,8 @@
 import dataclasses
 import typing
 
-import boltins.decorator.asyncio as decorator
-from . import _common as common
+from ..abc import log
+from . import decorator
 
 
 type _Decoratee[**_Param, _Ret] = Decoratee[_Param, _Ret]
@@ -13,15 +13,15 @@ type _Decorator[**_Param, _Ret] = Decorator[_Param, _Ret]
 
 
 @typing.runtime_checkable
-class Decoratee[**_Param, _Ret](common.Decoratee, decorator.Decoratee, typing.Protocol):
+class Decoratee[** Param, Ret](log.Decoratee, decorator.Decoratee, typing.Protocol):
 
-    async def __call__(*args: _Param.args, **kwargs: _Param.kwargs) -> _Ret: ...
+    def __call__(*args: Param.args, **kwargs: Param.kwargs) -> Ret: ...
 
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**_Param, _Ret](
-    common.Exit[
+    log.Exit[
         _Enter[_Param, _Ret],
         _Ret,
     ],
@@ -30,14 +30,14 @@ class Exit[**_Param, _Ret](
         _Ret,
     ],
 ):
-    async def __call__(self, *args: _Param.args, **kwargs: _Param.kwargs) -> tuple[_Exit, _Decoratee]:
-        return super().__call__(*args, **kwargs)
+    def __call__(self, result: decorator.Raise | _Ret) -> ():
+        return super().__call__(result)
 
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[**_Param, _Ret](
-    common.Enter[
+    log.Enter[
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Decorated[_Param, _Ret],
@@ -50,14 +50,14 @@ class Enter[**_Param, _Ret](
         _Param,
     ],
 ):
-    async def __call__(self, *args: _Param.args, **kwargs: _Param.kwargs) -> tuple[_Exit, _Decoratee]:
+    def __call__(self, *args: _Param.args, **kwargs: _Param.kwargs) -> tuple[_Exit, _Decoratee]:
         return super().__call__(*args, **kwargs)
 
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorated[**_Param, _Ret](
-    common.Decorated[
+    log.Decorated[
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
@@ -77,7 +77,7 @@ class Decorated[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorator[**_Param, _Ret](
-    common.Decorator[
+    log.Decorator[
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],

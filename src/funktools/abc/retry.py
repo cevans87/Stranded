@@ -6,7 +6,7 @@ import dataclasses
 import sys
 import typing
 
-import boltins.decorator.common as decorator
+from . import decorator
 
 
 class Exception(Exception): ...  # noqa
@@ -17,7 +17,7 @@ class Decoratee(decorator.Decoratee, typing.Protocol): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Exit[_Enter, _Ret](decorator.Exit[_Enter], abc.ABC):
+class Exit[_Enter, _Ret](decorator.Exit[_Enter, _Ret], abc.ABC):
 
     @abc.abstractmethod
     def __call__(self, result: decorator.Raise | _Ret) -> ():
@@ -32,7 +32,6 @@ class Enter[_Decoratee, _Exit, _Decorated, **_Param](
     decorator.Enter[_Decoratee, _Exit, _Decorated, _Param],
     abc.ABC,
 ):
-
     n_retried: int = 0
 
 
