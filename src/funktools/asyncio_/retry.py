@@ -1,7 +1,7 @@
 import dataclasses
 import typing
 
-from ..abc import log
+from ..abc_ import retry
 from . import decorator
 
 
@@ -13,7 +13,7 @@ type _Decorator[**_Param, _Ret] = Decorator[_Param, _Ret]
 
 
 @typing.runtime_checkable
-class Decoratee[**_Param, _Ret](log.Decoratee, decorator.Decoratee, typing.Protocol):
+class Decoratee[**_Param, _Ret](retry.Decoratee, decorator.Decoratee, typing.Protocol):
 
     async def __call__(*args: _Param.args, **kwargs: _Param.kwargs) -> _Ret: ...
 
@@ -21,7 +21,7 @@ class Decoratee[**_Param, _Ret](log.Decoratee, decorator.Decoratee, typing.Proto
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**_Param, _Ret](
-    log.Exit[
+    retry.Exit[
         _Enter[_Param, _Ret],
         _Ret,
     ],
@@ -37,7 +37,7 @@ class Exit[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[**_Param, _Ret](
-    log.Enter[
+    retry.Enter[
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Decorated[_Param, _Ret],
@@ -49,15 +49,13 @@ class Enter[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Param,
     ],
-):
-    async def __call__(self, *args: _Param.args, **kwargs: _Param.kwargs) -> tuple[_Exit, _Decoratee]:
-        return super().__call__(*args, **kwargs)
+): ...
 
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorated[**_Param, _Ret](
-    log.Decorated[
+    retry.Decorated[
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
@@ -77,7 +75,7 @@ class Decorated[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorator[**_Param, _Ret](
-    log.Decorator[
+    retry.Decorator[
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],

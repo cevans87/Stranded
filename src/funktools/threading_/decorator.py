@@ -3,7 +3,7 @@ import dataclasses
 import sys
 import typing
 
-from ..abc import decorator
+from ..abc_ import decorator
 
 
 @dataclasses.dataclass(frozen=True)
@@ -11,22 +11,22 @@ class Raise(decorator.Raise): ...
 
 
 @typing.runtime_checkable
-class Decoratee[** Param, Ret](decorator.Decoratee, typing.Protocol):
+class Decoratee[** Param, Ret](decorator.Decoratee[Param, Ret], typing.Protocol):
 
-    async def __call__(*args: Param.args, **kwargs: Param.kwargs) -> Ret: ...
+    def __call__(*args: Param.args, **kwargs: Param.kwargs) -> Ret: ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[_Enter, _Ret](decorator.Exit[_Enter, _Ret], abc.ABC):
 
-    async def __call__(self, result: decorator.Raise | _Ret) -> ():
-        return super().__call__(result)
+    def __call__(self, result: decorator.Raise | _Ret) -> ():
+        return tuple()
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Enter[_Decoratee, _Exit, _Decorated, **_Param](decorator.Enter[_Decorated, _Exit, _Decorated, _Param], abc.ABC):
+class Enter[_Decoratee, _Exit, _Decorated, **_Param](decorator.Enter[_Decoratee, _Exit, _Decorated, _Param], abc.ABC):
 
-    async def __call__(self, *args: _Param.args, **kwargs: _Param.kwargs) -> tuple[_Exit, _Decoratee]:
+    def __call__(self, *args: _Param.args, **kwargs: _Param.kwargs) -> tuple[_Exit, _Decoratee]:
         return super().__call__(*args, **kwargs)
 
 
@@ -36,7 +36,7 @@ class Decorated[_Decoratee, _Exit, _Enter, _Decorator, ** _Param, _Ret](
     abc.ABC,
 ):
     @typing.final
-    async def __call__(self, *args: _Param.args, **kwargs: _Param.kwargs) -> _Ret:
+    def __call__(self, *args: _Param.args, **kwargs: _Param.kwargs) -> _Ret:
         result: decorator.Raise | _Ret = ...
         stack = [self]
         while stack:
@@ -45,11 +45,11 @@ class Decorated[_Decoratee, _Exit, _Enter, _Decorator, ** _Param, _Ret](
                     case Decorated() as decorated:
                         stack.append(decorated.decorator.enter_t(decorated=decorated))
                     case Enter() as enter:
-                        stack.extend(await enter(*args, **kwargs))
+                        stack.extend(enter(*args, **kwargs))
                     case Exit() as exit_:
-                        stack.extend(await exit_(result))
+                        stack.extend(exit_(result))
                     case Decoratee() as decoratee:
-                        result = await decoratee(*args, **kwargs)
+                        result = decoratee(*args, **kwargs)
             except Exception:  # noqa
                 result = decorator.Raise(*sys.exc_info())
 

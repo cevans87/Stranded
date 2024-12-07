@@ -1,7 +1,7 @@
 import dataclasses
 import typing
 
-from ..abc import log
+from ..abc_ import log
 from . import decorator
 
 
@@ -13,9 +13,9 @@ type _Decorator[**_Param, _Ret] = Decorator[_Param, _Ret]
 
 
 @typing.runtime_checkable
-class Decoratee[** Param, Ret](log.Decoratee, decorator.Decoratee, typing.Protocol):
+class Decoratee[**_Param, _Ret](log.Decoratee, decorator.Decoratee, typing.Protocol):
 
-    def __call__(*args: Param.args, **kwargs: Param.kwargs) -> Ret: ...
+    async def __call__(*args: _Param.args, **kwargs: _Param.kwargs) -> _Ret: ...
 
 
 @typing.final
@@ -30,8 +30,8 @@ class Exit[**_Param, _Ret](
         _Ret,
     ],
 ):
-    def __call__(self, result: decorator.Raise | _Ret) -> ():
-        return super().__call__(result)
+    async def __call__(self, *args: _Param.args, **kwargs: _Param.kwargs) -> tuple[_Exit, _Decoratee]:
+        return super().__call__(*args, **kwargs)
 
 
 @typing.final
@@ -50,7 +50,7 @@ class Enter[**_Param, _Ret](
         _Param,
     ],
 ):
-    def __call__(self, *args: _Param.args, **kwargs: _Param.kwargs) -> tuple[_Exit, _Decoratee]:
+    async def __call__(self, *args: _Param.args, **kwargs: _Param.kwargs) -> tuple[_Exit, _Decoratee]:
         return super().__call__(*args, **kwargs)
 
 

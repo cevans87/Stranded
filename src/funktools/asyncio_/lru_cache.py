@@ -1,10 +1,12 @@
+import asyncio
 import dataclasses
 import typing
 
-from ..abc import retry
+from ..abc_ import lru_cache
 from . import decorator
 
 
+type _Future[**_Param, _Ret] = asyncio.Future[_Ret]
 type _Decoratee[**_Param, _Ret] = Decoratee[_Param, _Ret]
 type _Exit[**_Param, _Ret] = Exit[_Param, _Ret]
 type _Enter[**_Param, _Ret] = Enter[_Param, _Ret]
@@ -13,31 +15,36 @@ type _Decorator[**_Param, _Ret] = Decorator[_Param, _Ret]
 
 
 @typing.runtime_checkable
-class Decoratee[** Param, Ret](retry.Decoratee, decorator.Decoratee, typing.Protocol):
+class Decoratee[**_Param, _Ret](lru_cache.Decoratee, decorator.Decoratee, typing.Protocol):
 
-    def __call__(*args: Param.args, **kwargs: Param.kwargs) -> Ret: ...
+    async def __call__(*args: _Param.args, **kwargs: _Param.kwargs) -> _Ret: ...
 
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**_Param, _Ret](
-    retry.Exit[
+    lru_cache.Exit[
         _Enter[_Param, _Ret],
         _Ret,
+        _Future[_Param, _Ret],
     ],
     decorator.Exit[
         _Enter[_Param, _Ret],
         _Ret,
     ],
 ):
-    def __call__(self, result: decorator.Raise | _Ret) -> ():
-        return super().__call__(result)
+    future: _Future = dataclasses.field(default_factory=asyncio.Future)
+
+    async def __call__(self, result: decorator.Raise | _Ret) -> ():
+        self.future.set_result(result)
+
+        return tuple()
 
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[**_Param, _Ret](
-    retry.Enter[
+    lru_cache.Enter[
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Decorated[_Param, _Ret],
@@ -49,17 +56,30 @@ class Enter[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Param,
     ],
-): ...
+):
+    async def __call__(self, *args: _Param.args, **kwargs: _Param.kwargs) -> tuple[_Decoratee] | tuple[_Exit, _Decoratee]:
+        key = self.decorated.decorator.generate_key(*args, **kwargs)
+
+        future = self.decorated.future_by_key.pop(key, None)
+        while self.decorated.decorator.size <= len(self.decorated.future_by_key):
+            self.decorated.future_by_key.popitem(last=False)
+        if future is None:
+            future = self.decorated.future_by_key[key] = asyncio.Future()
+            return self.decorated.decorator.exit_t(enter=self, future=future), self.decorated.decoratee
+        else:
+            self.decorated.future_by_key[key] = future
+            return (lambda *_args, **_kwargs: future),
 
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorated[**_Param, _Ret](
-    retry.Decorated[
+    lru_cache.Decorated[
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
         _Decorator[_Param, _Ret],
+        _Future[_Param, _Ret],
     ],
     decorator.Decorated[
         _Decoratee[_Param, _Ret],
@@ -75,7 +95,7 @@ class Decorated[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorator[**_Param, _Ret](
-    retry.Decorator[
+    lru_cache.Decorator[
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],

@@ -2,7 +2,7 @@ import asyncio
 
 import pytest
 
-from funktools.asyncio.retry import Decorator as Retry
+from funktools import Retry
 
 
 @pytest.fixture(autouse=True)
