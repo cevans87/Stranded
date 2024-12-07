@@ -88,5 +88,3 @@ class Decorator[_Decoratee, _Exit, _Enter, _Decorated](abc.ABC):
             decoratee=decoratee,
             decorator=self,
         )
-
-

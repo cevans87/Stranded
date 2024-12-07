@@ -1,7 +1,7 @@
 import dataclasses
 import typing
 
-from ..abc import retry
+from ..abc_ import retry
 from . import decorator
 
 
@@ -13,9 +13,9 @@ type _Decorator[**_Param, _Ret] = Decorator[_Param, _Ret]
 
 
 @typing.runtime_checkable
-class Decoratee[**_Param, _Ret](retry.Decoratee, decorator.Decoratee, typing.Protocol):
+class Decoratee[** Param, Ret](retry.Decoratee, decorator.Decoratee, typing.Protocol):
 
-    async def __call__(*args: _Param.args, **kwargs: _Param.kwargs) -> _Ret: ...
+    def __call__(*args: Param.args, **kwargs: Param.kwargs) -> Ret: ...
 
 
 @typing.final
@@ -30,8 +30,8 @@ class Exit[**_Param, _Ret](
         _Ret,
     ],
 ):
-    async def __call__(self, *args: _Param.args, **kwargs: _Param.kwargs) -> tuple[_Exit, _Decoratee]:
-        return super().__call__(*args, **kwargs)
+    def __call__(self, result: decorator.Raise | _Ret) -> ():
+        return super().__call__(result)
 
 
 @typing.final

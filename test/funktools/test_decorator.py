@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 import asyncio
 import typing
 
@@ -20,7 +22,7 @@ def event_loop() -> asyncio.AbstractEventLoop:
 
 
 def test_base() -> None:
-    @base.Decorator()
+    @Decorator()
     def foo():
         ...
 
@@ -32,7 +34,7 @@ async def test_async_method() -> None:
 
     class Foo:
 
-        @base.Decorator()
+        @Decorator()
         async def bar(self, v):
             return locals()
 
@@ -43,7 +45,7 @@ def test_multi_method() -> None:
 
     class Foo:
 
-        @base.Decorator()
+        @Decorator()
         def bar(self, v):
             return locals()
 
@@ -56,7 +58,7 @@ async def test_async_classmethod() -> None:
     class Foo:
 
         @classmethod
-        @base.Decorator()
+        @Decorator()
         async def bar(cls, v):
             return locals()
 
@@ -68,7 +70,7 @@ def test_multi_classmethod() -> None:
     class Foo:
 
         @classmethod
-        @base.Decorator()
+        @Decorator()
         def bar(cls, v):
             return locals()
 
@@ -82,7 +84,7 @@ async def test_async_staticmethod() -> None:
         v: typing.ClassVar[int]
 
         @staticmethod
-        @base.Decorator()
+        @Decorator()
         async def bar(v):
             return locals()
 
@@ -94,7 +96,7 @@ def test_multi_staticmethod() -> None:
     class Foo:
 
         @staticmethod
-        @base.Decorator()
+        @Decorator()
         def bar(v):
             return locals()
 

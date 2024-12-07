@@ -1,12 +1,12 @@
+import concurrent.futures
 import dataclasses
-import threading
 import typing
 
-from ..abc import aimd_throttle
+from ..abc_ import lru_cache
 from . import decorator
 
 
-type _Condition[**_Param, _Ret] = threading.Condition
+type _Future[**_Param, _Ret] = concurrent.futures.Future[_Ret]
 type _Decoratee[**_Param, _Ret] = Decoratee[_Param, _Ret]
 type _Exit[**_Param, _Ret] = Exit[_Param, _Ret]
 type _Enter[**_Param, _Ret] = Enter[_Param, _Ret]
@@ -15,7 +15,7 @@ type _Decorator[**_Param, _Ret] = Decorator[_Param, _Ret]
 
 
 @typing.runtime_checkable
-class Decoratee[** Param, Ret](aimd_throttle.Decoratee, decorator.Decoratee, typing.Protocol):
+class Decoratee[** Param, Ret](lru_cache.Decoratee, decorator.Decoratee, typing.Protocol):
 
     def __call__(*args: Param.args, **kwargs: Param.kwargs) -> Ret: ...
 
@@ -23,59 +23,63 @@ class Decoratee[** Param, Ret](aimd_throttle.Decoratee, decorator.Decoratee, typ
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**_Param, _Ret](
-    aimd_throttle.Exit[
+    lru_cache.Exit[
         _Enter[_Param, _Ret],
         _Ret,
+        _Future[_Param, _Ret],
     ],
     decorator.Exit[
         _Enter[_Param, _Ret],
         _Ret,
     ],
 ):
+    future: _Future = dataclasses.field(default_factory=concurrent.futures.Future)
+
     def __call__(self, result: decorator.Raise | _Ret) -> ():
-        with self.enter.decorated.condition:
-            return super().__call__(result)
+        self.future.set_result(result)
+
+        return tuple()
 
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[**_Param, _Ret](
-    aimd_throttle.Enter[
-        _Decorated[_Param, _Ret],
+    lru_cache.Enter[
+        _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Decorated[_Param, _Ret],
         _Param,
     ],
     decorator.Enter[
         _Decoratee[_Param, _Ret],
+        _Exit[_Param, _Ret],
         _Decorated[_Param, _Ret],
         _Param,
     ],
 ):
-    def __call__(self, *args: _Param.args, **kwargs: _Param.kwargs) -> tuple[_Exit, _Decoratee]:
-        # TODO: this is mostly duplicate with the asyncio version. Try to consolidate.
-        state = self.decorated.state
-        with self.decorated.condition:
-            if state.num_waiting >= self.decorated.decorator.max_waiting:
-                raise Exception(f'Exceeded {self.decorated.decorator.max_waiting=}.')
-            elif 0 < state.num_waiting or state.cap_running <= state.num_running:
-                state.num_waiting += 1
-                self.decorated.condition.wait_for(lambda: state.num_running < state.cap_running)
-                state.num_waiting -= 1
-            self.decorated.state.num_running += 1
+    def __call__(self, *args: _Param.args, **kwargs: _Param.kwargs) -> tuple[_Decoratee] | tuple[_Exit, _Decoratee]:
+        key = self.decorated.decorator.generate_key(*args, **kwargs)
 
-        return self.decorated.decorator.exit_t(enter=self), self.decorated.decoratee,
+        future = self.decorated.future_by_key.pop(key, None)
+        while self.decorated.decorator.size <= len(self.decorated.future_by_key):
+            self.decorated.future_by_key.popitem(last=False)
+        if future is None:
+            future = self.decorated.future_by_key[key] = concurrent.futures.Future()
+            return self.decorated.decorator.exit_t(enter=self, future=future), self.decorated.decoratee
+        else:
+            self.decorated.future_by_key[key] = future
+            return (lambda *_args, **_kwargs: future.result()),
 
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorated[**_Param, _Ret](
-    aimd_throttle.Decorated[
+    lru_cache.Decorated[
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
         _Decorator[_Param, _Ret],
-        _Condition,
+        _Future[_Param, _Ret],
     ],
     decorator.Decorated[
         _Decoratee[_Param, _Ret],
@@ -91,12 +95,11 @@ class Decorated[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorator[**_Param, _Ret](
-    aimd_throttle.Decorator[
+    lru_cache.Decorator[
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
         _Decorator[_Param, _Ret],
-        _Condition,
     ],
     decorator.Decorator[
         _Decoratee[_Param, _Ret],
@@ -104,7 +107,4 @@ class Decorator[**_Param, _Ret](
         _Enter[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-):
-    @property
-    def condition_t(self) -> type[_Condition]:
-        return threading.Condition
+): ...

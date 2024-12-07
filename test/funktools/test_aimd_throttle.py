@@ -1,7 +1,7 @@
 import asyncio
 import pytest
 
-from funktools.asyncio.aimd_throttle import Decorator as AimdThrottle
+from funktools import AimdThrottle
 
 
 @pytest.fixture(autouse=True)
