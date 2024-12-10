@@ -12,7 +12,7 @@ import annotated_types
 from . import decorator
 
 
-class Exception(Exception): ...  # noqa
+class Exception(decorator.Exception): ...  # noqa
 
 
 @dataclasses.dataclass(kw_only=True)

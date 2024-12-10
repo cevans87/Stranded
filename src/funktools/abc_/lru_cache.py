@@ -14,7 +14,7 @@ type GenerateKey = typing.Callable[..., Key]
 type Key = typing.Hashable
 
 
-class Exception(Exception): ...  # noqa
+class Exception(decorator.Exception): ...  # noqa
 
 
 @typing.runtime_checkable

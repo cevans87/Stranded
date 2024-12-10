@@ -9,7 +9,7 @@ import typing
 from . import decorator
 
 
-class Exception(Exception): ...  # noqa
+class Exception(decorator.Exception): ...  # noqa
 
 
 @typing.runtime_checkable
