@@ -35,7 +35,6 @@ class Decorated[_Decoratee, _Exit, _Enter, _Decorator, ** _Param, _Ret](
     decorator.Decorated[_Decoratee, _Exit, _Enter, _Decorator],
     abc.ABC,
 ):
-    @typing.final
     async def __call__(self, *args: _Param.args, **kwargs: _Param.kwargs) -> _Ret:
         result: decorator.Raise | _Ret = ...
         stack = [self]

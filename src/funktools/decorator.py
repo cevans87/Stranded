@@ -5,9 +5,10 @@ import inspect
 from .abc_ import decorator
 
 
+# TODO: Complete the typing for this and all inheriting classes.
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorator(decorator.Decorator):
-    
+
     def __call__[_Decoratee](self, decoratee: _Decoratee) -> _Decoratee:
         return importlib.import_module(
             name=(

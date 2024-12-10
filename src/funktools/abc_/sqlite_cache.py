@@ -10,7 +10,7 @@ import sqlite3
 import typing
 import weakref
 
-import boltins.decorator.common as decorator
+from . import decorator
 
 
 type GenerateKey = typing.Callable[..., Key]
@@ -23,7 +23,7 @@ type _Decorated[** Param, Ret] = Decorated[Param, Ret]
 type _Decorator[** Param, Ret] = Decorator[Param, Ret]
 
 
-class Exception(Exception): ...  # noqa
+class Exception(decorator.Exception): ...  # noqa
 
 
 @typing.runtime_checkable
