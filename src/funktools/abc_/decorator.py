@@ -85,12 +85,11 @@ class Decorated[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated: typing.Se
     __signature__: inspect.Signature
     decoratee: _Decoratee
     decorator: _Decorator
-    instance: Instance | None
 
     def __get__(self, instance: Instance, owner) -> typing.Self:
-        return dataclasses.replace(self, decoratee=self.decoratee.__get__(instance, owner), instance=instance)
+        return dataclasses.replace(self, decoratee=self.decoratee.__get__(instance, owner))
 
-    def create_stack(self) -> tuple[_Decoratee | _Exit | _Enter, ...]:
+    def create_context(self) -> tuple[_Decoratee | _Exit | _Enter | _Decorator, ...]:
         return self.enter_t(decorated=self),
 
 
@@ -99,26 +98,6 @@ class Decorator[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated,  _Decorat
     Base[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
     abc.ABC,
 ):
-    @property
-    def decoratee_t(self) -> type[_Decoratee]:
-        return inspect.getmodule(type(self)).Decoratee
-
-    @property
-    def exit_t(self) -> type[_Exit]:
-        return inspect.getmodule(type(self)).Exit
-
-    @property
-    def enter_t(self) -> type[_Enter]:
-        return inspect.getmodule(type(self)).Enter
-
-    @property
-    def decorated_t(self) -> type[_Decorated]:
-        return inspect.getmodule(type(self)).Decorated
-
-    @property
-    def decorator_t(self) -> type[typing.Self]:
-        return inspect.getmodule(type(self)).Decorator
-
     def __call__(self, decoratee: _Decoratee, /) -> _Decorated:
         return self.decorated_t(
             __doc__=str(decoratee.__doc__),
@@ -128,5 +107,4 @@ class Decorator[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated,  _Decorat
             __signature__=inspect.signature(decoratee),
             decoratee=decoratee,
             decorator=self,
-            instance=None,
         )

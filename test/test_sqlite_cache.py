@@ -1,9 +1,10 @@
 import asyncio
+import pathlib
 import tempfile
 
 import pytest
 
-import funktools
+from funktools import SqliteCache
 
 # TODO: Multi tests are missing. This suite heavily relies upon determining whether coroutines are running vs suspended
 #  (via asyncio.eager_task_factory). Ideally, similar functionality exists for threading. Otherwise, we need to find a
@@ -25,16 +26,16 @@ def event_loop() -> asyncio.AbstractEventLoop:
 
 
 @pytest.fixture
-def db_path() -> str:
+def path() -> pathlib.Path:
     with tempfile.NamedTemporaryFile() as f:
-        yield f.name
+        yield pathlib.Path(f.name)
 
 
 @pytest.mark.asyncio
-async def test_async_zero_args(db_path: str) -> None:
+async def test_async_zero_args(path: pathlib.Path) -> None:
     call_count = 0
 
-    @funktools.SqliteCache()
+    @SqliteCache(path=path)
     async def foo() -> None:
         nonlocal call_count
         call_count += 1
@@ -44,10 +45,10 @@ async def test_async_zero_args(db_path: str) -> None:
     assert call_count == 1
 
 
-def test_multi_zero_args(db_path: str) -> None:
+def test_multi_zero_args(path: pathlib.Path) -> None:
     call_count = 0
 
-    @funktools.SqliteCache()
+    @SqliteCache(path=path)
     def foo() -> None:
         nonlocal call_count
         call_count += 1
@@ -59,10 +60,10 @@ def test_multi_zero_args(db_path: str) -> None:
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize('arg', [None, 1, 'foo', 0.0])
-async def test_async_primitive_arg(db_path, arg) -> None:
+async def test_async_primitive_arg(path: pathlib.Path, arg) -> None:
     call_count = 0
 
-    @funktools.SqliteCache(db_path=db_path)
+    @SqliteCache(path=path)
     async def foo(_) -> None:
         nonlocal call_count
         call_count += 1
@@ -73,10 +74,10 @@ async def test_async_primitive_arg(db_path, arg) -> None:
 
 
 @pytest.mark.parametrize('arg', [None, 1, 'foo', 0.0])
-def test_multi_primitive_arg(db_path, arg) -> None:
+def test_multi_primitive_arg(path: pathlib.Path, arg) -> None:
     call_count = 0
 
-    @funktools.SqliteCache(db_path=db_path)
+    @SqliteCache(path=path)
     def foo(_) -> None:
         nonlocal call_count
         call_count += 1
@@ -87,11 +88,16 @@ def test_multi_primitive_arg(db_path, arg) -> None:
 
 
 @pytest.mark.asyncio
-async def test_async_method() -> None:
+async def test_async_method(path: pathlib.Path) -> None:
     call_count = 0
 
     class Foo:
-        @funktools.SqliteCache()
+
+        @staticmethod
+        def __conform__(protocol) -> str:
+            return ""
+
+        @SqliteCache(path=path)
         async def foo(self) -> None:
             nonlocal call_count
             call_count += 1
@@ -106,11 +112,16 @@ async def test_async_method() -> None:
     assert call_count == 2
 
 
-def test_multi_method() -> None:
+def test_multi_method(path: pathlib.Path) -> None:
     call_count = 0
 
     class Foo:
-        @funktools.SqliteCache()
+
+        @staticmethod
+        def __conform__(protocol) -> str:
+            return ""
+
+        @SqliteCache(path=path)
         def foo(self) -> None:
             nonlocal call_count
             call_count += 1
@@ -126,12 +137,12 @@ def test_multi_method() -> None:
 
 
 @pytest.mark.asyncio
-async def test_async_classmethod() -> None:
+async def test_async_classmethod(path: pathlib.Path) -> None:
     call_count = 0
 
     class Foo:
         @classmethod
-        @funktools.SqliteCache()
+        @SqliteCache(path=path)
         async def foo(cls) -> None:
             nonlocal call_count
             call_count += 1
@@ -150,12 +161,12 @@ async def test_async_classmethod() -> None:
     assert call_count == 1
 
 
-def test_multi_classmethod() -> None:
+def test_multi_classmethod(path: pathlib.Path) -> None:
     call_count = 0
 
     class Foo:
         @classmethod
-        @funktools.SqliteCache()
+        @SqliteCache(path=path)
         def foo(cls) -> None:
             nonlocal call_count
             call_count += 1
@@ -175,12 +186,12 @@ def test_multi_classmethod() -> None:
 
 
 @pytest.mark.asyncio
-async def test_async_staticmethod() -> None:
+async def test_async_staticmethod(path: pathlib.Path) -> None:
     call_count = 0
 
     class Foo:
         @staticmethod
-        @funktools.SqliteCache()
+        @SqliteCache(path=path)
         async def foo() -> None:
             nonlocal call_count
             call_count += 1
@@ -199,12 +210,12 @@ async def test_async_staticmethod() -> None:
     assert call_count == 1
 
 
-def test_multi_staticmethod() -> None:
+def test_multi_staticmethod(path: pathlib.Path) -> None:
     call_count = 0
 
     class Foo:
         @staticmethod
-        @funktools.SqliteCache()
+        @SqliteCache(path=path)
         def foo() -> None:
             nonlocal call_count
             call_count += 1
