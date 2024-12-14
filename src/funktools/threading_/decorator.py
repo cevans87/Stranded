@@ -41,16 +41,18 @@ class Decorated[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated: typing.Se
 ):
     def __call__(self, *args: _Param.args, **kwargs: _Param.kwargs) -> _Ret:
         result: decorator.Raise | _Ret = ...
-        stack = list(self.create_stack())
+        stack = [self]
         while stack:
             try:
                 match stack.pop():
-                    case Enter() as enter:
-                        stack.extend(enter(*args, **kwargs))
+                    case Decorated() as decorated_:
+                        stack.extend(decorated_.create_context())
+                    case Enter() as enter_:
+                        stack.extend(enter_(*args, **kwargs))
                     case Exit() as exit_:
                         stack.extend(exit_(result))
-                    case Decoratee() as decoratee:
-                        result = decoratee(*args, **kwargs)
+                    case Decoratee() as decoratee_:
+                        result = decoratee_(*args, **kwargs)
             except Exception:  # noqa
                 result = decorator.Raise(*sys.exc_info())
 
@@ -58,6 +60,9 @@ class Decorated[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated: typing.Se
             raise result.exc_val
 
         return result
+
+    def create_context(self) -> tuple[_Decoratee | _Exit | _Enter | _Decorator, ...]:
+        return super().create_context()
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
