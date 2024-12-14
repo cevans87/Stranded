@@ -27,8 +27,10 @@ class Decoratee(decorator.Decoratee, typing.Protocol): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Exit[_Enter, _Ret](decorator.Exit[_Enter, _Ret], abc.ABC):
-
+class Exit[**_Param, _Ret, _Decoratee, _Exit: typing.Self, _Enter, _Decorated, _Decorator](
+    decorator.Exit[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
+    abc.ABC,
+):
     def __call__(self, result: decorator.Raise | _Ret) -> ():
         state = self.enter.decorated.state
         if isinstance(result, decorator.Raise) and state.num_running <= state.cap_running:
@@ -43,19 +45,19 @@ class Exit[_Enter, _Ret](decorator.Exit[_Enter, _Ret], abc.ABC):
         if 0 < (n := state.cap_running - state.num_running):
             self.enter.decorated.condition.notify(n=n)
 
-        return tuple()
+        return ()
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Enter[_Decoratee, _Exit, _Decorated, **_Param](
-    decorator.Enter[_Decoratee, _Exit, _Decorated, _Param],
+class Enter[** _Param, _Ret, _Decoratee, _Exit, _Enter: typing.Self, _Decorated, _Decorator](
+    decorator.Enter[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
     abc.ABC,
 ): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorated[_Decoratee, _Exit, _Enter, _Decorator, _Condition](
-    decorator.Decorated[_Decoratee, _Exit, _Enter, _Decorator],
+class Decorated[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated: typing.Self, _Decorator, _Condition](
+    decorator.Decorated[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
     abc.ABC,
 ):
     condition: _Condition
@@ -84,8 +86,8 @@ class Decorated[_Decoratee, _Exit, _Enter, _Decorator, _Condition](
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorator[_Decoratee, _Exit, _Enter, _Decorated, _Condition](
-    decorator.Decorator[_Decoratee, _Exit, _Enter, _Decorated],
+class Decorator[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator: typing.Self](
+    decorator.Decorator[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
     abc.ABC,
 ):
     # How many callees are allowed through concurrently before additional callees become waiters.

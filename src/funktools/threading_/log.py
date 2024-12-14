@@ -22,12 +22,22 @@ class Decoratee[** Param, Ret](log.Decoratee, decorator.Decoratee, typing.Protoc
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**_Param, _Ret](
     log.Exit[
-        _Enter[_Param, _Ret],
+        _Param,
         _Ret,
+        _Decoratee[_Param, _Ret],
+        _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
+        _Decorator[_Param, _Ret],
     ],
     decorator.Exit[
-        _Enter[_Param, _Ret],
+        _Param,
         _Ret,
+        _Decoratee[_Param, _Ret],
+        _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
+        _Decorator[_Param, _Ret],
     ],
 ):
     def __call__(self, result: decorator.Raise | _Ret) -> ():
@@ -38,16 +48,22 @@ class Exit[**_Param, _Ret](
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[**_Param, _Ret](
     log.Enter[
+        _Param,
+        _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
-        _Param,
+        _Decorator[_Param, _Ret],
     ],
     decorator.Enter[
+        _Param,
+        _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
-        _Param,
+        _Decorator[_Param, _Ret],
     ],
 ):
     def __call__(self, *args: _Param.args, **kwargs: _Param.kwargs) -> tuple[_Exit, _Decoratee]:
@@ -58,18 +74,22 @@ class Enter[**_Param, _Ret](
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorated[**_Param, _Ret](
     log.Decorated[
+        _Param,
+        _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
     decorator.Decorated[
+        _Param,
+        _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
-        _Param,
-        _Ret,
     ],
 ): ...
 
@@ -78,15 +98,21 @@ class Decorated[**_Param, _Ret](
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorator[**_Param, _Ret](
     log.Decorator[
+        _Param,
+        _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
     decorator.Decorator[
+        _Param,
+        _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
 ): ...

@@ -2,26 +2,18 @@ from __future__ import annotations
 
 import abc
 import ast
-import collections
 import dataclasses
 import inspect
 import pathlib
 import sqlite3
+import textwrap
 import typing
-import weakref
 
 from . import decorator
 
 
 type GenerateKey = typing.Callable[..., Key]
 type Key = typing.Hashable
-
-type _Decoratee[** Param, Ret] = Decoratee[Param, Ret]
-type _Exit[** Param, Ret] = Exit[Param, Ret]
-type _Enter[** Param, Ret] = Enter[Param, Ret]
-type _Decorated[** Param, Ret] = Decorated[Param, Ret]
-type _Decorator[** Param, Ret] = Decorator[Param, Ret]
-
 
 class Exception(decorator.Exception): ...  # noqa
 
@@ -31,8 +23,17 @@ class Decoratee(decorator.Decoratee, typing.Protocol): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Exit[_Enter, _Future](decorator.Exit[_Enter], abc.ABC):
-    future: _Future
+class Exit[_Enter, _Ret](decorator.Exit[_Enter, _Ret], abc.ABC):
+    key: str
+
+    def __call__(self, result: decorator.Raise | _Ret) -> ():
+        if not isinstance(result, decorator.Raise):
+            self.enter.connection.execute(
+                'INSERT INTO `?` (key, value) VALUES (`?`, `?`)'
+                (self.enter.decorator.table_name, self.key, repr(result))
+            )
+
+        return ()
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -43,12 +44,13 @@ class Enter[_Decoratee, _Exit, _Decorated, **_Param, _Ret](
     connection: sqlite3.Connection
 
     def __call__(self, *args: _Param.args, **kwargs: _Param.kwargs) -> tuple[_Ret] | tuple[_Exit, _Decoratee]:
-        table_name = f'{self.decorated.__module__}.{self.decorated.__qualname__}'
-
         (bound := inspect.signature(self.decorated.decoratee).bind(*args, **kwargs)).apply_defaults()
         key = repr((bound.args, tuple(sorted(bound.kwargs))))
 
-        if value := self.connection.execute(f'SELECT value FROM `?` WHERE key = ?', (table_name, key,)).fetchone():
+        if value := self.connection.execute(
+            'SELECT value FROM `?` WHERE key = `?`',
+            (self.decorated.table_name, key,),
+        ).fetchone():
             return ast.literal_eval(value[0]),
 
         return super().__call__(*args, **kwargs)
@@ -58,19 +60,25 @@ class Enter[_Decoratee, _Exit, _Decorated, **_Param, _Ret](
 class Decorated[_Decoratee, _Exit, _Enter, _Decorator, _Future](
     decorator.Decorated[_Decoratee, _Exit, _Enter, _Decorator],
     abc.ABC,
-): ...
+):
+    def __get__(self, instance: decorator.Instance, owner) -> typing.Self:
+        # TODO make sure instance is reproducible somehow across process invocations.
+        assert instance.__repr__ is not object.__repr__
+        return
 
-    #connection: sqlite3.Connection = dataclasses.field(default_factory=sqlite3.Connection)
-    #instance: decorator.Instance
+    def __post_init__(self) -> None:
+        self.connection.execute(
 
-    #future_by_key: collections.OrderedDict[Key, _Future] = dataclasses.field(default_factory=collections.OrderedDict)
+            textwrap.dedent(f'''
+            CREATE TABLE IF NOT EXISTS `{self.table_name}` (
+                key STRING PRIMARY KEY NOT NULL UNIQUE,
+                value STRING NOT NULL
+            )
+        ''').strip())
 
-    #def __get__(self, instance, owner) -> typing.Self:
-    #    return dataclasses.replace(
-    #        self,
-    #        decoratee=self.decoratee.__get__(instance, owner),
-    #        instance=instance,
-    #    )
+    @property
+    def table_name(self) -> str:
+        return f'{self.__module__}.{self.__qualname__}.{self.instance!r}'
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -78,6 +86,4 @@ class Decorator[_Decoratee, _Exit, _Enter, _Decorated](
     decorator.Decorator[_Decoratee, _Exit, _Enter, _Decorated],
     abc.ABC,
 ):
-    path: pathlib.Path | None = None
-        #'file::memory:?cache=shared'
-        # ':memory:'
+    path: pathlib.Path = pathlib.Path.home() / '.cache' / 'stranded' / 'sqlite_cache'

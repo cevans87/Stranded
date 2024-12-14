@@ -5,7 +5,6 @@ import inspect
 from .abc_ import decorator
 
 
-# TODO: Complete the typing for this and all inheriting classes.
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorator(decorator.Decorator):
 

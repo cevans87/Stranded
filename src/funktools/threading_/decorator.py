@@ -17,32 +17,34 @@ class Decoratee[** Param, Ret](decorator.Decoratee[Param, Ret], typing.Protocol)
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Exit[_Enter, _Ret](decorator.Exit[_Enter, _Ret], abc.ABC):
-
+class Exit[**_Param, _Ret, _Decoratee, _Exit: typing.Self, _Enter, _Decorated, _Decorator](
+    decorator.Exit[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
+    abc.ABC,
+):
     def __call__(self, result: decorator.Raise | _Ret) -> ():
-        return tuple()
+        return super().__call__(result)
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Enter[_Decoratee, _Exit, _Decorated, **_Param](decorator.Enter[_Decoratee, _Exit, _Decorated, _Param], abc.ABC):
-
+class Enter[**_Param, _Ret, _Decoratee, _Exit, _Enter: typing.Self, _Decorated, _Decorator](
+    decorator.Enter[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
+    abc.ABC,
+):
     def __call__(self, *args: _Param.args, **kwargs: _Param.kwargs) -> tuple[_Exit, _Decoratee]:
         return super().__call__(*args, **kwargs)
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorated[_Decoratee, _Exit, _Enter, _Decorator, ** _Param, _Ret](
-    decorator.Decorated[_Decoratee, _Exit, _Enter, _Decorator],
+class Decorated[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated: typing.Self, _Decorator](
+    decorator.Decorated[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
     abc.ABC,
 ):
     def __call__(self, *args: _Param.args, **kwargs: _Param.kwargs) -> _Ret:
         result: decorator.Raise | _Ret = ...
-        stack = [self]
+        stack = list(self.create_stack())
         while stack:
             try:
                 match stack.pop():
-                    case Decorated() as decorated:
-                        stack.append(decorated.decorator.enter_t(decorated=decorated))
                     case Enter() as enter:
                         stack.extend(enter(*args, **kwargs))
                     case Exit() as exit_:
@@ -59,7 +61,7 @@ class Decorated[_Decoratee, _Exit, _Enter, _Decorator, ** _Param, _Ret](
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorator[_Decoratee, _Exit, _Enter, _Decorated](
-    decorator.Decorator[_Decoratee, _Exit, _Enter, _Decorated],
+class Decorator[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator: typing.Self](
+    decorator.Decorator[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
     abc.ABC,
 ): ...

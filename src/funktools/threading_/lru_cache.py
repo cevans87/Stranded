@@ -24,13 +24,23 @@ class Decoratee[** Param, Ret](lru_cache.Decoratee, decorator.Decoratee, typing.
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**_Param, _Ret](
     lru_cache.Exit[
-        _Enter[_Param, _Ret],
+        _Param,
         _Ret,
-        _Future[_Param, _Ret],
+        _Decoratee[_Param, _Ret],
+        _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
+        _Decorator[_Param, _Ret],
+        _Future,
     ],
     decorator.Exit[
-        _Enter[_Param, _Ret],
+        _Param,
         _Ret,
+        _Decoratee[_Param, _Ret],
+        _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
+        _Decorator[_Param, _Ret],
     ],
 ):
     future: _Future = dataclasses.field(default_factory=concurrent.futures.Future)
@@ -38,28 +48,34 @@ class Exit[**_Param, _Ret](
     def __call__(self, result: decorator.Raise | _Ret) -> ():
         self.future.set_result(result)
 
-        return tuple()
+        return ()
 
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[**_Param, _Ret](
     lru_cache.Enter[
+        _Param,
+        _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
-        _Param,
+        _Decorator[_Param, _Ret],
     ],
     decorator.Enter[
+        _Param,
+        _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
-        _Param,
+        _Decorator[_Param, _Ret],
     ],
 ):
+    # TODO: Dedup this with the asyncio version.
     def __call__(self, *args: _Param.args, **kwargs: _Param.kwargs) -> tuple[_Decoratee] | tuple[_Exit, _Decoratee]:
-        key = self.decorated.decorator.generate_key(*args, **kwargs)
-
+        key = self.create_key(*args, **kwargs)
         future = self.decorated.future_by_key.pop(key, None)
         while self.decorated.decorator.size <= len(self.decorated.future_by_key):
             self.decorated.future_by_key.popitem(last=False)
@@ -75,19 +91,23 @@ class Enter[**_Param, _Ret](
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorated[**_Param, _Ret](
     lru_cache.Decorated[
+        _Param,
+        _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
         _Future[_Param, _Ret],
     ],
     decorator.Decorated[
+        _Param,
+        _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
-        _Param,
-        _Ret,
     ],
 ): ...
 
@@ -96,15 +116,21 @@ class Decorated[**_Param, _Ret](
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorator[**_Param, _Ret](
     lru_cache.Decorator[
+        _Param,
+        _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
     decorator.Decorator[
+        _Param,
+        _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
 ): ...
