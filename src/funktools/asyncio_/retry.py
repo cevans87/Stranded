@@ -22,12 +22,22 @@ class Decoratee[**_Param, _Ret](retry.Decoratee, decorator.Decoratee, typing.Pro
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**_Param, _Ret](
     retry.Exit[
-        _Enter[_Param, _Ret],
+        _Param,
         _Ret,
+        _Decoratee[_Param, _Ret],
+        _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
+        _Decorator[_Param, _Ret],
     ],
     decorator.Exit[
-        _Enter[_Param, _Ret],
+        _Param,
         _Ret,
+        _Decoratee[_Param, _Ret],
+        _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
+        _Decorator[_Param, _Ret],
     ],
 ):
     async def __call__(self, *args: _Param.args, **kwargs: _Param.kwargs) -> tuple[_Exit, _Decoratee]:
@@ -38,16 +48,22 @@ class Exit[**_Param, _Ret](
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[**_Param, _Ret](
     retry.Enter[
+        _Param,
+        _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
-        _Param,
+        _Decorator[_Param, _Ret],
     ],
     decorator.Enter[
+        _Param,
+        _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
-        _Param,
+        _Decorator[_Param, _Ret],
     ],
 ): ...
 
@@ -56,18 +72,22 @@ class Enter[**_Param, _Ret](
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorated[**_Param, _Ret](
     retry.Decorated[
+        _Param,
+        _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
     decorator.Decorated[
+        _Param,
+        _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
-        _Param,
-        _Ret,
     ],
 ): ...
 
@@ -76,15 +96,21 @@ class Decorated[**_Param, _Ret](
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorator[**_Param, _Ret](
     retry.Decorator[
+        _Param,
+        _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
     decorator.Decorator[
+        _Param,
+        _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
 ): ...

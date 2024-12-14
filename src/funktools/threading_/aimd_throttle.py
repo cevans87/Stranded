@@ -24,12 +24,22 @@ class Decoratee[** Param, Ret](aimd_throttle.Decoratee, decorator.Decoratee, typ
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**_Param, _Ret](
     aimd_throttle.Exit[
-        _Enter[_Param, _Ret],
+        _Param,
         _Ret,
+        _Decoratee[_Param, _Ret],
+        _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
+        _Decorator[_Param, _Ret],
     ],
     decorator.Exit[
-        _Enter[_Param, _Ret],
+        _Param,
         _Ret,
+        _Decoratee[_Param, _Ret],
+        _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
+        _Decorator[_Param, _Ret],
     ],
 ):
     def __call__(self, result: decorator.Raise | _Ret) -> ():
@@ -41,15 +51,22 @@ class Exit[**_Param, _Ret](
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[**_Param, _Ret](
     aimd_throttle.Enter[
-        _Decorated[_Param, _Ret],
-        _Exit[_Param, _Ret],
-        _Decorated[_Param, _Ret],
         _Param,
+        _Ret,
+        _Decoratee[_Param, _Ret],
+        _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
+        _Decorator[_Param, _Ret],
     ],
     decorator.Enter[
-        _Decoratee[_Param, _Ret],
-        _Decorated[_Param, _Ret],
         _Param,
+        _Ret,
+        _Decoratee[_Param, _Ret],
+        _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
+        _Decorator[_Param, _Ret],
     ],
 ):
     def __call__(self, *args: _Param.args, **kwargs: _Param.kwargs) -> tuple[_Exit, _Decoratee]:
@@ -71,19 +88,23 @@ class Enter[**_Param, _Ret](
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorated[**_Param, _Ret](
     aimd_throttle.Decorated[
-        _Decoratee[_Param, _Ret],
-        _Exit[_Param, _Ret],
-        _Enter[_Param, _Ret],
-        _Decorator[_Param, _Ret],
-        _Condition,
-    ],
-    decorator.Decorated[
-        _Decoratee[_Param, _Ret],
-        _Exit[_Param, _Ret],
-        _Enter[_Param, _Ret],
-        _Decorator[_Param, _Ret],
         _Param,
         _Ret,
+        _Decoratee[_Param, _Ret],
+        _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
+        _Decorator[_Param, _Ret],
+        _Condition[_Param, _Ret],
+    ],
+    decorator.Decorated[
+        _Param,
+        _Ret,
+        _Decoratee[_Param, _Ret],
+        _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
+        _Decorator[_Param, _Ret],
     ],
 ):
     condition: _Condition = dataclasses.field(default_factory=threading.Condition)
@@ -97,16 +118,21 @@ class Decorated[**_Param, _Ret](
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorator[**_Param, _Ret](
     aimd_throttle.Decorator[
+        _Param,
+        _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
-        _Condition,
     ],
     decorator.Decorator[
+        _Param,
+        _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
 ): ...

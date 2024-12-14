@@ -6,7 +6,7 @@ from . import decorator
 from ..abc_ import aimd_throttle
 
 
-type _Condition = asyncio.Condition
+type _Condition[**_Param, _Ret] = asyncio.Condition
 type _Decoratee[**_Param, _Ret] = Decoratee[_Param, _Ret]
 type _Exit[**_Param, _Ret] = Exit[_Param, _Ret]
 type _Enter[**_Param, _Ret] = Enter[_Param, _Ret]
@@ -24,12 +24,22 @@ class Decoratee[**_Param, _Ret](aimd_throttle.Decoratee, decorator.Decoratee, ty
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**_Param, _Ret](
     aimd_throttle.Exit[
-        _Enter[_Param, _Ret],
+        _Param,
         _Ret,
+        _Decoratee[_Param, _Ret],
+        _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
+        _Decorator[_Param, _Ret],
     ],
     decorator.Exit[
-        _Enter[_Param, _Ret],
+        _Param,
         _Ret,
+        _Decoratee[_Param, _Ret],
+        _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
+        _Decorator[_Param, _Ret],
     ],
 ):
     async def __call__(self, result: decorator.Raise | _Ret) -> ():
@@ -41,16 +51,22 @@ class Exit[**_Param, _Ret](
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[**_Param, _Ret](
     aimd_throttle.Enter[
+        _Param,
+        _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
-        _Param,
+        _Decorator[_Param, _Ret],
     ],
     decorator.Enter[
+        _Param,
+        _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
-        _Param,
+        _Decorator[_Param, _Ret],
     ],
 ):
     async def __call__(self, *args: _Param.args, **kwargs: _Param.kwargs) -> tuple[_Exit, _Decoratee]:
@@ -72,22 +88,26 @@ class Enter[**_Param, _Ret](
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorated[**_Param, _Ret](
     aimd_throttle.Decorated[
-        _Decoratee[_Param, _Ret],
-        _Exit[_Param, _Ret],
-        _Enter[_Param, _Ret],
-        _Decorator[_Param, _Ret],
-        _Condition,  # FIXME this isn't needed here. It's left over from when condition_t was defined in Decorator
-    ],
-    decorator.Decorated[
-        _Decoratee[_Param, _Ret],
-        _Exit[_Param, _Ret],
-        _Enter[_Param, _Ret],
-        _Decorator[_Param, _Ret],
         _Param,
         _Ret,
+        _Decoratee[_Param, _Ret],
+        _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
+        _Decorator[_Param, _Ret],
+        _Condition[_Param, _Ret],
+    ],
+    decorator.Decorated[
+        _Param,
+        _Ret,
+        _Decoratee[_Param, _Ret],
+        _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
+        _Decorator[_Param, _Ret],
     ],
 ):
-    condition: _Condition = dataclasses.field(default_factory=asyncio.Condition)
+    condition: _Condition[_Param, _Ret] = dataclasses.field(default_factory=asyncio.Condition)
 
     @property
     def condition_t(self) -> type[_Condition]:
@@ -98,16 +118,21 @@ class Decorated[**_Param, _Ret](
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorator[**_Param, _Ret](
     aimd_throttle.Decorator[
+        _Param,
+        _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
-        _Condition,
     ],
     decorator.Decorator[
+        _Param,
+        _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
 ): ...

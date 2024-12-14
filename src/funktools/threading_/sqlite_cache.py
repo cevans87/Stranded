@@ -37,7 +37,7 @@ class Exit[**_Param, _Ret](
     def __call__(self, result: decorator.Raise | _Ret) -> ():
         self.future.set_result(result)
 
-        return tuple()
+        return ()
 
 
 @typing.final

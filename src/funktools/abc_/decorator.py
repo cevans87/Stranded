@@ -11,6 +11,7 @@ class Exception(Exception): ...  # noqa
 
 @typing.runtime_checkable
 class Decoratee[** Param, Ret](typing.Protocol):
+
     def __get__(self, instance: Instance, owner) -> typing.Self: ...
 
 
@@ -20,29 +21,63 @@ type Name = typing.Annotated[str, annotated_types.Predicate(str.isidentifier)]  
 
 @dataclasses.dataclass(frozen=True)
 class Raise:
+
     exc_type: type[BaseException]
     exc_val: BaseException
     exc_tb: types.TracebackType
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Exit[_Enter, _Ret](abc.ABC):
+class Base[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator](abc.ABC):
+
+    @property
+    def decoratee_t(self) -> type[_Decoratee]:
+        return inspect.getmodule(type(self)).Decoratee
+
+    @property
+    def decorated_t(self) -> type[_Decorated]:
+        return inspect.getmodule(type(self)).Decorated
+
+    @property
+    def decorator_t(self) -> type[_Decorator]:
+        return inspect.getmodule(type(self)).Decorator
+
+    @property
+    def enter_t(self) -> type[_Enter]:
+        return inspect.getmodule(type(self)).Enter
+
+    @property
+    def exit_t(self) -> type[_Exit]:
+        return inspect.getmodule(type(self)).Exit
+
+
+@dataclasses.dataclass(frozen=True, kw_only=True)
+class Exit[**_Param, _Ret, _Decoratee, _Exit: typing.Self, _Enter, _Decorated, _Decorator](
+    Base[_Param, _Ret, _Decoratee, _Decorator, _Decorated, _Enter, _Exit],
+    abc.ABC,
+):
     enter: _Enter
 
     def __call__(self, result: Raise | _Ret) -> ():
-        return tuple()
+        return ()
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Enter[_Decoratee, _Exit, _Decorated, **_Param](abc.ABC):
+class Enter[**_Param, _Ret, _Decoratee, _Exit, _Enter: typing.Self, _Decorated, _Decorator](
+    Base[_Param, _Ret, _Decoratee, _Decorator, _Decorated, _Enter, _Exit],
+    abc.ABC,
+):
     decorated: _Decorated
 
     def __call__(self, *args: _Param.args, **kwargs: _Param.kwargs) -> tuple[_Exit, _Decoratee]:
-        return self.decorated.decorator.exit_t(enter=self), self.decorated.decoratee,
+        return self.exit_t(enter=self), self.decorated.decoratee,
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorated[_Decoratee, _Exit, _Enter, _Decorator](abc.ABC):
+class Decorated[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated: typing.Self, _Decorator](
+    Base[_Param, _Ret, _Decoratee,_Exit, _Enter, _Decorated, _Decorator],
+    abc.ABC,
+):
     __doc__: str
     __module__: str
     __name__: str
@@ -50,14 +85,20 @@ class Decorated[_Decoratee, _Exit, _Enter, _Decorator](abc.ABC):
     __signature__: inspect.Signature
     decoratee: _Decoratee
     decorator: _Decorator
+    instance: Instance | None
 
     def __get__(self, instance: Instance, owner) -> typing.Self:
-        return dataclasses.replace(self, decoratee=self.decoratee.__get__(instance, owner))
+        return dataclasses.replace(self, decoratee=self.decoratee.__get__(instance, owner), instance=instance)
+
+    def create_stack(self) -> tuple[_Decoratee | _Exit | _Enter, ...]:
+        return self.enter_t(decorated=self),
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorator[_Decoratee, _Exit, _Enter, _Decorated](abc.ABC):
-
+class Decorator[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated,  _Decorator: typing.Self](
+    Base[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
+    abc.ABC,
+):
     @property
     def decoratee_t(self) -> type[_Decoratee]:
         return inspect.getmodule(type(self)).Decoratee
@@ -87,4 +128,5 @@ class Decorator[_Decoratee, _Exit, _Enter, _Decorated](abc.ABC):
             __signature__=inspect.signature(decoratee),
             decoratee=decoratee,
             decorator=self,
+            instance=None,
         )
