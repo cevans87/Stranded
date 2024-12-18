@@ -6,29 +6,32 @@ import inspect
 import logging
 import typing
 
-from . import decorator
+from . import decorator as abc_decorator
 
 
 Level = typing.Literal['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'NOTSET']
 
 
-class Exception(decorator.Exception): ...  # noqa
+class Exception(abc_decorator.Exception): ...  # noqa
 
 
 @typing.runtime_checkable
-class Decoratee(decorator.Decoratee, typing.Protocol): ...
+class Decoratee[**_Param, _Ret, _Decoratee: typing.Self, _Exit, _Enter, _Decorated, _Decorator](
+    abc_decorator.Decoratee[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
+    typing.Protocol,
+): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**_Param, _Ret, _Decoratee, _Exit: typing.Self, _Enter, _Decorated, _Decorator](
-    decorator.Exit[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
+    abc_decorator.Exit[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
     abc.ABC,
 ):
     bound_arguments: inspect.BoundArguments
 
     @abc.abstractmethod
-    def __call__(self, result: decorator.Raise | _Ret) -> ():
-        if isinstance(result, decorator.Raise):
+    def __call__(self, result: abc_decorator.Raise | _Ret) -> ():
+        if isinstance(result, abc_decorator.Raise):
             self.enter.decorated.decorator.logger.log(
                 logging.getLevelNamesMapping()[self.enter.decorated.decorator.err_level],
                 '%s :: %s !! %s',
@@ -50,7 +53,7 @@ class Exit[**_Param, _Ret, _Decoratee, _Exit: typing.Self, _Enter, _Decorated, _
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[** _Param, _Ret, _Decoratee, _Exit, _Enter: typing.Self, _Decorated, _Decorator](
-    decorator.Enter[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
+    abc_decorator.Enter[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
     abc.ABC,
 ):
     @abc.abstractmethod
@@ -68,14 +71,14 @@ class Enter[** _Param, _Ret, _Decoratee, _Exit, _Enter: typing.Self, _Decorated,
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorated[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated: typing.Self, _Decorator](
-    decorator.Decorated[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
+    abc_decorator.Decorated[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
     abc.ABC,
 ): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorator[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator: typing.Self](
-    decorator.Decorator[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
+    abc_decorator.Decorator[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
     abc.ABC,
 ):
     logger: logging.Logger

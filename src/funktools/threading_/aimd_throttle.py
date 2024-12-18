@@ -2,8 +2,9 @@ import dataclasses
 import threading
 import typing
 
-from ..abc_ import aimd_throttle
-from . import decorator
+from ..abc_ import decorator as abc_decorator
+from ..abc_ import aimd_throttle as abc_aimd_throttle
+from . import decorator as threading_decorator
 
 
 type _Condition[**_Param, _Ret] = threading.Condition
@@ -15,15 +16,8 @@ type _Decorator[**_Param, _Ret] = Decorator[_Param, _Ret]
 
 
 @typing.runtime_checkable
-class Decoratee[** Param, Ret](aimd_throttle.Decoratee, decorator.Decoratee, typing.Protocol):
-
-    def __call__(*args: Param.args, **kwargs: Param.kwargs) -> Ret: ...
-
-
-@typing.final
-@dataclasses.dataclass(frozen=True, kw_only=True)
-class Exit[**_Param, _Ret](
-    aimd_throttle.Exit[
+class Decoratee[**_Param, _Ret](
+    threading_decorator.Decoratee[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -32,7 +26,32 @@ class Exit[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    decorator.Exit[
+    abc_aimd_throttle.Decoratee[
+        _Param,
+        _Ret,
+        _Decoratee[_Param, _Ret],
+        _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
+        _Decorator[_Param, _Ret],
+    ],
+    typing.Protocol,
+): ...
+
+
+@typing.final
+@dataclasses.dataclass(frozen=True, kw_only=True)
+class Exit[**_Param, _Ret](
+    threading_decorator.Exit[
+        _Param,
+        _Ret,
+        _Decoratee[_Param, _Ret],
+        _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
+        _Decorator[_Param, _Ret],
+    ],
+    abc_aimd_throttle.Exit[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -42,7 +61,7 @@ class Exit[**_Param, _Ret](
         _Decorator[_Param, _Ret],
     ],
 ):
-    def __call__(self, result: decorator.Raise | _Ret) -> ():
+    def __call__(self, result: abc_decorator.Raise | _Ret) -> ():
         with self.enter.decorated.condition:
             return super().__call__(result)
 
@@ -50,7 +69,7 @@ class Exit[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[**_Param, _Ret](
-    aimd_throttle.Enter[
+    threading_decorator.Enter[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -59,7 +78,7 @@ class Enter[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    decorator.Enter[
+    abc_aimd_throttle.Enter[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -87,7 +106,16 @@ class Enter[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorated[**_Param, _Ret](
-    aimd_throttle.Decorated[
+    threading_decorator.Decorated[
+        _Param,
+        _Ret,
+        _Decoratee[_Param, _Ret],
+        _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
+        _Decorator[_Param, _Ret],
+    ],
+    abc_aimd_throttle.Decorated[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -96,15 +124,6 @@ class Decorated[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
         _Condition[_Param, _Ret],
-    ],
-    decorator.Decorated[
-        _Param,
-        _Ret,
-        _Decoratee[_Param, _Ret],
-        _Exit[_Param, _Ret],
-        _Enter[_Param, _Ret],
-        _Decorated[_Param, _Ret],
-        _Decorator[_Param, _Ret],
     ],
 ):
     condition: _Condition = dataclasses.field(default_factory=threading.Condition)
@@ -117,7 +136,7 @@ class Decorated[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorator[**_Param, _Ret](
-    aimd_throttle.Decorator[
+    threading_decorator.Decorator[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -126,7 +145,7 @@ class Decorator[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    decorator.Decorator[
+    abc_aimd_throttle.Decorator[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
