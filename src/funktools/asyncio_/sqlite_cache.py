@@ -1,8 +1,8 @@
 import dataclasses
 import typing
 
-from ..abc_ import sqlite_cache
-from . import decorator
+from ..abc_ import sqlite_cache as abc_sqlite_cache
+from . import decorator as asyncio_decorator
 
 
 type _Decoratee[**_Param, _Ret] = Decoratee[_Param, _Ret]
@@ -13,15 +13,33 @@ type _Decorator[**_Param, _Ret] = Decorator[_Param, _Ret]
 
 
 @typing.runtime_checkable
-class Decoratee[**_Param, _Ret](sqlite_cache.Decoratee, decorator.Decoratee, typing.Protocol):
-
-    async def __call__(*args: _Param.args, **kwargs: _Param.kwargs) -> _Ret: ...
+class Decoratee[**_Param, _Ret](
+    asyncio_decorator.Decoratee[
+        _Param,
+        _Ret,
+        _Decoratee[_Param, _Ret],
+        _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
+        _Decorator[_Param, _Ret],
+    ],
+    abc_sqlite_cache.Decoratee[
+        _Param,
+        _Ret,
+        _Decoratee[_Param, _Ret],
+        _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
+        _Decorator[_Param, _Ret],
+    ],
+    typing.Protocol,
+): ...
 
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**_Param, _Ret](
-    sqlite_cache.Exit[
+    asyncio_decorator.Exit[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -30,7 +48,7 @@ class Exit[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    decorator.Exit[
+    abc_sqlite_cache.Exit[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -39,15 +57,13 @@ class Exit[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-):
-    async def __call__(self, *args: _Param.args, **kwargs: _Param.kwargs) -> tuple[_Exit, _Decoratee]:
-        return super().__call__(*args, **kwargs)
+): ...
 
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[**_Param, _Ret](
-    sqlite_cache.Enter[
+    asyncio_decorator.Enter[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -56,7 +72,7 @@ class Enter[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    decorator.Enter[
+    abc_sqlite_cache.Enter[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -65,15 +81,13 @@ class Enter[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-):
-    async def __call__(self, *args: _Param.args, **kwargs: _Param.kwargs) -> tuple[_Exit, _Decoratee]:
-        return super().__call__(*args, **kwargs)
+): ...
 
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorated[**_Param, _Ret](
-    sqlite_cache.Decorated[
+    asyncio_decorator.Decorated[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -82,7 +96,7 @@ class Decorated[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    decorator.Decorated[
+    abc_sqlite_cache.Decorated[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -97,7 +111,7 @@ class Decorated[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorator[**_Param, _Ret](
-    sqlite_cache.Decorator[
+    asyncio_decorator.Decorator[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -106,7 +120,7 @@ class Decorator[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    decorator.Decorator[
+    abc_sqlite_cache.Decorator[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],

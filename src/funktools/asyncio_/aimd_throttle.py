@@ -2,9 +2,9 @@ import asyncio
 import dataclasses
 import typing
 
-from . import decorator
-from ..abc_ import aimd_throttle
-
+from ..abc_ import decorator as abc_decorator
+from ..abc_ import aimd_throttle as abc_aimd_throttle
+from . import decorator as asyncio_decorator
 
 type _Condition[**_Param, _Ret] = asyncio.Condition
 type _Decoratee[**_Param, _Ret] = Decoratee[_Param, _Ret]
@@ -15,15 +15,8 @@ type _Decorator[**_Param, _Ret] = Decorator[_Param, _Ret]
 
 
 @typing.runtime_checkable
-class Decoratee[**_Param, _Ret](aimd_throttle.Decoratee, decorator.Decoratee, typing.Protocol):
-
-    async def __call__(*args: _Param.args, **kwargs: _Param.kwargs) -> _Ret: ...
-
-
-@typing.final
-@dataclasses.dataclass(frozen=True, kw_only=True)
-class Exit[**_Param, _Ret](
-    aimd_throttle.Exit[
+class Decoratee[**_Param, _Ret](
+    asyncio_decorator.Decoratee[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -32,7 +25,32 @@ class Exit[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    decorator.Exit[
+    abc_aimd_throttle.Decoratee[
+        _Param,
+        _Ret,
+        _Decoratee[_Param, _Ret],
+        _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
+        _Decorator[_Param, _Ret],
+    ],
+    typing.Protocol,
+): ...
+
+
+@typing.final
+@dataclasses.dataclass(frozen=True, kw_only=True)
+class Exit[**_Param, _Ret](
+    asyncio_decorator.Exit[
+        _Param,
+        _Ret,
+        _Decoratee[_Param, _Ret],
+        _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
+        _Decorator[_Param, _Ret],
+    ],
+    abc_aimd_throttle.Exit[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -42,7 +60,7 @@ class Exit[**_Param, _Ret](
         _Decorator[_Param, _Ret],
     ],
 ):
-    async def __call__(self, result: decorator.Raise | _Ret) -> ():
+    async def __call__(self, result: abc_decorator.Raise | _Ret) -> ():
         async with self.enter.decorated.condition:
             return super.__call__(result)
 
@@ -50,7 +68,7 @@ class Exit[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[**_Param, _Ret](
-    aimd_throttle.Enter[
+    asyncio_decorator.Enter[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -59,7 +77,7 @@ class Enter[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    decorator.Enter[
+    abc_aimd_throttle.Enter[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -87,7 +105,16 @@ class Enter[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorated[**_Param, _Ret](
-    aimd_throttle.Decorated[
+    asyncio_decorator.Decorated[
+        _Param,
+        _Ret,
+        _Decoratee[_Param, _Ret],
+        _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
+        _Decorator[_Param, _Ret],
+    ],
+    abc_aimd_throttle.Decorated[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -96,15 +123,6 @@ class Decorated[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
         _Condition[_Param, _Ret],
-    ],
-    decorator.Decorated[
-        _Param,
-        _Ret,
-        _Decoratee[_Param, _Ret],
-        _Exit[_Param, _Ret],
-        _Enter[_Param, _Ret],
-        _Decorated[_Param, _Ret],
-        _Decorator[_Param, _Ret],
     ],
 ):
     condition: _Condition[_Param, _Ret] = dataclasses.field(default_factory=asyncio.Condition)
@@ -117,7 +135,7 @@ class Decorated[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorator[**_Param, _Ret](
-    aimd_throttle.Decorator[
+    asyncio_decorator.Decorator[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -126,7 +144,7 @@ class Decorator[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    decorator.Decorator[
+    abc_aimd_throttle.Decorator[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],

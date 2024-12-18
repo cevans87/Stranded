@@ -6,17 +6,11 @@ import inspect
 import types
 import typing
 
-
-class Exception(Exception): ...  # noqa
-
-@typing.runtime_checkable
-class Decoratee[** Param, Ret](typing.Protocol):
-
-    def __get__(self, instance: Instance, owner) -> typing.Self: ...
-
-
 type Instance = object
 type Name = typing.Annotated[str, annotated_types.Predicate(str.isidentifier)]  # noqa
+
+
+class Exception(Exception): ...  # noqa
 
 
 @dataclasses.dataclass(frozen=True)
@@ -25,6 +19,12 @@ class Raise:
     exc_type: type[BaseException]
     exc_val: BaseException
     exc_tb: types.TracebackType
+
+
+@typing.runtime_checkable
+class Decoratee[**_Param, _Ret, _Decoratee: typing.Self, _Exit, _Enter, _Decorated, _Decorator](typing.Protocol):
+
+    def __get__(self, instance: Instance, owner) -> typing.Self: ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)

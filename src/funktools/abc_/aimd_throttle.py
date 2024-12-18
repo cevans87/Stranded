@@ -9,10 +9,10 @@ import weakref
 
 import annotated_types
 
-from . import decorator
+from . import decorator as abc_decorator
 
 
-class Exception(decorator.Exception): ...  # noqa
+class Exception(abc_decorator.Exception): ...  # noqa
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -23,21 +23,24 @@ class State:
 
 
 @typing.runtime_checkable
-class Decoratee(decorator.Decoratee, typing.Protocol): ...
+class Decoratee[**_Param, _Ret, _Decoratee: typing.Self, _Exit, _Enter, _Decorated, _Decorator](
+    abc_decorator.Decoratee[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
+    typing.Protocol,
+): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**_Param, _Ret, _Decoratee, _Exit: typing.Self, _Enter, _Decorated, _Decorator](
-    decorator.Exit[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
+    abc_decorator.Exit[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
     abc.ABC,
 ):
-    def __call__(self, result: decorator.Raise | _Ret) -> ():
+    def __call__(self, result: abc_decorator.Raise | _Ret) -> ():
         state = self.enter.decorated.state
-        if isinstance(result, decorator.Raise) and state.num_running <= state.cap_running:
+        if isinstance(result, abc_decorator.Raise) and state.num_running <= state.cap_running:
             state.cap_running //= 2
         elif (
-            not isinstance(result, decorator.Raise)
-            and state.num_running == state.cap_running < self.enter.decorated.decorator.max_running
+            not isinstance(result, abc_decorator.Raise)
+            and state.num_running == state.cap_running < self.enter.decorated.abc_decorator.max_running
         ):
             state.cap_running += 1
         state.num_running -= 1
@@ -50,19 +53,19 @@ class Exit[**_Param, _Ret, _Decoratee, _Exit: typing.Self, _Enter, _Decorated, _
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[** _Param, _Ret, _Decoratee, _Exit, _Enter: typing.Self, _Decorated, _Decorator](
-    decorator.Enter[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
+    abc_decorator.Enter[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
     abc.ABC,
 ): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorated[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated: typing.Self, _Decorator, _Condition](
-    decorator.Decorated[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
+    abc_decorator.Decorated[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
     abc.ABC,
 ):
     condition: _Condition
     decorated_by_instance: weakref.WeakKeyDictionary[
-        decorator.Instance, typing.Self,
+        abc_decorator.Instance, typing.Self,
     ] = dataclasses.field(default_factory=weakref.WeakKeyDictionary)
     lock: threading.Lock = dataclasses.field(default_factory=threading.Lock)
     state: State = dataclasses.field(default_factory=State)
@@ -87,7 +90,7 @@ class Decorated[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated: typing.Se
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorator[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator: typing.Self](
-    decorator.Decorator[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
+    abc_decorator.Decorator[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
     abc.ABC,
 ):
     # How many callees are allowed through concurrently before additional callees become waiters.
