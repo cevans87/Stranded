@@ -14,6 +14,16 @@ type _Enter[**_Param, _Ret] = Enter[_Param, _Ret]
 type _Decorated[**_Param, _Ret] = Decorated[_Param, _Ret]
 type _Decorator[**_Param, _Ret] = Decorator[_Param, _Ret]
 
+type _Ts[**_Param, _Ret] = (
+    _Param,
+    _Ret,
+    _Decoratee[_Param, _Ret],
+    _Exit[_Param, _Ret],
+    _Enter[_Param, _Ret],
+    _Decorated[_Param, _Ret],
+    _Decorator[_Param, _Ret],
+)
+
 
 @typing.runtime_checkable
 class Decoratee[**_Param, _Ret](
