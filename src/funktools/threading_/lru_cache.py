@@ -59,7 +59,7 @@ class Exit[**_Param, _Ret](
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
-        _Future,
+        _Future[_Param, _Ret],
     ],
 ):
     future: _Future = dataclasses.field(default_factory=concurrent.futures.Future)
@@ -93,7 +93,9 @@ class Enter[**_Param, _Ret](
     ],
 ):
     # TODO: Dedup this with the asyncio version.
-    def __call__(self, *args: _Param.args, **kwargs: _Param.kwargs) -> tuple[_Decoratee] | tuple[_Exit, _Decoratee]:
+    def __call__(
+        self, *args: _Param.args, **kwargs: _Param.kwargs,
+    ) -> tuple[_Decoratee[_Param, _Ret]] | tuple[_Exit[_Param, _Ret], _Decoratee[_Param, _Ret]]:
         key = self.create_key(*args, **kwargs)
         future = self.decorated.future_by_key.pop(key, None)
         while self.decorated.decorator.size <= len(self.decorated.future_by_key):

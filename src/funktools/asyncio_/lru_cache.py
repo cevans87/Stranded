@@ -94,8 +94,8 @@ class Enter[**_Param, _Ret](
 ):
     # TODO: Dedup this with the threading version.
     async def __call__(
-        self, *args: _Param.args, **kwargs: _Param.kwargs
-    ) -> tuple[_Decoratee] | tuple[_Exit, _Decoratee]:
+        self, *args: _Param.args, **kwargs: _Param.kwargs,
+    ) -> tuple[_Decoratee[_Param, _Ret]] | tuple[_Exit[_Param, _Ret], _Decoratee[_Param, _Ret]]:
         key = self.create_key(*args, **kwargs)
         future = self.decorated.future_by_key.pop(key, None)
         while self.decorated.decorator.size <= len(self.decorated.future_by_key):
