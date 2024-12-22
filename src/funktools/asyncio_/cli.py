@@ -1,9 +1,8 @@
 import dataclasses
 import typing
 
-import boltins.decorator.asyncio as decorator
-from . import _common as common
-
+from ..abc_ import cli as abc_cli
+from . import decorator as asyncio_decorator
 
 type _Decoratee[**_Param, _Ret] = Decoratee[_Param, _Ret]
 type _Exit[**_Param, _Ret] = Exit[_Param, _Ret]
@@ -13,63 +12,97 @@ type _Decorator[**_Param, _Ret] = Decorator[_Param, _Ret]
 
 
 @typing.runtime_checkable
-class Decoratee[**_Param, _Ret](common.Decoratee, decorator.Decoratee, typing.Protocol):
-
-    async def __call__(*args: _Param.args, **kwargs: _Param.kwargs) -> _Ret: ...
+class Decoratee[**_Param, _Ret](
+    asyncio_decorator.Decoratee[
+        _Param,
+        _Ret,
+        _Decoratee[_Param, _Ret],
+        _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
+        _Decorator[_Param, _Ret],
+    ],
+    abc_cli.Decoratee[
+        _Param,
+        _Ret,
+        _Decoratee[_Param, _Ret],
+        _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
+        _Decorator[_Param, _Ret],
+    ],
+    typing.Protocol,
+): ...
 
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**_Param, _Ret](
-    common.Exit[
-        _Enter[_Param, _Ret],
+    asyncio_decorator.Exit[
+        _Param,
         _Ret,
-    ],
-    decorator.Exit[
+        _Decoratee[_Param, _Ret],
+        _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
-        _Ret,
+        _Decorated[_Param, _Ret],
+        _Decorator[_Param, _Ret],
     ],
-):
-    async def __call__(self, *args: _Param.args, **kwargs: _Param.kwargs) -> tuple[_Exit, _Decoratee]:
-        return super().__call__(*args, **kwargs)
+    abc_cli.Exit[
+        _Param,
+        _Ret,
+        _Decoratee[_Param, _Ret],
+        _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
+        _Decorator[_Param, _Ret],
+    ],
+): ...
 
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[**_Param, _Ret](
-    common.Enter[
+    asyncio_decorator.Enter[
+        _Param,
+        _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
-        _Param,
+        _Decorator[_Param, _Ret],
     ],
-    decorator.Enter[
+    abc_cli.Enter[
+        _Param,
+        _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
-        _Param,
+        _Decorator[_Param, _Ret],
     ],
-):
-    async def __call__(self, *args: _Param.args, **kwargs: _Param.kwargs) -> tuple[_Exit, _Decoratee]:
-        return super().__call__(*args, **kwargs)
+): ...
 
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorated[**_Param, _Ret](
-    common.Decorated[
-        _Decoratee[_Param, _Ret],
-        _Exit[_Param, _Ret],
-        _Enter[_Param, _Ret],
-        _Decorator[_Param, _Ret],
-    ],
-    decorator.Decorated[
-        _Decoratee[_Param, _Ret],
-        _Exit[_Param, _Ret],
-        _Enter[_Param, _Ret],
-        _Decorator[_Param, _Ret],
+    asyncio_decorator.Decorated[
         _Param,
         _Ret,
+        _Decoratee[_Param, _Ret],
+        _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
+        _Decorator[_Param, _Ret],
+    ],
+    abc_cli.Decorated[
+        _Param,
+        _Ret,
+        _Decoratee[_Param, _Ret],
+        _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
+        _Decorator[_Param, _Ret],
     ],
 ): ...
 
@@ -77,16 +110,22 @@ class Decorated[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorator[**_Param, _Ret](
-    common.Decorator[
+    asyncio_decorator.Decorator[
+        _Param,
+        _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    decorator.Decorator[
+    abc_cli.Decorator[
+        _Param,
+        _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
 ): ...
