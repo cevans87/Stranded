@@ -13,7 +13,7 @@ from . import decorator as abc_decorator
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class _Value(abc.ABC):
     t: type | typing.TypeAliasType
-    help_text: str = ''
+    comment: str | None
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -43,44 +43,70 @@ class _Arg(_Value, abc.ABC):
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class _Required(abc.ABC): ...
+class _RequiredArg(_Arg, abc.ABC):
+
+    @staticmethod
+    def _t_of_t(self, t: type) -> type:
+        match typing.get_origin(t):
+            case typing.Annotated:
+
+
+    @staticmethod
+    def _comment_of_t(t: type) -> str | None:
+        match annotation:
+
+    @classmethod
+    def of_parameter(cls, parameter: inspect.Parameter) -> typing.Self:
+        match parameter.annotation, typing.get_origin(parameter.annotation), typing.get_args(parameter.annotation):
+            case None, typing.Annotated, (t, *_, comment):
+                return cls(t=t, comment=comment)
+            case t, None, ():
+                return cls(t=t, comment=None)
+
+
+
+        return cls(name=parameter.name, t=cls._t_of_parameter(parameter), comment=cls._comment_of_parameter(parameter))
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class _Optional(abc.ABC):
+class _OptionalArg(_Arg, abc.ABC):
     default: str
 
-
-@dataclasses.dataclass(frozen=True, kw_only=True)
-class _Stacked(abc.ABC): ...
-
-
-@dataclasses.dataclass(frozen=True, kw_only=True)
-class _Keyword(abc.ABC): ...
+    @classmethod
+    def of_parameter(cls, parameter: inspect.Parameter) -> typing.Self:
+        return cls(name=parameter.name, t=parameter.annotation, default=parameter.default)
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class RequiredStackedArg(_Required, _Stacked, _Arg):
+class _StackedArg(_Arg, abc.ABC): ...
+
+
+@dataclasses.dataclass(frozen=True, kw_only=True)
+class _KeywordArg(_Arg, abc.ABC): ...
+
+
+@dataclasses.dataclass(frozen=True, kw_only=True)
+class RequiredStackedArg(_RequiredArg, _StackedArg):
 
     def to_short_str(self) -> str:
         return f'<{self.name}>'
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class OptionalStackedArg(_Optional, _Stacked, _Arg):
+class OptionalStackedArg(_OptionalArg, _StackedArg):
 
     def to_short_str(self) -> str:
         return f'[<{self.name}({self.default})>]'
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class RequiredKeywordArg(_Required, _Keyword, _Arg):
+class RequiredKeywordArg(_RequiredArg, _KeywordArg):
 
     def to_short_str(self) -> str:
         return f'--{self.name.replace('_', '-')} <{self.name}>'
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class OptionalKeywordArg(_Optional, _Keyword, _Arg):
+class OptionalKeywordArg(_OptionalArg, _KeywordArg):
 
     def to_short_str(self) -> str:
         return f'[--{self.name.replace('_', '-')} <{self.name}({self.default})>]'
@@ -88,6 +114,14 @@ class OptionalKeywordArg(_Optional, _Keyword, _Arg):
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Return(_Value):
+
+    @staticmethod
+    def of_annotation(annotation: type) -> Return:
+        match annotation, typing.get_origin(annotation), typing.get_args(annotation):
+            case None, typing.Annotated, (t, *_, comment):
+                return Return(t=t, comment=comment)
+            case t, None, ():
+
 
     def to_short_str(self) -> str:
         return f'{self.t}'
@@ -162,6 +196,8 @@ class Decorated[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated: typing.Se
 
     children: tuple[Decorated, Decorated] | None = None
 
+    self.get_comment()
+
     def to_signature(self) -> Signature:
         if self.children is None:
             return inspect.signature(self.decoratee)
@@ -178,15 +214,22 @@ class Decorated[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated: typing.Se
             optional_keyword_args_by_name,  # noqa
         )
 
+        for signature in (inspect.signature(decorated.decoratee) for decorated in self.decorateds):
         for signature in map(lambda decorated: inspect.signature(decorated.decoratee), self.decorateds):
             for parameter in signature.parameters.values():
                 if arg := args.get(parameter.name, None):
+                    t = self.get_t(parameter)
+                    comment = self.get_comment(parameter)
+
                     assert parameter.annotation == arg.t, (
-                        'Duplicate parameters in underlying CLIs must have.'
+                        'Duplicate parameters in underlying CLIs must have same type.'
                     )
 
                 match parameter.kind, parameter.default:
                     case inspect.Parameter.POSITIONAL_ONLY , parameter.empty:
+                        required_stacked_args_by_name[parameter.name] = RequiredStackedArg.of_parameter(parameter)
+
+
                         required_stacked_args_by_name[parameter.name] = RequiredStackedArg(
                             name=parameter.name, t=parameter.annotation,
                         )
