@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import abc
-import annotated_types
 import dataclasses
 import sys
 import typing
@@ -52,4 +51,4 @@ class Decorator[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorato
     abc_decorator.Decorator[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
     abc.ABC,
 ):
-    n: typing.Annotated[int, annotated_types.Ge(0)] = sys.maxsize
+    n: int = sys.maxsize

@@ -107,11 +107,16 @@ class Decorated[**_Param, _Ret](
         _Decorator[_Param, _Ret],
     ],
 ):
-    # TODO: inherited __signature__ is not correct with __call__ being morphed like this. Add the correct signature to
-    #  this Decorated type.
     def __call__(self, *argv: str) -> _Ret:
-        argv = list(argv)
-        args: dict[str, object] = {}
+        #args = []
+        #kwargs = {}
+        #stack = list(reversed(argv))
+        #for value in self.to_signature().values:
+        #    match stack.pop():
+        #        case flag if flag.startswith('--'):
+        #
+        #argv = list(argv)
+        #args: dict[str, object] = {}
 
         signature = self.to_signature()
         paramater_stack = [
