@@ -3,6 +3,7 @@ import inspect
 import logging
 import sys
 import textwrap
+import typing
 
 import pytest
 
@@ -12,8 +13,6 @@ from funktools import Cli
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler(sys.stdout))
 logger.setLevel(logging.INFO)
-
-type Flag[T, D] = Cli.Flag[T, D]
 
 
 @pytest.fixture(autouse=True)
@@ -38,9 +37,9 @@ def test_cli_union_preserves_order() -> None:
     def bar(b: int) -> dict[str, int]: return locals()
 
     @Cli()
-    def baz(c: Flag[int, "A _c to set"]) -> dict[str, int]: return locals()
+    def baz(c: typing.Annotated[int, "A c to set"]) -> dict[str, int]: return locals()
 
-    assert (foo | bar | baz).leaves == (foo, bar, baz)
+    assert (foo | bar | baz).decorateds == (foo, bar, baz)
 
 
 def test_cli_creates_cli_signature() -> None:
@@ -86,25 +85,19 @@ def test_merged_cli_merges_signatures() -> None:
     ) -> dict[str, int]: return locals()
 
     assert (foo | bar).to_signature() == Cli.Signature(
-        required_stacked_arg_by_name={
-            'a': Cli.Signature.RequiredStackedArg(name='a', t=int),
-            'f': Cli.Signature.RequiredStackedArg(name='f', t=int),
-            'g': Cli.Signature.RequiredStackedArg(name='g', t=int),
-        },
-        optional_stacked_arg_by_name={
-            'b': Cli.Signature.OptionalStackedArg(name='b', t=int, default=0),
-        },
-        required_keyword_arg_by_name={
-            'd': Cli.Signature.RequiredKeywordArg(name='d', t=int),
-            'i': Cli.Signature.RequiredKeywordArg(name='i', t=int),
-        },
-        optional_keyword_arg_by_name={
-            'c': Cli.Signature.OptionalKeywordArg(name='c', t=int, default=1),
-            'e': Cli.Signature.OptionalKeywordArg(name='e', t=int, default=2),
-            'h': Cli.Signature.OptionalKeywordArg(name='h', t=int, default=3),
-            'j': Cli.Signature.OptionalKeywordArg(name='j', t=int, default=4),
-        },
-        return_=dict[str, int],
+        values=(
+            Cli.Signature.RequiredStackedArg(name='a', t=int),
+            Cli.Signature.RequiredStackedArg(name='f', t=int),
+            Cli.Signature.RequiredStackedArg(name='g', t=int),
+            Cli.Signature.OptionalStackedArg(name='b', t=int, default=0),
+            Cli.Signature.RequiredKeywordArg(name='d', t=int),
+            Cli.Signature.RequiredKeywordArg(name='i', t=int),
+            Cli.Signature.OptionalKeywordArg(name='c', t=int, default=1),
+            Cli.Signature.OptionalKeywordArg(name='e', t=int, default=2),
+            Cli.Signature.OptionalKeywordArg(name='h', t=int, default=3),
+            Cli.Signature.OptionalKeywordArg(name='j', t=int, default=4),
+            Cli.Signature.Return(t=dict[str, int]),
+        ),
     )
 
 
@@ -118,7 +111,7 @@ def test_merged_cli_requires_matching_annotations() -> None:
         return locals()
 
     @Cli()
-    def baz(a: Cli.Flag[int, "An a to set"]):
+    def baz(a: typing.Annotated[int, "An a to set"]):
         return locals()
 
     _ = (foo | foo).to_signature()
@@ -168,35 +161,36 @@ def test_signature_to_long_str() -> None:
 
     @Cli()
     def foo(
-        a: Cli.Flag[int, 'Sets a.'],
-        b: Cli.Flag[int, 'Sets b.'] = 0,
+        a: typing.Annotated[int, 'Sets a.'],
+        b: typing.Annotated[int, 'Sets b.'] = 0,
         /,
-        c: Cli.Flag[int, 'Sets c'] = 1,
+        c: typing.Annotated[int, 'Sets c.'] = 1,
         *,
-        d: Cli.Flag[int, 'Sets d'],
-        e: Cli.Flag[int, 'Sets e'] = 2,
-    ) -> dict[str, int]: return locals()
+        d: typing.Annotated[int, 'Sets d.'],
+        e: typing.Annotated[int, 'Sets e.'] = 2,
+    ) -> typing.Annotated[dict[str, int], 'Returns foo.']: return locals()
 
     @Cli()
     def bar(
-        f: Cli.Flag[int, 'Sets f'],
+        f: typing.Annotated[int, 'Sets f.'],
         /,
-        g: Cli.Flag[int, 'Sets g'],
-        h: Cli.Flag[int, 'sets h'] = 3,
+        g: typing.Annotated[int, 'Sets g.'],
+        h: typing.Annotated[int, 'Sets h.'] = 3,
         *,
-        i: Cli.Flag[int, 'Sets i'],
-        j: Cli.Flag[int, 'Sets j'] = 4,
-    ) -> dict[str, int]: return locals()
+        i: typing.Annotated[int, 'Sets i.'],
+        j: typing.Annotated[int, 'Sets j.'] = 4,
+    ) -> typing.Annotated[dict[str, int], 'Returns bar.']: return locals()
 
     assert textwrap.dedent((foo | bar).to_signature().to_long_str()).strip() == textwrap.dedent('''
-        <a>             # int                   # Sets a.
-        <f>             # int                   # Sets f.
-        <g>             # int                   # Sets g.
-        [<b(0)>]        # int                   # Sets b.
-        --d <d>         # int                   # Sets d.
-        --i <i>         # int                   # Sets i.
-        [--c <c(1)>]    # int                   # Sets c.
-        [--e <e(2)>]    # int                   # Sets e.
-        [--h <h(3)>]    # int                   # Sets h.
-        [--j <j(4)>]    # int                   # Sets j.
+        <a>                             # <class 'int'>  # Sets a.
+        <f>                             # <class 'int'>  # Sets f.
+        <g>                             # <class 'int'>  # Sets g.
+        [<b(0)>]                        # <class 'int'>  # Sets b.
+        --d <d>                         # <class 'int'>  # Sets d.
+        --i <i>                         # <class 'int'>  # Sets i.
+        [--c <c(1)>]                    # <class 'int'>  # Sets c.
+        [--e <e(2)>]                    # <class 'int'>  # Sets e.
+        [--h <h(3)>]                    # <class 'int'>  # Sets h.
+        [--j <j(4)>]                    # <class 'int'>  # Sets j.
+                                        # dict[str, int]  # Returns bar.
     ''').strip()

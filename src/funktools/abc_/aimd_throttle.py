@@ -7,7 +7,7 @@ import sys
 import typing
 import weakref
 
-import annotated_types
+#import annotated_types
 
 from . import decorator as abc_decorator
 
@@ -94,8 +94,8 @@ class Decorator[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorato
     abc.ABC,
 ):
     # How many callees are allowed through concurrently before additional callees become waiters.
-    max_running: typing.Annotated[int, annotated_types.Gt(0)] = sys.maxsize
+    max_running: int = sys.maxsize
 
     # How many callees are allowed through or to wait concurrently before additional callees are rejected.
-    max_waiting: typing.Annotated[int, annotated_types.Gt(0)] = sys.maxsize
+    max_waiting: int = sys.maxsize
 
