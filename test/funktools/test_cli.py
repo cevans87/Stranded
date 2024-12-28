@@ -9,7 +9,6 @@ import pytest
 
 from funktools import Cli
 
-
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler(sys.stdout))
 logger.setLevel(logging.INFO)
@@ -85,19 +84,28 @@ def test_merged_cli_merges_signatures() -> None:
     ) -> dict[str, int]: return locals()
 
     assert (foo | bar).to_signature() == Cli.Signature(
-        values=(
-            Cli.Signature.RequiredStackedArg(name='a', t=int),
-            Cli.Signature.RequiredStackedArg(name='f', t=int),
-            Cli.Signature.RequiredStackedArg(name='g', t=int),
-            Cli.Signature.OptionalStackedArg(name='b', t=int, default=0),
-            Cli.Signature.RequiredKeywordArg(name='d', t=int),
-            Cli.Signature.RequiredKeywordArg(name='i', t=int),
-            Cli.Signature.OptionalKeywordArg(name='c', t=int, default=1),
-            Cli.Signature.OptionalKeywordArg(name='e', t=int, default=2),
-            Cli.Signature.OptionalKeywordArg(name='h', t=int, default=3),
-            Cli.Signature.OptionalKeywordArg(name='j', t=int, default=4),
-            Cli.Signature.Return(t=dict[str, int]),
-        ),
+        required_stacked_arg_by_name={
+            'a': Cli.Signature.RequiredStackedArg(name='a', t=int),
+            'f': Cli.Signature.RequiredStackedArg(name='f', t=int),
+            'g': Cli.Signature.RequiredStackedArg(name='g', t=int),
+        },
+        optional_stacked_arg_by_name={
+            'b': Cli.Signature.OptionalStackedArg(name='b', t=int, default=0),
+        },
+        required_keyword_arg_by_name={
+            'd': Cli.Signature.RequiredKeywordArg(name='d', t=int),
+            'i': Cli.Signature.RequiredKeywordArg(name='i', t=int),
+        },
+        optional_keyword_arg_by_name={
+            'c': Cli.Signature.OptionalKeywordArg(name='c', t=int, default=1),
+            'e': Cli.Signature.OptionalKeywordArg(name='e', t=int, default=2),
+            'h': Cli.Signature.OptionalKeywordArg(name='h', t=int, default=3),
+            'j': Cli.Signature.OptionalKeywordArg(name='j', t=int, default=4),
+
+        },
+        var_stacked_arg_by_name={},
+        var_keyword_arg_by_name={},
+        return_=Cli.Signature.Return(t=dict[str, int]),
     )
 
 
@@ -114,9 +122,14 @@ def test_merged_cli_requires_matching_annotations() -> None:
     def baz(a: typing.Annotated[int, "An a to set"]):
         return locals()
 
+    @Cli()
+    def qux(*, a: int):
+        return locals()
+
     _ = (foo | foo).to_signature()
     _ = (bar | bar).to_signature()
     _ = (baz | baz).to_signature()
+    _ = (qux | qux).to_signature()
 
     with pytest.raises(AssertionError):
         _ = (foo | bar).to_signature()
@@ -125,7 +138,16 @@ def test_merged_cli_requires_matching_annotations() -> None:
         _ = (foo | baz).to_signature()
 
     with pytest.raises(AssertionError):
+        _ = (foo | qux).to_signature()
+
+    with pytest.raises(AssertionError):
         _ = (bar | baz).to_signature()
+
+    with pytest.raises(AssertionError):
+        _ = (bar | qux).to_signature()
+
+    with pytest.raises(AssertionError):
+        _ = (baz | qux).to_signature()
 
 
 def test_signature_to_short_str() -> None:
@@ -194,3 +216,22 @@ def test_signature_to_long_str() -> None:
         [--j <j(4)>]                    # <class 'int'>  # Sets j.
                                         # dict[str, int]  # Returns bar.
     ''').strip()
+
+
+def test_call_parses_int() -> None:
+
+    @Cli()
+    def foo(a: int) -> dict[str, int]: return locals()
+
+    assert foo(*'_ 1'.split()) == {'a': 1}
+
+
+def test_call_calls_merged_clis() -> None:
+
+    @Cli()
+    def foo(a: int) -> dict[str, int]: return locals()
+
+    @Cli()
+    def bar(b: int) -> dict[str, int]: return locals()
+
+    assert (foo | bar)(*'_ 1 2'.split()) == {'b': 2}
