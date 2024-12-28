@@ -108,31 +108,10 @@ class Decorated[**_Param, _Ret](
     ],
 ):
     def __call__(self, *argv: str) -> _Ret:
-        #args = []
-        #kwargs = {}
-        #stack = list(reversed(argv))
-        #for value in self.to_signature().values:
-        #    match stack.pop():
-        #        case flag if flag.startswith('--'):
-        #
-        #argv = list(argv)
-        #args: dict[str, object] = {}
-
-        signature = self.to_signature()
-        paramater_stack = [
-            parameter for parameter in reversed(signature.parameters.values())
-            if parameter.kind == inspect.Parameter.POSITIONAL_ONLY
-        ]
-        paramater_heap = {
-            parameter.name: parameter for parameter in reversed(signature.parameters.values())
-            if parameter.kind == inspect.Parameter.KEYWORD_ONLY
-        }
-
-        #while argv:
-        #    match argv.pop():
-        #        case
-
-        #    match arg := argv.pop():
+        ret = None
+        for call in super(threading_decorator.Decorated, self).__call__(*argv):
+            ret = call()
+        return ret
 
 
 @typing.final
