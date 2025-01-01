@@ -225,11 +225,17 @@ class _Signature:
                     assert False, f'Unrecognized argument {arg}.'
 
         return _BoundSignature(
+            return_annotation=self.return_annotation,
+            variadic_keyword_parameter=self.variadic_keyword_parameter,
+            variadic_stacked_parameter=self.variadic_stacked_parameter,
+            optional_keyword_parameter_by_name=self.optional_keyword_parameter_by_name,
+            required_keyword_parameter_by_name=self.required_keyword_parameter_by_name,
+            optional_stacked_parameter_by_name=self.optional_stacked_parameter_by_name,
+            required_stacked_parameter_by_name=self.required_stacked_parameter_by_name,
             stacked_value_by_name=stacked_value_by_name,
             keyword_value_by_name=keyword_value_by_name,
             variadic_stacked_values=variadic_stacked_values,
             variadic_keyword_value_by_name=variadic_keyword_value_by_name,
-            **dataclasses.asdict(self),  # noqa
         )
 
     @staticmethod
