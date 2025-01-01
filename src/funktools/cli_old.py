@@ -701,7 +701,7 @@ class Decorator[** Param, Ret](
             add_help=False,
         )
 
-        for parameter in decorated.signature.parameters.values():
+        for parameter in decorated.signature.parameters.annotations():
             if parameter.kind is inspect.Parameter.VAR_KEYWORD:
                 # Var keywords will are parsed on a second pass.
                 continue
@@ -741,7 +741,7 @@ class Decorator[** Param, Ret](
 
         # Note that this may be the registered entrypoint of a submodule, not the entrypoint that is decorated.
         args, kwargs = [], {}
-        for _parameter in decorated.signature.parameters.values():
+        for _parameter in decorated.signature.parameters.annotations():
             side_effects = []
             if typing.get_origin(_parameter.annotation) is typing.Annotated:
                 for annotation in typing.get_args(_parameter.annotation):

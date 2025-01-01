@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import dataclasses
 import inspect
 import typing
@@ -111,6 +112,8 @@ class Decorated[**_Param, _Ret](
         ret = None
         for call in super(threading_decorator.Decorated, self).__call__(*argv):
             ret = call()
+            if inspect.iscoroutine(ret):
+                ret = asyncio.run(ret)
         return ret
 
 
