@@ -7,7 +7,7 @@ import typing
 
 import mistypes
 
-from . import decorator as abc_decorator
+import funktools.abc_.decorator as abc_decorator
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)

@@ -2,7 +2,7 @@
 _...is not the standard library, but its sibling given up for adoption._
 
 ## argfarce
-_...is a farce of argparse._
+_...is an argparse farce._
 
 ## boltins
 _...is the stuff that wasn't builtin._
@@ -11,10 +11,10 @@ _...is the stuff that wasn't builtin._
 _...are functools, but **funky**._
 
 ## lumbering
-_...is logging, but with swag._
+_...is logging with some extra burnishing._
 
 # mistypes
 _...are types that can't be mistyped._
 
 # typong
-_...is to typing as pong is to ping._
+_...is to pong as typing is to ping._

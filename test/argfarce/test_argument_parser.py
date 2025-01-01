@@ -9,7 +9,7 @@ import typing
 
 import pytest
 
-from funktools import Cli
+from argfarce import ArgumentParser
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler(sys.stdout))
@@ -29,41 +29,41 @@ def event_loop() -> asyncio.AbstractEventLoop:
     eager_loop.close()
 
 
-def test_cli_union_preserves_order() -> None:
+def test_union_preserves_order() -> None:
 
-    @Cli()
+    @ArgumentParser()
     def foo(a: int) -> dict[str, int]: return locals()
 
-    @Cli()
+    @ArgumentParser()
     def bar(b: int) -> dict[str, int]: return locals()
 
-    @Cli()
+    @ArgumentParser()
     def baz(c: typing.Annotated[int, "A c to set"]) -> dict[str, int]: return locals()
 
     assert (foo | bar | baz).decorateds == (foo, bar, baz)
 
 
-def test_cli_creates_cli_signature() -> None:
+def test_creates_signature() -> None:
 
-    @Cli()
+    @ArgumentParser()
     def foo(a: int) -> dict[str, int]:
         return locals()
 
-    @Cli()
+    @ArgumentParser()
     def bar(b: int) -> dict[str, int]:
         return locals()
 
     baz = foo | bar
 
-    for cli in (foo, bar, baz):
-        assert inspect.signature(cli).parameters == {
+    for argument_parser in (foo, bar, baz):
+        assert inspect.signature(argument_parser).parameters == {
             'argv': inspect.Parameter('argv', inspect.Parameter.VAR_POSITIONAL),
         }
 
 
-def test_merged_cli_merges_signatures() -> None:
+def test_merged_merges_signatures() -> None:
 
-    @Cli()
+    @ArgumentParser()
     def foo(
         a: int,
         b: int = 0,
@@ -75,7 +75,7 @@ def test_merged_cli_merges_signatures() -> None:
         **kwargs: int,
     ) -> dict[str, int]: return locals()
 
-    @Cli()
+    @ArgumentParser()
     def bar(
         f: int,
         /,
@@ -87,46 +87,46 @@ def test_merged_cli_merges_signatures() -> None:
         **kwargs: int,
     ) -> dict[str, int]: return locals()
 
-    assert (foo | bar).to_signature() == Cli.Signature(
+    assert (foo | bar).to_signature() == ArgumentParser.Signature(
         required_stacked_parameter_by_name={
-            'a': Cli.Signature.RequiredStackedParameter(name='a', t=int),
-            'f': Cli.Signature.RequiredStackedParameter(name='f', t=int),
-            'g': Cli.Signature.RequiredStackedParameter(name='g', t=int),
+            'a': ArgumentParser.Signature.RequiredStackedParameter(name='a', t=int),
+            'f': ArgumentParser.Signature.RequiredStackedParameter(name='f', t=int),
+            'g': ArgumentParser.Signature.RequiredStackedParameter(name='g', t=int),
         },
         optional_stacked_parameter_by_name={
-            'b': Cli.Signature.OptionalStackedParameter(name='b', t=int, default=0),
+            'b': ArgumentParser.Signature.OptionalStackedParameter(name='b', t=int, default=0),
         },
         required_keyword_parameter_by_name={
-            'd': Cli.Signature.RequiredKeywordParameter(name='d', t=int),
-            'i': Cli.Signature.RequiredKeywordParameter(name='i', t=int),
+            'd': ArgumentParser.Signature.RequiredKeywordParameter(name='d', t=int),
+            'i': ArgumentParser.Signature.RequiredKeywordParameter(name='i', t=int),
         },
         optional_keyword_parameter_by_name={
-            'c': Cli.Signature.OptionalKeywordParameter(name='c', t=int, default=1),
-            'e': Cli.Signature.OptionalKeywordParameter(name='e', t=int, default=2),
-            'h': Cli.Signature.OptionalKeywordParameter(name='h', t=int, default=3),
-            'j': Cli.Signature.OptionalKeywordParameter(name='j', t=int, default=4),
+            'c': ArgumentParser.Signature.OptionalKeywordParameter(name='c', t=int, default=1),
+            'e': ArgumentParser.Signature.OptionalKeywordParameter(name='e', t=int, default=2),
+            'h': ArgumentParser.Signature.OptionalKeywordParameter(name='h', t=int, default=3),
+            'j': ArgumentParser.Signature.OptionalKeywordParameter(name='j', t=int, default=4),
 
         },
-        variadic_stacked_parameter=Cli.Signature.VariadicStackedParameter(name='args', t=int),
-        variadic_keyword_parameter=Cli.Signature.VariadicKeywordParameter(name='kwargs', t=int),
-        return_annotation=Cli.Signature.ReturnAnnotation(t=dict[str, int]),
+        variadic_stacked_parameter=ArgumentParser.Signature.VariadicStackedParameter(name='args', t=int),
+        variadic_keyword_parameter=ArgumentParser.Signature.VariadicKeywordParameter(name='kwargs', t=int),
+        return_annotation=ArgumentParser.Signature.ReturnAnnotation(t=dict[str, int]),
     )
 
 
-def test_merged_cli_requires_matching_annotations() -> None:
-    @Cli()
+def test_merged_requires_matching_annotations() -> None:
+    @ArgumentParser()
     def foo(a: int):
         return locals()
 
-    @Cli()
+    @ArgumentParser()
     def bar(a: float):
         return locals()
 
-    @Cli()
+    @ArgumentParser()
     def baz(a: typing.Annotated[int, "An a to set"]):
         return locals()
 
-    @Cli()
+    @ArgumentParser()
     def qux(*, a: int):
         return locals()
 
@@ -156,7 +156,7 @@ def test_merged_cli_requires_matching_annotations() -> None:
 
 def test_signature_to_short_str() -> None:
 
-    @Cli()
+    @ArgumentParser()
     def foo(
         a: int,
         b: int = 0,
@@ -167,7 +167,7 @@ def test_signature_to_short_str() -> None:
         e: int = 2,
     ) -> dict[str, int]: return locals()
 
-    @Cli()
+    @ArgumentParser()
     def bar(
         f: int,
         /,
@@ -185,7 +185,7 @@ def test_signature_to_short_str() -> None:
 
 def test_signature_to_long_str() -> None:
 
-    @Cli()
+    @ArgumentParser()
     def foo(
         a: typing.Annotated[int, 'Sets a.'],
         b: typing.Annotated[int, 'Sets b.'] = 0,
@@ -196,7 +196,7 @@ def test_signature_to_long_str() -> None:
         e: typing.Annotated[int, 'Sets e.'] = 2,
     ) -> typing.Annotated[dict[str, int], 'Returns foo.']: return locals()
 
-    @Cli()
+    @ArgumentParser()
     def bar(
         f: typing.Annotated[int, 'Sets f.'],
         /,
@@ -224,18 +224,18 @@ def test_signature_to_long_str() -> None:
 
 def test_call_parses_int() -> None:
 
-    @Cli()
+    @ArgumentParser()
     def foo(a: int) -> dict[str, int]: return locals()
 
     assert foo(*'1'.split()) == {'a': 1}
 
 
-def test_call_calls_merged_clis() -> None:
+def test_call_calls_merged_argument_parsers() -> None:
 
-    @Cli()
+    @ArgumentParser()
     def foo(a: int) -> dict[str, int]: return locals()
 
-    @Cli()
+    @ArgumentParser()
     def bar(b: int) -> dict[str, int]: return locals()
 
     assert (foo | bar)(*'1 2'.split()) == {'b': 2}
@@ -245,10 +245,10 @@ def test_call_parses_args() -> None:
 
     calls = []
 
-    @Cli()
+    @ArgumentParser()
     def foo(a: int) -> None: calls.append({'a': a})
 
-    @Cli()
+    @ArgumentParser()
     def bar(*args: str) -> None: calls.append({'args': args})
 
     (foo | bar)(*'1 2 --b 3.0 --c 4.0'.split())
@@ -263,10 +263,10 @@ def test_call_parses_kwargs() -> None:
 
     calls = []
 
-    @Cli()
+    @ArgumentParser()
     def foo(a: int) -> None: calls.append({'a': a})
 
-    @Cli()
+    @ArgumentParser()
     def bar(**kwargs: int) -> None: calls.append({'kwargs': kwargs})
 
     (foo | bar)(*'1 --b 2 --c 3'.split())
@@ -281,13 +281,13 @@ def test_call_parses_args_and_kwargs() -> None:
 
     calls = []
 
-    @Cli()
+    @ArgumentParser()
     def foo(a: int) -> None: calls.append({'a': a})
 
-    @Cli()
+    @ArgumentParser()
     def bar(*args: str) -> None: calls.append({'args': args})
 
-    @Cli()
+    @ArgumentParser()
     def baz(**kwargs: float) -> None: calls.append({'kwargs': kwargs})
 
     (foo | bar | baz)(*'1 2 --b 3.0 --c 4.0'.split())
@@ -303,7 +303,7 @@ def test_args_passed_to_subcommand() -> None:
 
     calls = []
 
-    @Cli()
+    @ArgumentParser()
     def foo(subcommand: typing.Literal['bar', 'baz'], *args: str) -> None:
         calls.append({'subcommand': subcommand})
         match subcommand:
@@ -312,10 +312,10 @@ def test_args_passed_to_subcommand() -> None:
             case 'baz':
                 baz(*args)
 
-    @Cli()
+    @ArgumentParser()
     def bar(*args: str) -> None: calls.append({'args': args})
 
-    @Cli()
+    @ArgumentParser()
     def baz(**kwargs: float) -> None: calls.append({'kwargs': kwargs})
 
     foo(*'bar --a 3.0 --b 4.0'.split())
@@ -339,23 +339,23 @@ def test_help_goes_to_subcommand() -> None:
 
     calls = []
 
-    @Cli()
+    @ArgumentParser()
     def help_flag(subcommand: typing.Literal['bar', 'baz'] = ..., /, *, help: bool = False) -> None:  # noqa
         calls.append({'subcommand': subcommand, 'help': help})
         if help:
             match subcommand:
                 case builtins.Ellipsis:
-                    cli = foo
+                    subcommand = foo
                 case 'bar':
-                    cli = bar
+                    subcommand = bar
                 case 'baz':
-                    cli = baz
+                    subcommand = baz
                 case _:
                     assert False, f'Invalid {subcommand=}'
-            print((help_flag | cli).to_long_str())
+            print((help_flag | subcommand).to_long_str())
             assert False, 'In a normal Cli, this should be `sys.exit(0)`.'
 
-    @Cli()
+    @ArgumentParser()
     def foo(subcommand: typing.Literal['bar', 'baz'] = ..., /, *args: str) -> None:
         calls.append({'subcommand': subcommand})
         match subcommand:
@@ -366,10 +366,10 @@ def test_help_goes_to_subcommand() -> None:
             case 'baz':
                 (help_flag | baz)(*args)
 
-    @Cli()
+    @ArgumentParser()
     def bar(*args: str) -> None: calls.append({'args': args})
 
-    @Cli()
+    @ArgumentParser()
     def baz(**kwargs: float) -> None: calls.append({'kwargs': kwargs})
 
     with pytest.raises(AssertionError):
@@ -399,14 +399,14 @@ def test_help_goes_to_subcommand() -> None:
 
 
 @pytest.mark.asyncio
-async def test_asyncio_runs_threading_cli() -> None:
+async def test_asyncio_runs_threading() -> None:
 
     calls = []
 
-    @Cli()
+    @ArgumentParser()
     def foo(a: int) -> None: calls.append({'a': a})
 
-    @Cli()
+    @ArgumentParser()
     async def bar(b: int) -> None: calls.append({'b': b})
 
     await (foo | bar)(*'1 2'.split())
@@ -417,14 +417,14 @@ async def test_asyncio_runs_threading_cli() -> None:
     ]
 
 
-def test_threading_runs_asyncio_cli() -> None:
+def test_threading_runs_asyncio() -> None:
 
     calls = []
 
-    @Cli()
+    @ArgumentParser()
     async def foo(a: int) -> None: calls.append({'a': a})
 
-    @Cli()
+    @ArgumentParser()
     def bar(b: int) -> None: calls.append({'b': b})
 
     (foo | bar)(*'1 2'.split())
@@ -438,7 +438,7 @@ def test_threading_runs_asyncio_cli() -> None:
 def test_dict_is_parsed() -> None:
     calls = []
 
-    @Cli()
+    @ArgumentParser()
     def foo(a: dict[int, str]) -> None: calls.append({'a': a})
 
     foo(*shlex.split(r'''"{1: 'foo'}"'''))

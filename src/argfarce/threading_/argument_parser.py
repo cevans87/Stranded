@@ -1,10 +1,13 @@
+from __future__ import annotations
+
 import asyncio
 import dataclasses
 import inspect
 import typing
 
-from ..abc_ import cli as abc_cli
-from . import decorator as asyncio_decorator
+import funktools.threading_.decorator as threading_decorator
+
+from ..abc_ import argument_parser as abc_cli
 
 type _Decoratee[**_Param, _Ret] = Decoratee[_Param, _Ret]
 type _Exit[**_Param, _Ret] = Exit[_Param, _Ret]
@@ -15,7 +18,7 @@ type _Decorator[**_Param, _Ret] = Decorator[_Param, _Ret]
 
 @typing.runtime_checkable
 class Decoratee[**_Param, _Ret](
-    asyncio_decorator.Decoratee[
+    threading_decorator.Decoratee[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -40,7 +43,7 @@ class Decoratee[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**_Param, _Ret](
-    asyncio_decorator.Exit[
+    threading_decorator.Exit[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -64,7 +67,7 @@ class Exit[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[**_Param, _Ret](
-    asyncio_decorator.Enter[
+    threading_decorator.Enter[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -85,10 +88,9 @@ class Enter[**_Param, _Ret](
 ): ...
 
 
-@typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorated[**_Param, _Ret](
-    asyncio_decorator.Decorated[
+    threading_decorator.Decorated[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -107,19 +109,19 @@ class Decorated[**_Param, _Ret](
         _Decorator[_Param, _Ret],
     ],
 ):
-    async def __call__(self, *argv: str) -> _Ret:
+    def __call__(self, *argv: str) -> _Ret:
         ret = None
-        for call in super(asyncio_decorator.Decorated, self).__call__(*argv):
+        for call in super(threading_decorator.Decorated, self).__call__(*argv):
             ret = call()
             if inspect.iscoroutine(ret):
-                ret = await ret
+                ret = asyncio.run(ret)
         return ret
 
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorator[**_Param, _Ret](
-    asyncio_decorator.Decorator[
+    threading_decorator.Decorator[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
