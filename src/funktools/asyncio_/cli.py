@@ -1,4 +1,6 @@
+import asyncio
 import dataclasses
+import inspect
 import typing
 
 from ..abc_ import cli as abc_cli
@@ -104,7 +106,14 @@ class Decorated[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-): ...
+):
+    async def __call__(self, *argv: str) -> _Ret:
+        ret = None
+        for call in super(asyncio_decorator.Decorated, self).__call__(*argv):
+            ret = call()
+            if inspect.iscoroutine(ret):
+                ret = await ret
+        return ret
 
 
 @typing.final

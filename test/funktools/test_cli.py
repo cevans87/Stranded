@@ -1,6 +1,8 @@
 import asyncio
+import builtins
 import inspect
 import logging
+import shlex
 import sys
 import textwrap
 import typing
@@ -67,9 +69,10 @@ def test_merged_cli_merges_signatures() -> None:
         b: int = 0,
         /,
         c: int = 1,
-        *,
+        *args: int,
         d: int,
         e: int = 2,
+        **kwargs: int,
     ) -> dict[str, int]: return locals()
 
     @Cli()
@@ -78,34 +81,35 @@ def test_merged_cli_merges_signatures() -> None:
         /,
         g: int,
         h: int = 3,
-        *,
+        *args: int,
         i: int,
         j: int = 4,
+        **kwargs: int,
     ) -> dict[str, int]: return locals()
 
     assert (foo | bar).to_signature() == Cli.Signature(
-        required_stacked_arg_by_name={
-            'a': Cli.Signature.RequiredStackedArg(name='a', t=int),
-            'f': Cli.Signature.RequiredStackedArg(name='f', t=int),
-            'g': Cli.Signature.RequiredStackedArg(name='g', t=int),
+        required_stacked_parameter_by_name={
+            'a': Cli.Signature.RequiredStackedParameter(name='a', t=int),
+            'f': Cli.Signature.RequiredStackedParameter(name='f', t=int),
+            'g': Cli.Signature.RequiredStackedParameter(name='g', t=int),
         },
-        optional_stacked_arg_by_name={
-            'b': Cli.Signature.OptionalStackedArg(name='b', t=int, default=0),
+        optional_stacked_parameter_by_name={
+            'b': Cli.Signature.OptionalStackedParameter(name='b', t=int, default=0),
         },
-        required_keyword_arg_by_name={
-            'd': Cli.Signature.RequiredKeywordArg(name='d', t=int),
-            'i': Cli.Signature.RequiredKeywordArg(name='i', t=int),
+        required_keyword_parameter_by_name={
+            'd': Cli.Signature.RequiredKeywordParameter(name='d', t=int),
+            'i': Cli.Signature.RequiredKeywordParameter(name='i', t=int),
         },
-        optional_keyword_arg_by_name={
-            'c': Cli.Signature.OptionalKeywordArg(name='c', t=int, default=1),
-            'e': Cli.Signature.OptionalKeywordArg(name='e', t=int, default=2),
-            'h': Cli.Signature.OptionalKeywordArg(name='h', t=int, default=3),
-            'j': Cli.Signature.OptionalKeywordArg(name='j', t=int, default=4),
+        optional_keyword_parameter_by_name={
+            'c': Cli.Signature.OptionalKeywordParameter(name='c', t=int, default=1),
+            'e': Cli.Signature.OptionalKeywordParameter(name='e', t=int, default=2),
+            'h': Cli.Signature.OptionalKeywordParameter(name='h', t=int, default=3),
+            'j': Cli.Signature.OptionalKeywordParameter(name='j', t=int, default=4),
 
         },
-        var_stacked_arg_by_name={},
-        var_keyword_arg_by_name={},
-        return_=Cli.Signature.Return(t=dict[str, int]),
+        variadic_stacked_parameter=Cli.Signature.VariadicStackedParameter(name='args', t=int),
+        variadic_keyword_parameter=Cli.Signature.VariadicKeywordParameter(name='kwargs', t=int),
+        return_annotation=Cli.Signature.ReturnAnnotation(t=dict[str, int]),
     )
 
 
@@ -223,7 +227,7 @@ def test_call_parses_int() -> None:
     @Cli()
     def foo(a: int) -> dict[str, int]: return locals()
 
-    assert foo(*'_ 1'.split()) == {'a': 1}
+    assert foo(*'1'.split()) == {'a': 1}
 
 
 def test_call_calls_merged_clis() -> None:
@@ -234,4 +238,209 @@ def test_call_calls_merged_clis() -> None:
     @Cli()
     def bar(b: int) -> dict[str, int]: return locals()
 
-    assert (foo | bar)(*'_ 1 2'.split()) == {'b': 2}
+    assert (foo | bar)(*'1 2'.split()) == {'b': 2}
+
+
+def test_call_parses_args() -> None:
+
+    calls = []
+
+    @Cli()
+    def foo(a: int) -> None: calls.append({'a': a})
+
+    @Cli()
+    def bar(*args: str) -> None: calls.append({'args': args})
+
+    (foo | bar)(*'1 2 --b 3.0 --c 4.0'.split())
+
+    assert calls == [
+        {'a': 1},
+        {'args': ('2', '--b', '3.0', '--c', '4.0')},
+    ]
+
+
+def test_call_parses_kwargs() -> None:
+
+    calls = []
+
+    @Cli()
+    def foo(a: int) -> None: calls.append({'a': a})
+
+    @Cli()
+    def bar(**kwargs: int) -> None: calls.append({'kwargs': kwargs})
+
+    (foo | bar)(*'1 --b 2 --c 3'.split())
+
+    assert calls == [
+        {'a': 1},
+        {'kwargs': {'b': 2, 'c': 3}},
+    ]
+
+
+def test_call_parses_args_and_kwargs() -> None:
+
+    calls = []
+
+    @Cli()
+    def foo(a: int) -> None: calls.append({'a': a})
+
+    @Cli()
+    def bar(*args: str) -> None: calls.append({'args': args})
+
+    @Cli()
+    def baz(**kwargs: float) -> None: calls.append({'kwargs': kwargs})
+
+    (foo | bar | baz)(*'1 2 --b 3.0 --c 4.0'.split())
+
+    assert calls == [
+        {'a': 1},
+        {'args': ('2',)},
+        {'kwargs': {'b': 3.0, 'c': 4.0}},
+    ]
+
+
+def test_args_passed_to_subcommand() -> None:
+
+    calls = []
+
+    @Cli()
+    def foo(subcommand: typing.Literal['bar', 'baz'], *args: str) -> None:
+        calls.append({'subcommand': subcommand})
+        match subcommand:
+            case 'bar':
+                bar(*args)
+            case 'baz':
+                baz(*args)
+
+    @Cli()
+    def bar(*args: str) -> None: calls.append({'args': args})
+
+    @Cli()
+    def baz(**kwargs: float) -> None: calls.append({'kwargs': kwargs})
+
+    foo(*'bar --a 3.0 --b 4.0'.split())
+
+    assert calls == [
+        {'subcommand': 'bar'},
+        {'args': ('--a', '3.0', '--b', '4.0')},
+    ]
+
+    calls = []
+
+    foo(*'baz --a 3.0 --b 4.0'.split())
+
+    assert calls == [
+        {'subcommand': 'baz'},
+        {'kwargs': {'a': 3.0, 'b': 4.0}},
+    ]
+
+
+def test_help_goes_to_subcommand() -> None:
+
+    calls = []
+
+    @Cli()
+    def help_flag(subcommand: typing.Literal['bar', 'baz'] = ..., /, *, help: bool = False) -> None:  # noqa
+        calls.append({'subcommand': subcommand, 'help': help})
+        if help:
+            match subcommand:
+                case builtins.Ellipsis:
+                    cli = foo
+                case 'bar':
+                    cli = bar
+                case 'baz':
+                    cli = baz
+                case _:
+                    assert False, f'Invalid {subcommand=}'
+            print((help_flag | cli).to_long_str())
+            assert False, 'In a normal Cli, this should be `sys.exit(0)`.'
+
+    @Cli()
+    def foo(subcommand: typing.Literal['bar', 'baz'] = ..., /, *args: str) -> None:
+        calls.append({'subcommand': subcommand})
+        match subcommand:
+            case  builtins.Ellipsis:
+                print((help_flag | foo).to_short_str())
+            case 'bar':
+                (help_flag | bar)(*args)
+            case 'baz':
+                (help_flag | baz)(*args)
+
+    @Cli()
+    def bar(*args: str) -> None: calls.append({'args': args})
+
+    @Cli()
+    def baz(**kwargs: float) -> None: calls.append({'kwargs': kwargs})
+
+    with pytest.raises(AssertionError):
+        (help_flag | foo)(*'--help'.split())
+
+    assert calls == [
+        {'subcommand': ..., 'help': True},
+    ]
+
+    calls = []
+
+    with pytest.raises(AssertionError):
+        (help_flag | foo)(*'bar --help'.split())
+
+    assert calls == [
+        {'subcommand': 'bar', 'help': True},
+    ]
+
+    calls = []
+
+    with pytest.raises(AssertionError):
+        (help_flag | foo)(*'baz --help'.split())
+
+    assert calls == [
+        {'subcommand': 'baz', 'help': True},
+    ]
+
+
+@pytest.mark.asyncio
+async def test_asyncio_runs_threading_cli() -> None:
+
+    calls = []
+
+    @Cli()
+    def foo(a: int) -> None: calls.append({'a': a})
+
+    @Cli()
+    async def bar(b: int) -> None: calls.append({'b': b})
+
+    await (foo | bar)(*'1 2'.split())
+
+    assert calls == [
+        {'a': 1},
+        {'b': 2},
+    ]
+
+
+def test_threading_runs_asyncio_cli() -> None:
+
+    calls = []
+
+    @Cli()
+    async def foo(a: int) -> None: calls.append({'a': a})
+
+    @Cli()
+    def bar(b: int) -> None: calls.append({'b': b})
+
+    (foo | bar)(*'1 2'.split())
+
+    assert calls == [
+        {'a': 1},
+        {'b': 2},
+    ]
+
+
+def test_dict_is_parsed() -> None:
+    calls = []
+
+    @Cli()
+    def foo(a: dict[int, str]) -> None: calls.append({'a': a})
+
+    foo(*shlex.split(r'''"{1: 'foo'}"'''))
+
+    assert calls == [{'a': {1: 'foo'}}]
