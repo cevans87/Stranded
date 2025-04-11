@@ -4,7 +4,7 @@ import sys
 
 import pytest
 
-from funktools import Log
+from logjamming import Logger
 
 
 logger = logging.getLogger(__name__)
@@ -28,7 +28,7 @@ def event_loop() -> asyncio.AbstractEventLoop:
 @pytest.mark.asyncio
 async def test_zero_args() -> None:
 
-    @Log(logger=logger)
+    @Logger(logger=logger)
     async def foo(bar: int) -> int:
         return 42
 

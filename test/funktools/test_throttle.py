@@ -1,7 +1,7 @@
 import asyncio
 import pytest
 
-from funktools import AimdThrottle
+from funktools import Throttle
 
 
 @pytest.fixture(autouse=True)
@@ -22,7 +22,7 @@ async def test_throttle_additive_increase_adds_1() -> None:
     event = asyncio.Event()
     n_running = 0
 
-    @AimdThrottle()
+    @Throttle()
     async def foo():
         nonlocal n_running
         n_running += 1

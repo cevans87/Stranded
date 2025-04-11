@@ -3,7 +3,7 @@ import threading
 import typing
 
 from ..abc_ import decorator as abc_decorator
-from ..abc_ import aimd_throttle as abc_aimd_throttle
+from ..abc_ import throttle as abc_throttle
 from . import decorator as threading_decorator
 
 
@@ -36,7 +36,7 @@ class Decoratee[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    abc_aimd_throttle.Decoratee[
+    abc_throttle.Decoratee[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -61,7 +61,7 @@ class Exit[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    abc_aimd_throttle.Exit[
+    abc_throttle.Exit[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -88,7 +88,7 @@ class Enter[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    abc_aimd_throttle.Enter[
+    abc_throttle.Enter[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -125,7 +125,7 @@ class Decorated[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    abc_aimd_throttle.Decorated[
+    abc_throttle.Decorated[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -155,7 +155,7 @@ class Decorator[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    abc_aimd_throttle.Decorator[
+    abc_throttle.Decorator[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],

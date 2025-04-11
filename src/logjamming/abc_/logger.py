@@ -6,7 +6,7 @@ import inspect
 import logging
 import typing
 
-from . import decorator as abc_decorator
+import funktools._abc.decorator as abc_decorator
 
 
 Level = typing.Literal['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'NOTSET']

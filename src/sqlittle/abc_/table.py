@@ -6,22 +6,17 @@ import dataclasses
 import inspect
 import pathlib
 import sqlite3
+import sys
 import threading
 import typing
 
-from . import decorator as abc_decorator
+import funktools.abc_.decorator as abc_decorator
 
 type GenerateKey = typing.Callable[..., Key]
 type Key = typing.Hashable
 
 
 class Exception(abc_decorator.Exception): ...  # noqa
-
-
-@typing.runtime_checkable
-class Instance(typing.Protocol):
-
-    def __conform__(self, protocol) -> str: ...
 
 
 @typing.runtime_checkable
@@ -41,14 +36,14 @@ class Exit[**_Param, _Ret, _Decoratee, _Exit: typing.Self, _Enter, _Decorated, _
     @abc.abstractmethod
     def __call__(self, result: abc_decorator.Raise | _Ret) -> ():
         if not isinstance(result, abc_decorator.Raise):
-            assert ast.literal_eval(value := repr(result)) == result, (
-                'Return value must be convertable (ast.literal_eval) from its adapted (repr) form.'
-            )
+            assert self.enter.decorated.decorator.deserialize(
+                value := self.enter.decorated.decorator.serialize(result)
+            ) == result, 'Return value must be deserializable from its serialized form.'
 
             with self.enter.decorated.lock:
                 self.enter.decorated.connection.execute(
                     f'INSERT INTO `{self.enter.decorated.table_name}` (key, value) VALUES (?, ?)',  # noqa
-                    (self.key, value,),
+                    (self.key, value,)
                 )
 
         return ()
@@ -70,7 +65,7 @@ class Enter[** _Param, _Ret, _Decoratee, _Exit, _Enter: typing.Self, _Decorated,
                 (key,),
             ).fetchone()
         if value:
-            return ast.literal_eval(value[0]),
+            return self.decorated.decorator.serialize(value[0])
 
         return self.exit_t(enter=self, key=key), self.decorated.decoratee,
 
@@ -85,11 +80,7 @@ class Decorated[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated: typing.Se
     table_name: str
     lock: threading.Lock = dataclasses.field(default_factory=threading.Lock)
 
-    def __get__(self, instance: Instance, owner) -> typing.Self:
-        assert hasattr(instance, '__conform__'), (
-            "Decorated method class must define `__conform__` adapter. "
-            "See https://docs.python.org/3/library/sqlite3.html#how-to-write-adaptable-objects"
-        )
+    def __get__(self, instance: abc_decorator.Instance, owner) -> typing.Self:
         return dataclasses.replace(self, decoratee=self.decoratee.__get__(instance, owner), instance=instance)
 
 
@@ -98,13 +89,15 @@ class Decorator[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorato
     abc_decorator.Decorator[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
     abc.ABC,
 ):
-    adapt: typing.Callable[[abc_decorator.Instance], str] | None = None
-    convert: typing.Callable[[str], abc_decorator.Instance] | None = None
+    type Version = tuple[int, int, int]
 
-    path: pathlib.Path = pathlib.Path.home() / '.cache' / 'stranded' / 'sqlite_cache'
+    deserialize: typing.Callable[[str], _Ret] = ast.literal_eval
+    path: pathlib.Path = pathlib.Path.home() / '.cache' / 'stranded' / 'sqlarge' / 'sqlite_cache'
+    serialize: typing.Callable[[_Ret], str] = repr
+    version: Version = (0, 0, 0)
 
     def __call__(self, decoratee: _Decoratee, /) -> _Decorated:
-        table_name = f'{decoratee.__module__}.{decoratee.__qualname__}'
+        table_name = f'{decoratee.__module__}.{decoratee.__qualname__}.{self.version}'
         (connection := sqlite3.connect(self.path, check_same_thread=False, isolation_level=None)).execute(
             f'CREATE TABLE IF NOT EXISTS `{table_name}` '  # noqa
             f'(key STRING PRIMARY KEY NOT NULL UNIQUE, value STRING NOT NULL)',  # noqa

@@ -1,8 +1,9 @@
 import dataclasses
 import typing
 
-from ..abc_ import sqlite_cache as abc_sqlite_cache
-from . import decorator as asyncio_decorator
+import funktools.asyncio_.decorator as asyncio_decorator
+
+from ..abc_ import table as abc_table
 
 
 type _Decoratee[**_Param, _Ret] = Decoratee[_Param, _Ret]
@@ -23,7 +24,7 @@ class Decoratee[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    abc_sqlite_cache.Decoratee[
+    abc_table.Decoratee[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -48,7 +49,7 @@ class Exit[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    abc_sqlite_cache.Exit[
+    abc_table.Exit[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -72,7 +73,7 @@ class Enter[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    abc_sqlite_cache.Enter[
+    abc_table.Enter[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -96,7 +97,7 @@ class Decorated[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    abc_sqlite_cache.Decorated[
+    abc_table.Decorated[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -120,7 +121,7 @@ class Decorator[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    abc_sqlite_cache.Decorator[
+    abc_table.Decorator[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],

@@ -1,9 +1,8 @@
 import dataclasses
 import typing
 
-from ..abc_ import log as abc_log
-from . import decorator as asyncio_decorator
-
+import funktools.threading_.decorator as threading_decorator
+from ..abc_ import logger as abc_logger
 
 type _Decoratee[**_Param, _Ret] = Decoratee[_Param, _Ret]
 type _Exit[**_Param, _Ret] = Exit[_Param, _Ret]
@@ -14,7 +13,7 @@ type _Decorator[**_Param, _Ret] = Decorator[_Param, _Ret]
 
 @typing.runtime_checkable
 class Decoratee[**_Param, _Ret](
-    asyncio_decorator.Decoratee[
+    threading_decorator.Decoratee[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -23,7 +22,7 @@ class Decoratee[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    abc_log.Decoratee[
+    abc_logger.Decoratee[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -39,7 +38,7 @@ class Decoratee[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**_Param, _Ret](
-    asyncio_decorator.Exit[
+    threading_decorator.Exit[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -48,7 +47,7 @@ class Exit[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    abc_log.Exit[
+    abc_logger.Exit[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -63,7 +62,7 @@ class Exit[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[**_Param, _Ret](
-    asyncio_decorator.Enter[
+    threading_decorator.Enter[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -72,7 +71,7 @@ class Enter[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    abc_log.Enter[
+    abc_logger.Enter[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -87,7 +86,7 @@ class Enter[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorated[**_Param, _Ret](
-    asyncio_decorator.Decorated[
+    threading_decorator.Decorated[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -96,7 +95,7 @@ class Decorated[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    abc_log.Decorated[
+    abc_logger.Decorated[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -111,7 +110,7 @@ class Decorated[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorator[**_Param, _Ret](
-    asyncio_decorator.Decorator[
+    threading_decorator.Decorator[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -120,7 +119,7 @@ class Decorator[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    abc_log.Decorator[
+    abc_logger.Decorator[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],

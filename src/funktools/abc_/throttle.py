@@ -7,8 +7,6 @@ import sys
 import typing
 import weakref
 
-#import annotated_types
-
 from . import decorator as abc_decorator
 
 

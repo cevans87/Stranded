@@ -4,11 +4,12 @@ import tempfile
 
 import pytest
 
-from funktools import SqliteCache
+from sqlittle import Table
 
-# TODO: Multi tests are missing. This suite heavily relies upon determining whether coroutines are running vs suspended
-#  (via asyncio.eager_task_factory). Ideally, similar functionality exists for threading. Otherwise, we need to find a
-#  way to determine that thread execution has reached a certain point. Ideally without mocking synchronization
+
+# TODO: Threaded tests are missing. This suite heavily relies upon determining whether coroutines are running vs
+#  suspended (via asyncio.eager_task_factory). Ideally, similar functionality exists for threading. Otherwise, we need
+#  to find a way to determine that thread execution has reached a certain point. Ideally without mocking synchronization
 #  primitives.
 
 
@@ -35,7 +36,7 @@ def path() -> pathlib.Path:
 async def test_async_zero_args(path: pathlib.Path) -> None:
     call_count = 0
 
-    @SqliteCache(path=path)
+    @Table(path=path)
     async def foo() -> None:
         nonlocal call_count
         call_count += 1
@@ -48,7 +49,7 @@ async def test_async_zero_args(path: pathlib.Path) -> None:
 def test_multi_zero_args(path: pathlib.Path) -> None:
     call_count = 0
 
-    @SqliteCache(path=path)
+    @Table(path=path)
     def foo() -> None:
         nonlocal call_count
         call_count += 1
@@ -63,7 +64,7 @@ def test_multi_zero_args(path: pathlib.Path) -> None:
 async def test_async_primitive_arg(path: pathlib.Path, arg) -> None:
     call_count = 0
 
-    @SqliteCache(path=path)
+    @Table(path=path)
     async def foo(_) -> None:
         nonlocal call_count
         call_count += 1
@@ -77,7 +78,7 @@ async def test_async_primitive_arg(path: pathlib.Path, arg) -> None:
 def test_multi_primitive_arg(path: pathlib.Path, arg) -> None:
     call_count = 0
 
-    @SqliteCache(path=path)
+    @Table(path=path)
     def foo(_) -> None:
         nonlocal call_count
         call_count += 1
@@ -93,11 +94,7 @@ async def test_async_method(path: pathlib.Path) -> None:
 
     class Foo:
 
-        @staticmethod
-        def __conform__(protocol) -> str:
-            return ""
-
-        @SqliteCache(path=path)
+        @Table(path=path)
         async def foo(self) -> None:
             nonlocal call_count
             call_count += 1
@@ -117,11 +114,7 @@ def test_multi_method(path: pathlib.Path) -> None:
 
     class Foo:
 
-        @staticmethod
-        def __conform__(protocol) -> str:
-            return ""
-
-        @SqliteCache(path=path)
+        @Table(path=path)
         def foo(self) -> None:
             nonlocal call_count
             call_count += 1
@@ -142,7 +135,7 @@ async def test_async_classmethod(path: pathlib.Path) -> None:
 
     class Foo:
         @classmethod
-        @SqliteCache(path=path)
+        @Table(path=path)
         async def foo(cls) -> None:
             nonlocal call_count
             call_count += 1
@@ -166,7 +159,7 @@ def test_multi_classmethod(path: pathlib.Path) -> None:
 
     class Foo:
         @classmethod
-        @SqliteCache(path=path)
+        @Table(path=path)
         def foo(cls) -> None:
             nonlocal call_count
             call_count += 1
@@ -191,7 +184,7 @@ async def test_async_staticmethod(path: pathlib.Path) -> None:
 
     class Foo:
         @staticmethod
-        @SqliteCache(path=path)
+        @Table(path=path)
         async def foo() -> None:
             nonlocal call_count
             call_count += 1
@@ -215,7 +208,7 @@ def test_multi_staticmethod(path: pathlib.Path) -> None:
 
     class Foo:
         @staticmethod
-        @SqliteCache(path=path)
+        @Table(path=path)
         def foo() -> None:
             nonlocal call_count
             call_count += 1
