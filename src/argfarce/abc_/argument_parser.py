@@ -140,6 +140,8 @@ class _ReturnAnnotation[T](_Annotation[T]):
                 return _ReturnAnnotation(t=t, comment=comment)
             case _, t, ts:
                 return _ReturnAnnotation(t=t[*ts])
+            case _:
+                raise RuntimeError(f'{annotation=}. Cannot create return annotation.')
 
     def to_short_str(self) -> str:
         return ''
@@ -222,7 +224,7 @@ class _Signature:
                 case (arg,) if parameter := self.variadic_stacked_parameter:
                     variadic_stacked_values.append(parameter(arg))
                 case _:
-                    assert False, f'Unrecognized argument {arg}.'
+                    raise RuntimeError(f'{arg=}. Expected valid variable name prefixed with "", "-", or "--".')
 
         return _BoundSignature(
             return_annotation=self.return_annotation,
@@ -400,6 +402,8 @@ class Decorated[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated: typing.Se
                 return self,
             case left, right:
                 return *left.decorateds, *right.decorateds
+            case _:
+                raise RuntimeError(f'{self.children=}. Expected {self.__annotations__['children']}')
 
     def __call__(self, *argv: str) -> typing.Iterable[typing.Callable]:
         yield from self.to_signature()(*argv)(self.decorateds)

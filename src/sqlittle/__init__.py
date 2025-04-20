@@ -1,2 +1,1 @@
-from .alter import Alter
-from .table import Table
+from .cache import Cache

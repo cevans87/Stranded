@@ -16,5 +16,8 @@ _...is logging with some extra burnishing._
 # mistypes
 _...are types that can't be mistyped._
 
+# pathdew
+_...is the path dewy decimal system._
+
 # typong
 _...is to pong as typing is to ping._

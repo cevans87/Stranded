@@ -24,19 +24,18 @@ class Exit[**_Param, _Ret, _Decoratee, _Exit: typing.Self, _Enter, _Decorated, _
     abc.ABC,
 ):
     @abc.abstractmethod
-    def __call__(self, result: abc_decorator.Raise | _Ret) -> ():
+    def __call__(self, result: abc_decorator.Raise | _Ret) -> () | tuple[_Enter]:
         if self.enter.n_retried < self.enter.decorated.decorator.n and isinstance(result, abc_decorator.Raise):
             return dataclasses.replace(self.enter, n_retried=self.enter.n_retried + 1),
 
-        return result,
+        return ()
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[** _Param, _Ret, _Decoratee, _Exit, _Enter: typing.Self, _Decorated, _Decorator](
     abc_decorator.Enter[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
     abc.ABC,
-):
-    n_retried: int = 0
+): n_retried: int = 0
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -50,5 +49,4 @@ class Decorated[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated: typing.Se
 class Decorator[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator: typing.Self](
     abc_decorator.Decorator[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
     abc.ABC,
-):
-    n: int = sys.maxsize
+): n: int = sys.maxsize

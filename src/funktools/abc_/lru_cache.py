@@ -28,8 +28,7 @@ class Decoratee[**_Param, _Ret, _Decoratee: typing.Self, _Exit, _Enter, _Decorat
 class Exit[**_Param, _Ret, _Decoratee, _Exit: typing.Self, _Enter, _Decorated, _Decorator, _Future](
     abc_decorator.Exit[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
     abc.ABC,
-):
-    future: _Future
+): future: _Future
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -68,5 +67,4 @@ class Decorated[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated: typing.Se
 class Decorator[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator: typing.Self](
     abc_decorator.Decorator[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
     abc.ABC,
-):
-    size: int = sys.maxsize
+): size: int = sys.maxsize

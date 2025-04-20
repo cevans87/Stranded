@@ -1,13 +1,11 @@
-import asyncio
 import dataclasses
 import typing
 
-from ..abc_ import decorator as abc_decorator
-from ..abc_ import lru_cache as abc_lru_cache
-from . import decorator as asyncio_decorator
+import funktools.asyncio_.decorator as asyncio_decorator
+
+from ..abc_ import cache as abc_cache
 
 
-type _Future[**_Param, _Ret] = asyncio.Future[_Ret]
 type _Decoratee[**_Param, _Ret] = Decoratee[_Param, _Ret]
 type _Exit[**_Param, _Ret] = Exit[_Param, _Ret]
 type _Enter[**_Param, _Ret] = Enter[_Param, _Ret]
@@ -26,7 +24,7 @@ class Decoratee[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    abc_lru_cache.Decoratee[
+    abc_cache.Decoratee[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -51,7 +49,7 @@ class Exit[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    abc_lru_cache.Exit[
+    abc_cache.Exit[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -59,15 +57,8 @@ class Exit[**_Param, _Ret](
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
-        _Future[_Param, _Ret],
     ],
-):
-    future: _Future = dataclasses.field(default_factory=asyncio.Future)
-
-    async def __call__(self, result: abc_decorator.Raise | _Ret) -> ():
-        self.future.set_result(result)
-
-        return ()
+): ...
 
 
 @typing.final
@@ -82,7 +73,7 @@ class Enter[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    abc_lru_cache.Enter[
+    abc_cache.Enter[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -91,21 +82,7 @@ class Enter[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-):
-    # TODO: Dedup this with the threading version.
-    async def __call__(
-        self, *args: _Param.args, **kwargs: _Param.kwargs,
-    ) -> tuple[_Exit[_Param, _Ret], _Decoratee[_Param, _Ret]] | tuple[typing.Callable[_Param, typing.Awaitable[_Ret]]]:
-        key = self.create_key(*args, **kwargs)
-        future = self.decorated.future_by_key.pop(key, None)
-        while self.decorated.decorator.size <= len(self.decorated.future_by_key):
-            self.decorated.future_by_key.popitem(last=False)
-        if future is None:
-            future = self.decorated.future_by_key[key] = asyncio.Future()
-            return self.decorated.decorator.exit_t(enter=self, future=future), self.decorated.decoratee
-        else:
-            self.decorated.future_by_key[key] = future
-            return (lambda *_args, **_kwargs: future),
+): ...
 
 
 @typing.final
@@ -120,7 +97,7 @@ class Decorated[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    abc_lru_cache.Decorated[
+    abc_cache.Decorated[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -128,7 +105,6 @@ class Decorated[**_Param, _Ret](
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
-        _Future[_Param, _Ret],
     ],
 ): ...
 
@@ -145,7 +121,7 @@ class Decorator[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    abc_lru_cache.Decorator[
+    abc_cache.Decorator[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
