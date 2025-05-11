@@ -1,8 +1,8 @@
 import dataclasses
 import typing
 
-from ..abc_ import retry as abc_retry
-from . import decorator as threading_decorator
+from ..abc_ import retry
+from . import decorator
 
 type _Decoratee[**_Param, _Ret] = Decoratee[_Param, _Ret]
 type _Exit[**_Param, _Ret] = Exit[_Param, _Ret]
@@ -13,19 +13,17 @@ type _Decorator[**_Param, _Ret] = Decorator[_Param, _Ret]
 
 @typing.runtime_checkable
 class Decoratee[**_Param, _Ret](
-    threading_decorator.Decoratee[
+    decorator.Decoratee[
         _Param,
         _Ret,
-        _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    abc_retry.Decoratee[
+    retry.Decoratee[
         _Param,
         _Ret,
-        _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
@@ -38,20 +36,18 @@ class Decoratee[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**_Param, _Ret](
-    threading_decorator.Exit[
+    decorator.Exit[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
-        _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    abc_retry.Exit[
+    retry.Exit[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
-        _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
@@ -62,21 +58,19 @@ class Exit[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[**_Param, _Ret](
-    threading_decorator.Enter[
+    decorator.Enter[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
-        _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    abc_retry.Enter[
+    retry.Enter[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
-        _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
@@ -86,22 +80,20 @@ class Enter[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorated[**_Param, _Ret](
-    threading_decorator.Decorated[
+    decorator.Decorated[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
-        _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    abc_retry.Decorated[
+    retry.Decorated[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
-        _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
 ): ...
@@ -110,22 +102,20 @@ class Decorated[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorator[**_Param, _Ret](
-    threading_decorator.Decorator[
+    decorator.Decorator[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
-        _Decorator[_Param, _Ret],
     ],
-    abc_retry.Decorator[
+    retry.Decorator[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
-        _Decorator[_Param, _Ret],
     ],
 ): ...

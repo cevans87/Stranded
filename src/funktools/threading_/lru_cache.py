@@ -2,34 +2,31 @@ import concurrent.futures
 import dataclasses
 import typing
 
-from ..abc_ import decorator as abc_decorator
-from ..abc_ import lru_cache as abc_lru_cache
-from . import decorator as threading_decorator
+from ..abc_ import lru_cache
+from . import decorator
 
 
-type _Future[**_Param, _Ret] = concurrent.futures.Future[_Ret]
 type _Decoratee[**_Param, _Ret] = Decoratee[_Param, _Ret]
 type _Exit[**_Param, _Ret] = Exit[_Param, _Ret]
 type _Enter[**_Param, _Ret] = Enter[_Param, _Ret]
 type _Decorated[**_Param, _Ret] = Decorated[_Param, _Ret]
 type _Decorator[**_Param, _Ret] = Decorator[_Param, _Ret]
+type _Future[_Ret] = concurrent.futures.Future[_Ret]
 
 
 @typing.runtime_checkable
 class Decoratee[**_Param, _Ret](
-    threading_decorator.Decoratee[
+    decorator.Decoratee[
         _Param,
         _Ret,
-        _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    abc_lru_cache.Decoratee[
+    lru_cache.Decoratee[
         _Param,
         _Ret,
-        _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
@@ -42,29 +39,27 @@ class Decoratee[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**_Param, _Ret](
-    threading_decorator.Exit[
+    decorator.Exit[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
-        _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    abc_lru_cache.Exit[
+    lru_cache.Exit[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
-        _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
-        _Future[_Param, _Ret],
+        _Future[_Ret],
     ],
 ):
-    future: _Future = dataclasses.field(default_factory=concurrent.futures.Future)
+    future: _Future[_Ret] = dataclasses.field(default_factory=concurrent.futures.Future)
 
-    def __call__(self, result: abc_decorator.Raise | _Ret) -> ():
+    def __call__(self, result: decorator.Raise | _Ret) -> ():
         self.future.set_result(result)
 
         return ()
@@ -73,21 +68,19 @@ class Exit[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[**_Param, _Ret](
-    threading_decorator.Enter[
+    decorator.Enter[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
-        _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    abc_lru_cache.Enter[
+    lru_cache.Enter[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
-        _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
@@ -111,24 +104,22 @@ class Enter[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorated[**_Param, _Ret](
-    threading_decorator.Decorated[
+    decorator.Decorated[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
-        _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    abc_lru_cache.Decorated[
+    lru_cache.Decorated[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
-        _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
-        _Future[_Param, _Ret],
+        _Future[_Ret],
     ],
 ): ...
 
@@ -136,22 +127,20 @@ class Decorated[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorator[**_Param, _Ret](
-    threading_decorator.Decorator[
+    decorator.Decorator[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
-        _Decorator[_Param, _Ret],
     ],
-    abc_lru_cache.Decorator[
+    lru_cache.Decorator[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
-        _Decorator[_Param, _Ret],
     ],
 ): ...

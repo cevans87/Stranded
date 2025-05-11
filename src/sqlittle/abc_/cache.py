@@ -9,32 +9,32 @@ import sqlite3
 import threading
 import typing
 
-import funktools.abc_.decorator as abc_decorator
+from ...funktools.abc_ import decorator
 
 type GenerateKey = typing.Callable[..., Key]
 type Key = typing.Hashable
 
 
-class Exception(abc_decorator.Exception): ...  # noqa
+class Exception(decorator.Exception): ...  # noqa
 
 
 @typing.runtime_checkable
-class Decoratee[**_Param, _Ret, _Decoratee: typing.Self, _Exit, _Enter, _Decorated, _Decorator](
-    abc_decorator.Decoratee[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
+class Decoratee[**_Param, _Ret, _Exit, _Enter, _Decorated, _Decorator](
+    decorator.Decoratee[_Param, _Ret, _Exit, _Enter, _Decorated, _Decorator],
     typing.Protocol,
 ): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Exit[**_Param, _Ret, _Decoratee, _Exit: typing.Self, _Enter, _Decorated, _Decorator](
-    abc_decorator.Exit[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
+class Exit[**_Param, _Ret, _Decoratee, _Enter, _Decorated, _Decorator](
+    decorator.Exit[_Param, _Ret, _Decoratee, _Enter, _Decorated, _Decorator],
     abc.ABC,
 ):
     key: str
 
     @abc.abstractmethod
-    def __call__(self, result: abc_decorator.Raise | _Ret) -> ():
-        if not isinstance(result, abc_decorator.Raise):
+    def __call__(self, result: decorator.Raise | _Ret) -> ():
+        if not isinstance(result, decorator.Raise):
             assert self.enter.decorated.decorator.deserialize(
                 value := self.enter.decorated.decorator.serialize(result)
             ) == result, 'Return value must be deserializable from its serialized form.'
@@ -49,8 +49,8 @@ class Exit[**_Param, _Ret, _Decoratee, _Exit: typing.Self, _Enter, _Decorated, _
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Enter[** _Param, _Ret, _Decoratee, _Exit, _Enter: typing.Self, _Decorated, _Decorator](
-    abc_decorator.Enter[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
+class Enter[** _Param, _Ret, _Decoratee, _Exit, _Decorated, _Decorator](
+    decorator.Enter[_Param, _Ret, _Decoratee, _Exit, _Decorated, _Decorator],
     abc.ABC,
 ):
     @abc.abstractmethod
@@ -70,22 +70,22 @@ class Enter[** _Param, _Ret, _Decoratee, _Exit, _Enter: typing.Self, _Decorated,
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorated[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated: typing.Self, _Decorator](
-    abc_decorator.Decorated[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
+class Decorated[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorator](
+    decorator.Decorated[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorator],
     abc.ABC,
 ):
     connection: sqlite3.Connection
-    instance: abc_decorator.Instance
+    instance: decorator.Instance
     table_name: str
     lock: threading.Lock = dataclasses.field(default_factory=threading.Lock)
 
-    def __get__(self, instance: abc_decorator.Instance, owner) -> typing.Self:
+    def __get__(self, instance: decorator.Instance, owner) -> typing.Self:
         return dataclasses.replace(self, decoratee=self.decoratee.__get__(instance, owner), instance=instance)
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorator[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator: typing.Self](
-    abc_decorator.Decorator[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
+class Decorator[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated](
+    decorator.Decorator[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated],
     abc.ABC,
 ):
     type Version = tuple[int, int, int]

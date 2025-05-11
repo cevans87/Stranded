@@ -1,8 +1,8 @@
 import dataclasses
 
-from .abc_ import throttle as abc_throttle
+from .abc_ import throttle
 from . import decorator
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Throttle(decorator.Decorator, abc_throttle.Decorator): ...
+class Throttle(decorator.Decorator, throttle.Decorator): ...

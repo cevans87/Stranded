@@ -3,31 +3,30 @@ from __future__ import annotations
 import abc
 import typing
 
-class T[_Value](typing.Iterable[_T], abc.ABC):
+from ...funktools.abc_ import decorator as abc_decorator
+
+class Iter[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Filter, _Map, _Reduce](
+    abc_decorator.Decorator[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated],
+    abc.ABC,
+):
 
     @typing.overload
-    async def filter(self, *, f: typing.Callable[[_T], typing.Awaitable[_T | None]]) -> T[_T]: ...
+    def filter(self, f: typing.Callable[[_V], typing.Awaitable[bool]], /) -> typing.Self: ...
+    @typing.overload
+    def filter(self, f: typing.Callable[[_V], bool], /) -> typing.Self: ...
+    @abc.abstractmethod
+    def filter(self, f: None, /) -> typing.Self: raise NotImplemented()
 
     @typing.overload
-    def filter(self, *, f: typing.Callable[[_T], _T | None]) -> T[_T]: ...
-
+    def map[_Ret2](self, f: typing.Callable[[_Ret], typing.Awaitable[_Ret2]], /) -> Iter[_Ret2]: ...
+    @typing.overload
+    def map[_Ret2](self, f: typing.Callable[[_Ret], _Ret2], /) -> Iter[_Ret2]: ...
     @abc.abstractmethod
-    def filter(self, *, f): raise NotImplementedError()
+    def map(self, f): raise NotImplemented()
 
+    @typing.overload
+    def reduce[_Ret2](self, f: typing.Callable[[_Ret], typing.Awaitable[_Ret2]], /) -> _Reduce: ...
+    @typing.overload
+    def reduce[_Ret2](self, f: typing.Callable[[_Ret], _Ret2], /) -> _Reduce: ...
     @abc.abstractmethod
-    async def fold[_U](self, _u: _U, /, f: typing.Callable[[_T, _U], typing.Awaitable[_U]]) -> _U: ...
-
-    @abc.abstractmethod
-    async def map[_U](self, f: typing.Callable[[_T], typing.Awaitable[_U]]) -> abc_iterable.T[_U]: ...
-
-    @abc.abstractmethod
-    def map[_U](self, f: typing.Callable[[_T], typing.Awaitable[_U]]) -> abc_iterable.T[_U]: ...
-
-    #@typing.overload
-    #async def reduce(self, f: typing.Callable[[_T, _T], typing.Awaitable[_T]]) -> _T: ...
-
-    #@typing.overload
-    #def reduce(self, v: _Value, f: typing.Callable[[_T, _T], _T]) -> _T: ...
-
-    #@abc.abstractmethod
-    #def reduce(self, f): raise NotImplementedError()
+    def reduce(self, f, /): raise NotImplemented()

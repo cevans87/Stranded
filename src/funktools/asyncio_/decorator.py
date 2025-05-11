@@ -3,53 +3,53 @@ import dataclasses
 import sys
 import typing
 
-from ..abc_ import decorator as abc_decorator
+from ..abc_ import decorator
 
 
 @dataclasses.dataclass(frozen=True)
-class Raise(abc_decorator.Raise): ...
+class Raise(decorator.Raise): ...
 
 
 @typing.runtime_checkable
-class Decoratee[**_Param, _Ret, _Decoratee: typing.Self, _Exit, _Enter, _Decorated, _Decorator](
-    abc_decorator.Decoratee[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
+class Decoratee[**_Param, _Ret, _Exit, _Enter, _Decorated, _Decorator](
+    decorator.Decoratee[_Param, _Ret, _Exit, _Enter, _Decorated, _Decorator],
     typing.Protocol,
 ):
     async def __call__(*args: _Param.args, **kwargs: _Param.kwargs) -> _Ret: ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Exit[**_Param, _Ret, _Decoratee, _Exit: typing.Self, _Enter, _Decorated, _Decorator](
-    abc_decorator.Exit[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
+class Exit[**_Param, _Ret, _Decoratee, _Enter, _Decorated, _Decorator](
+    decorator.Exit[_Param, _Ret, _Decoratee, _Enter, _Decorated, _Decorator],
     abc.ABC,
 ):
     async def __call__(
         self,
-        result: abc_decorator.Raise | _Ret,
-    ) -> tuple[_Decoratee | _Exit | _Enter | _Decorated, ...]:
+        result: decorator.Raise | _Ret,
+    ) -> tuple[_Decoratee | typing.Self | _Enter | _Decorated, ...]:
         return super().__call__(result)
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Enter[**_Param, _Ret, _Decoratee, _Exit, _Enter: typing.Self, _Decorated, _Decorator](
-    abc_decorator.Enter[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
+class Enter[**_Param, _Ret, _Decoratee, _Exit, _Decorated, _Decorator](
+    decorator.Enter[_Param, _Ret, _Decoratee, _Exit, _Decorated, _Decorator],
     abc.ABC,
 ):
     async def __call__(
         self,
         *args: _Param.args,
         **kwargs: _Param.kwargs,
-    ) -> tuple[_Decoratee | _Exit | _Enter | _Decorated, ...]:
+    ) -> tuple[_Decoratee | _Exit | typing.Self | _Decorated, ...]:
         return super().__call__(*args, **kwargs)
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorated[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated: typing.Self, _Decorator](
-    abc_decorator.Decorated[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
+class Decorated[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorator](
+    decorator.Decorated[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorator],
     abc.ABC,
 ):
     async def __call__(self, *args: _Param.args, **kwargs: _Param.kwargs) -> _Ret:
-        result: abc_decorator.Raise | _Ret = ...
+        result: decorator.Raise | _Ret = ...
         stack = [self]
         while stack:
             match stack.pop():
@@ -63,9 +63,9 @@ class Decorated[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated: typing.Se
                     try:
                         result = await decoratee_(*args, **kwargs)
                     except Exception:  # noqa
-                        result = abc_decorator.Raise(*sys.exc_info())
+                        result = decorator.Raise(*sys.exc_info())
 
-        if isinstance(result, abc_decorator.Raise):
+        if isinstance(result, decorator.Raise):
             raise result.exc_val
 
         return result
@@ -75,7 +75,7 @@ class Decorated[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated: typing.Se
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorator[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator: typing.Self](
-    abc_decorator.Decorator[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
+class Decorator[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated](
+    decorator.Decorator[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated],
     abc.ABC,
 ): ...

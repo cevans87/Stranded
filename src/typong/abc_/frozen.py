@@ -2,7 +2,7 @@ import abc
 import typing
 
 
-class T[_T: typing.Hashable](abc.ABC):
+class Frozen[_T: typing.Hashable](abc.ABC):
 
     @abc.abstractmethod
     def __hash__(self) -> int: raise NotImplemented()

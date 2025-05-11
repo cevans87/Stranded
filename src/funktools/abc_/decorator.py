@@ -22,7 +22,7 @@ class Raise:
 
 
 @typing.runtime_checkable
-class Decoratee[**_Param, _Ret, _Decoratee: typing.Self, _Exit, _Enter, _Decorated, _Decorator](typing.Protocol):
+class Decoratee[**_Param, _Ret, _Exit, _Enter, _Decorated, _Decorator](typing.Protocol):
 
     def __get__(self, instance: Instance, owner) -> typing.Self: ...
 
@@ -52,8 +52,8 @@ class Base[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator](ab
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Exit[**_Param, _Ret, _Decoratee, _Exit: typing.Self, _Enter, _Decorated, _Decorator](
-    Base[_Param, _Ret, _Decoratee, _Decorator, _Decorated, _Enter, _Exit],
+class Exit[**_Param, _Ret, _Decoratee, _Enter, _Decorated, _Decorator](
+    Base[_Param, _Ret, _Decoratee, _Enter, typing.Self, _Decorated, _Decorator],
     abc.ABC,
 ):
     enter: _Enter
@@ -63,8 +63,8 @@ class Exit[**_Param, _Ret, _Decoratee, _Exit: typing.Self, _Enter, _Decorated, _
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Enter[**_Param, _Ret, _Decoratee, _Exit, _Enter: typing.Self, _Decorated, _Decorator](
-    Base[_Param, _Ret, _Decoratee, _Decorator, _Decorated, _Enter, _Exit],
+class Enter[**_Param, _Ret, _Decoratee, _Exit, _Decorated, _Decorator](
+    Base[_Param, _Ret, _Decoratee, _Decorator, _Decorated, typing.Self, _Exit],
     abc.ABC,
 ):
     decorated: _Decorated
@@ -74,8 +74,8 @@ class Enter[**_Param, _Ret, _Decoratee, _Exit, _Enter: typing.Self, _Decorated, 
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorated[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated: typing.Self, _Decorator](
-    Base[_Param, _Ret, _Decoratee,_Exit, _Enter, _Decorated, _Decorator],
+class Decorated[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorator](
+    Base[_Param, _Ret, _Decoratee, _Exit, _Enter, typing.Self, _Decorator],
     abc.ABC,
 ):
     __doc__: str
@@ -94,8 +94,8 @@ class Decorated[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated: typing.Se
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorator[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated,  _Decorator: typing.Self](
-    Base[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
+class Decorator[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated](
+    Base[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, typing.Self],
     abc.ABC,
 ):
     def __call__(self, decoratee: _Decoratee, /) -> _Decorated:

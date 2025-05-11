@@ -1,9 +1,8 @@
 import dataclasses
 import typing
 
-import funktools.threading_.decorator as threading_decorator
-
-from ..abc_ import cache as abc_cache
+from ...funktools.threading_ import decorator
+from ..abc_ import cache
 
 
 type _Decoratee[**_Param, _Ret] = Decoratee[_Param, _Ret]
@@ -15,19 +14,17 @@ type _Decorator[**_Param, _Ret] = Decorator[_Param, _Ret]
 
 @typing.runtime_checkable
 class Decoratee[**_Param, _Ret](
-    threading_decorator.Decoratee[
+    decorator.Decoratee[
         _Param,
         _Ret,
-        _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    abc_cache.Decoratee[
+    cache.Decoratee[
         _Param,
         _Ret,
-        _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
@@ -40,20 +37,18 @@ class Decoratee[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**_Param, _Ret](
-    threading_decorator.Exit[
+    decorator.Exit[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
-        _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    abc_cache.Exit[
+    cache.Exit[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
-        _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
@@ -64,21 +59,19 @@ class Exit[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[**_Param, _Ret](
-    threading_decorator.Enter[
+    decorator.Enter[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
-        _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    abc_cache.Enter[
+    cache.Enter[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
-        _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
@@ -88,22 +81,20 @@ class Enter[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorated[**_Param, _Ret](
-    threading_decorator.Decorated[
+    decorator.Decorated[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
-        _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    abc_cache.Decorated[
+    cache.Decorated[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
-        _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
 ): ...
@@ -112,22 +103,20 @@ class Decorated[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorator[**_Param, _Ret](
-    threading_decorator.Decorator[
+    decorator.Decorator[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
-        _Decorator[_Param, _Ret],
     ],
-    abc_cache.Decorator[
+    cache.Decorator[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
-        _Decorator[_Param, _Ret],
     ],
 ): ...

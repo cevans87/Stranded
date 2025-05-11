@@ -2,11 +2,11 @@ import dataclasses
 import importlib
 import inspect
 
-from .abc_ import decorator as abc_decorator
+from .abc_ import decorator
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorator(abc_decorator.Decorator):
+class Decorator(decorator.Decorator):
 
     def __call__[_Decoratee](self, decoratee: _Decoratee) -> _Decoratee:
         (name_parts := self.__module__.split('.')).insert(

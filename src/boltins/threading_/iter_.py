@@ -5,15 +5,15 @@ import dataclasses
 import inspect
 import typing
 
-from ..abc_ import iter_
+from ..abc_ import iter_ as abc_iter_
 
 
 @dataclasses.dataclass(frozen=True)
-class Iter[_U, _V](iter_.Iter[_V]):
+class Iter[_U, _V](abc_iter_.Iter[_V]):
 
-    _vs: typing.AsyncIterable[_V]
+    _vs: typing.Iterable[_V]
 
-    def __aiter__(self) -> typing.AsyncIterable[_V]:
+    def __aiter__(self) -> typing.Iterable[_V]:
         return self._vs
 
     @typing.overload
@@ -27,14 +27,14 @@ class Iter[_U, _V](iter_.Iter[_V]):
     def filter(self, f: None, /) -> typing.Self: ...
     @typing.override
     def filter(self, f=None, /):
-        async def apply(_f) -> typing.AsyncIterable[_V]:
+        def apply(_f) -> typing.Iterable[_V]:
             match inspect.iscoroutinefunction(_f):
                 case True:
-                    async for v in self._vs:
-                        if await _f(v):
+                    for v in self._vs:
+                        if asyncio.run(_f(v)):
                             yield v
                 case False:
-                    async for v in self._vs:
+                    for v in self._vs:
                         if _f(v):
                             yield v
 
@@ -48,52 +48,31 @@ class Iter[_U, _V](iter_.Iter[_V]):
     def map[_W](self, f: typing.Callable[[_V], _W], /) -> Iter[_W]: ...
     @typing.override
     def map[_W](self, f, /):
-        async def apply(_f) -> typing.AsyncIterable[_W]:
+        def apply(_f) -> typing.Iterable[_W]:
             match inspect.iscoroutinefunction(_f):
                 case True:
-                    async for v in self._vs:
-                        yield await _f(v)
+                    for v in self._vs:
+                        yield asyncio.run(_f(v))
                 case False:
-                    async for v in self._vs:
+                    for v in self._vs:
                         yield _f(v)
 
         return Iter(apply(f))
 
     @typing.overload
     @typing.override
-    async def reduce(self, v: _V, f: typing.Callable[[_V, _V], typing.Awaitable[_V]], /) -> _V: ...
+    def reduce(self, v: _V, f: typing.Callable[[_V, _V], typing.Awaitable[_V]], /) -> _V: ...
     @typing.overload
     @typing.override
-    async def reduce(self, v: _V, f: typing.Callable[[_V, _V], _V], /) -> _V: ...
+    def reduce(self, v: _V, f: typing.Callable[[_V, _V], _V], /) -> _V: ...
     @typing.override
-    async def reduce(self, v, f, /):
+    def reduce(self, v, f, /):
         # TODO allow taking first value as v.
         match inspect.iscoroutinefunction(f):
             case True:
-                async for _v in self._vs:
-                    v = await f(v, _v)
+                for _v in self._vs:
+                    v = asyncio.run(f(v, _v))
             case False:
-                async for _v in self._vs:
+                for _v in self._vs:
                     v = f(v, _v)
         return v
-
-
-async def main():
-    async def foo():
-        for i in range(20):
-            print(f'foo {i}')
-            yield i
-
-    async def bar(a):
-        print(f'{a % 2 = }')
-        await asyncio.sleep(1)
-        return a % 2
-
-    def baz(a, b):
-        print(f'{a} + {b}')
-        return a + b
-
-    print(await Iter(foo()).filter(bar).reduce(0, baz))
-
-if __name__ == '__main__':
-    asyncio.run(main())
