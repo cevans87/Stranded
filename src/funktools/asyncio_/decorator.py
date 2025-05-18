@@ -10,11 +10,12 @@ from ..abc_ import decorator
 class Raise(decorator.Raise): ...
 
 
+@dataclasses.dataclass(frozen=True, kw_only=True)
+class Param[**_Param](decorator.Param[_Param]): ...
+
+
 @typing.runtime_checkable
-class Decoratee[**_Param, _Ret, _Exit, _Enter, _Decorated, _Decorator](
-    decorator.Decoratee[_Param, _Ret, _Exit, _Enter, _Decorated, _Decorator],
-    typing.Protocol,
-):
+class Decoratee[**_Param, _Ret](decorator.Decoratee[_Param, _Ret], typing.Protocol):
     async def __call__(*args: _Param.args, **kwargs: _Param.kwargs) -> _Ret: ...
 
 
@@ -53,12 +54,10 @@ class Decorated[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorator](
         stack = [self]
         while stack:
             match stack.pop():
-                case Decorated() as decorated_:
-                    stack.extend(await decorated_.create_context())
-                case Enter() as enter_:
-                    stack.extend(await enter_(*args, **kwargs))
-                case Exit() as exit_:
-                    stack.extend(await exit_(result))
+                case decorator.Param(args=args, kwargs=kwargs): pass
+                case Decorated() as decorated_: stack.extend(await decorated_.create_context())
+                case Enter() as enter_: stack.extend(await enter_(*args, **kwargs))
+                case Exit() as exit_: stack.extend(await exit_(result))
                 case Decoratee() as decoratee_:
                     try:
                         result = await decoratee_(*args, **kwargs)

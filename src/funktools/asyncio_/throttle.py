@@ -15,22 +15,8 @@ type _Condition = asyncio.Condition
 
 @typing.runtime_checkable
 class Decoratee[**_Param, _Ret](
-    decorator.Decoratee[
-        _Param,
-        _Ret,
-        _Exit[_Param, _Ret],
-        _Enter[_Param, _Ret],
-        _Decorated[_Param, _Ret],
-        _Decorator[_Param, _Ret],
-    ],
-    throttle.Decoratee[
-        _Param,
-        _Ret,
-        _Exit[_Param, _Ret],
-        _Enter[_Param, _Ret],
-        _Decorated[_Param, _Ret],
-        _Decorator[_Param, _Ret],
-    ],
+    decorator.Decoratee[_Param, _Ret],
+    throttle.Decoratee[_Param, _Ret],
     typing.Protocol,
 ): ...
 

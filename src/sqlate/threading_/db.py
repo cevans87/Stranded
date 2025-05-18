@@ -1,8 +1,8 @@
 import dataclasses
 import typing
 
-from ..abc_ import retry
-from . import decorator
+from ...funktools.threading_ import decorator
+from ..abc_ import db
 
 
 type _Decoratee[**_Param, _Ret] = Decoratee[_Param, _Ret]
@@ -14,8 +14,22 @@ type _Decorator[**_Param, _Ret] = Decorator[_Param, _Ret]
 
 @typing.runtime_checkable
 class Decoratee[**_Param, _Ret](
-    decorator.Decoratee[_Param, _Ret],
-    retry.Decoratee[_Param, _Ret],
+    decorator.Decoratee[
+        _Param,
+        _Ret,
+        _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
+        _Decorator[_Param, _Ret],
+    ],
+    db.Decoratee[
+        _Param,
+        _Ret,
+        _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
+        _Decorator[_Param, _Ret],
+    ],
     typing.Protocol,
 ): ...
 
@@ -31,7 +45,7 @@ class Exit[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    retry.Exit[
+    db.Exit[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -53,7 +67,7 @@ class Enter[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    retry.Enter[
+    db.Enter[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -75,7 +89,7 @@ class Decorated[**_Param, _Ret](
         _Enter[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    retry.Decorated[
+    db.Decorated[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -97,7 +111,7 @@ class Decorator[**_Param, _Ret](
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
     ],
-    retry.Decorator[
+    db.Decorator[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],

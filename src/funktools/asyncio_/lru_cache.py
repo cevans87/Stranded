@@ -16,22 +16,8 @@ type _Future[_Ret] = asyncio.Future[_Ret]
 
 @typing.runtime_checkable
 class Decoratee[**_Param, _Ret](
-    decorator.Decoratee[
-        _Param,
-        _Ret,
-        _Exit[_Param, _Ret],
-        _Enter[_Param, _Ret],
-        _Decorated[_Param, _Ret],
-        _Decorator[_Param, _Ret],
-    ],
-    lru_cache.Decoratee[
-        _Param,
-        _Ret,
-        _Exit[_Param, _Ret],
-        _Enter[_Param, _Ret],
-        _Decorated[_Param, _Ret],
-        _Decorator[_Param, _Ret],
-    ],
+    decorator.Decoratee[_Param, _Ret],
+    lru_cache.Decoratee[_Param, _Ret],
     typing.Protocol,
 ): ...
 
@@ -59,6 +45,7 @@ class Exit[**_Param, _Ret](
 ):
     future: _Future[_Ret] = dataclasses.field(default_factory=asyncio.Future)
 
+    @typing.override
     async def __call__(self, result: decorator.Raise | _Ret) -> ():
         self.future.set_result(result)
 
@@ -86,6 +73,7 @@ class Enter[**_Param, _Ret](
     ],
 ):
     # TODO: Dedup this with the threading version.
+    @typing.override
     async def __call__(
         self, *args: _Param.args, **kwargs: _Param.kwargs,
     ) -> tuple[_Exit[_Param, _Ret], _Decoratee[_Param, _Ret]] | tuple[typing.Callable[_Param, typing.Awaitable[_Ret]]]:

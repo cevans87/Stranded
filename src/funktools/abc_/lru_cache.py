@@ -18,8 +18,8 @@ class Exception(decorator.Exception): ...  # noqa
 
 
 @typing.runtime_checkable
-class Decoratee[**_Param, _Ret, _Exit, _Enter, _Decorated, _Decorator](
-    decorator.Decoratee[_Param, _Ret, _Exit, _Enter, _Decorated, _Decorator],
+class Decoratee[**_Param, _Ret](
+    decorator.Decoratee[_Param, _Ret],
     typing.Protocol,
 ): ...
 

@@ -16,8 +16,8 @@ logger.addHandler(logging.StreamHandler(sys.stdout))
 logger.setLevel(logging.INFO)
 
 
-@pytest.fixture(autouse=True)
-def event_loop() -> asyncio.AbstractEventLoop:
+@pytest.fixture(autouse=True, scope='module')
+def event_loop() -> typing.Generator[asyncio.AbstractEventLoop]:
     """All async tests execute eagerly.
 
     Upon task creation return, we can be sure that the task has gotten to a point that it is either blocked or done.
@@ -444,3 +444,7 @@ def test_dict_is_parsed() -> None:
     foo(*shlex.split(r'''"{1: 'foo'}"'''))
 
     assert calls == [{'a': {1: 'foo'}}]
+
+
+if __name__ == '__main__':
+    pytest.main()

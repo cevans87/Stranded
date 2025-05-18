@@ -15,21 +15,18 @@ class Exception(Exception): ...  # noqa
 
 @dataclasses.dataclass(frozen=True)
 class Raise:
-
     exc_type: type[BaseException]
     exc_val: BaseException
     exc_tb: types.TracebackType
 
 
 @typing.runtime_checkable
-class Decoratee[**_Param, _Ret, _Exit, _Enter, _Decorated, _Decorator](typing.Protocol):
-
+class Decoratee[**_Param, _Ret](typing.Protocol):
     def __get__(self, instance: Instance, owner) -> typing.Self: ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Base[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator](abc.ABC):
-
     @property
     def decoratee_t(self) -> type[_Decoratee]:
         return inspect.getmodule(type(self)).Decoratee
@@ -49,6 +46,12 @@ class Base[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator](ab
     @property
     def exit_t(self) -> type[_Exit]:
         return inspect.getmodule(type(self)).Exit
+
+
+@dataclasses.dataclass(frozen=True, kw_only=True)
+class Param[**_Param]:
+    args: _Param.args = dataclasses.field(default=tuple)
+    kwargs: _Param.kwargs = dataclasses.field(default_factory=dict)
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)

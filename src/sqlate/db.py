@@ -1,8 +1,8 @@
 import dataclasses
 
 from ..funktools import decorator
-from .abc_ import cache
+from .abc_ import db
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Cache(decorator.Decorator, cache.Decorator): ...
+class Db(decorator.Decorator, db.Decorator): ...

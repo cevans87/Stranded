@@ -1,12 +1,13 @@
 import asyncio
+import typing
 
 import pytest
 
 from funktools import Retry
 
 
-@pytest.fixture(autouse=True)
-def event_loop() -> asyncio.AbstractEventLoop:
+@pytest.fixture(scope='module')
+def set_event_loop() -> typing.Generator[None]:
     """All async tests execute eagerly.
 
     Upon task creation return, we can be sure that the task has gotten to a point that it is either blocked or done.
@@ -14,7 +15,9 @@ def event_loop() -> asyncio.AbstractEventLoop:
 
     eager_loop = asyncio.new_event_loop()
     eager_loop.set_task_factory(asyncio.eager_task_factory)
-    yield eager_loop
+    asyncio.set_event_loop(eager_loop)
+    yield
+    asyncio.set_event_loop(None)
     eager_loop.close()
 
 

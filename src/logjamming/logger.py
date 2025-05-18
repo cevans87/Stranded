@@ -1,6 +1,6 @@
 import dataclasses
 
-from funktools import decorator
+from ..funktools import decorator
 from .abc_ import logger
 
 

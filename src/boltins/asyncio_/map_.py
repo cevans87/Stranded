@@ -1,9 +1,11 @@
+from __future__ import annotations
+
+import asyncio
 import dataclasses
 import typing
 
-from ...funktools.threading_ import decorator
-from ..abc_ import cache
-
+from ...funktools.asyncio_ import decorator
+from ..abc_ import map_
 
 type _Decoratee[**_Param, _Ret] = Decoratee[_Param, _Ret]
 type _Exit[**_Param, _Ret] = Exit[_Param, _Ret]
@@ -14,22 +16,8 @@ type _Decorator[**_Param, _Ret] = Decorator[_Param, _Ret]
 
 @typing.runtime_checkable
 class Decoratee[**_Param, _Ret](
-    decorator.Decoratee[
-        _Param,
-        _Ret,
-        _Exit[_Param, _Ret],
-        _Enter[_Param, _Ret],
-        _Decorated[_Param, _Ret],
-        _Decorator[_Param, _Ret],
-    ],
-    cache.Decoratee[
-        _Param,
-        _Ret,
-        _Exit[_Param, _Ret],
-        _Enter[_Param, _Ret],
-        _Decorated[_Param, _Ret],
-        _Decorator[_Param, _Ret],
-    ],
+    decorator.Decoratee[_Param, _Ret],
+    map_.Decoratee[_Param, _Ret],
     typing.Protocol,
 ): ...
 
@@ -45,7 +33,7 @@ class Exit[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    cache.Exit[
+    map_.Exit[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -67,7 +55,7 @@ class Enter[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    cache.Enter[
+    map_.Enter[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -89,7 +77,7 @@ class Decorated[**_Param, _Ret](
         _Enter[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    cache.Decorated[
+    map_.Decorated[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -97,7 +85,34 @@ class Decorated[**_Param, _Ret](
         _Enter[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-): ...
+):
+    @typing.override
+    async def __call__(
+        self,
+        params: typing.AsyncIterable[tuple[_Param.args, _Param.kwargs]],
+        /,
+    ) -> typing.Iterable[_Ret]:
+        semaphore = asyncio.Semaphore(0)
+        rets = asyncio.Queue()
+
+        async def putter(*args: _Param.args, **kwargs: _Param.kwargs) -> None:
+            await rets.put(await self.decoratee(*args, **kwargs))
+            semaphore.release()
+
+        async def submitter() -> None:
+            n_submitted = 0
+            async for  (args, kwargs) in params:
+                n_submitted += 1
+                self.decorator.pool.submit(putter, *args, **kwargs)
+
+            for _ in range(n_submitted):
+                await semaphore.acquire()
+
+            await rets.put(StopIteration())
+
+        asyncio.ensure_future(submitter())
+
+        return (ret for ret in rets),
 
 
 @typing.final
@@ -111,7 +126,7 @@ class Decorator[**_Param, _Ret](
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
     ],
-    cache.Decorator[
+    map_.Decorator[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],

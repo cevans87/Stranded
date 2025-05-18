@@ -5,9 +5,8 @@ import dataclasses
 import inspect
 import typing
 
-import funktools.threading_.decorator as threading_decorator
-
-from ..abc_ import argument_parser as abc_cli
+from ...funktools.threading_ import decorator
+from ..abc_ import argument_parser
 
 type _Decoratee[**_Param, _Ret] = Decoratee[_Param, _Ret]
 type _Exit[**_Param, _Ret] = Exit[_Param, _Ret]
@@ -18,19 +17,17 @@ type _Decorator[**_Param, _Ret] = Decorator[_Param, _Ret]
 
 @typing.runtime_checkable
 class Decoratee[**_Param, _Ret](
-    threading_decorator.Decoratee[
+    decorator.Decoratee[
         _Param,
         _Ret,
-        _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    abc_cli.Decoratee[
+    argument_parser.Decoratee[
         _Param,
         _Ret,
-        _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
@@ -43,20 +40,18 @@ class Decoratee[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**_Param, _Ret](
-    threading_decorator.Exit[
+    decorator.Exit[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
-        _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    abc_cli.Exit[
+    argument_parser.Exit[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
-        _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
@@ -67,21 +62,19 @@ class Exit[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[**_Param, _Ret](
-    threading_decorator.Enter[
+    decorator.Enter[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
-        _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    abc_cli.Enter[
+    argument_parser.Enter[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
-        _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
@@ -90,28 +83,26 @@ class Enter[**_Param, _Ret](
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorated[**_Param, _Ret](
-    threading_decorator.Decorated[
+    decorator.Decorated[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
-        _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    abc_cli.Decorated[
+    argument_parser.Decorated[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
-        _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
 ):
     def __call__(self, *argv: str) -> _Ret:
         ret = None
-        for call in super(threading_decorator.Decorated, self).__call__(*argv):
+        for call in super(decorator.Decorated, self).__call__(*argv):
             ret = call()
             if inspect.iscoroutine(ret):
                 ret = asyncio.run(ret)
@@ -121,22 +112,20 @@ class Decorated[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorator[**_Param, _Ret](
-    threading_decorator.Decorator[
+    decorator.Decorator[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
-        _Decorator[_Param, _Ret],
     ],
-    abc_cli.Decorator[
+    argument_parser.Decorator[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
-        _Decorator[_Param, _Ret],
     ],
 ): ...

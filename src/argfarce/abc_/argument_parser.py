@@ -7,7 +7,7 @@ import typing
 
 import mistypes
 
-import funktools.abc_.decorator as abc_decorator
+from funktools.abc_ import decorator
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -45,6 +45,8 @@ class _RequiredParameter[T](_Parameter[T], abc.ABC):
                 return cls(name=parameter.name, t=t, comment=comment)
             case _, t, ts:
                 return cls(name=parameter.name, t=t[*ts])
+            case _:
+                raise RuntimeError()
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -60,6 +62,8 @@ class _OptionalParameter[T](_Parameter[T], abc.ABC):
                 return cls(name=parameter.name, t=t, comment=comment, default=parameter.default)
             case _, t, ts:
                 return cls(name=parameter.name, t=t[*ts], default=parameter.default)
+            case _:
+                raise RuntimeError()
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -74,6 +78,8 @@ class _VariadicParameter[T](_Parameter[T], abc.ABC):
                 return cls(name=parameter.name, t=t, comment=comment)
             case _, t, ts:
                 return cls(name=parameter.name, t=t[*ts])
+            case _:
+                raise RuntimeError()
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -133,6 +139,8 @@ class _ReturnAnnotation[T](_Annotation[T]):
 
     @staticmethod
     def of_annotation(annotation: type) -> _ReturnAnnotation:
+        t: type[T]
+        
         match annotation, typing.get_origin(annotation), typing.get_args(annotation):
             case t, None, ():
                 return _ReturnAnnotation(t=t)
@@ -202,7 +210,7 @@ class _Signature:
         keyword_value_by_name = dict()
         variadic_stacked_values = []
         variadic_keyword_value_by_name = dict()
-
+        
         while arg_stack:
             arg = arg_stack.pop()
             match arg.split('-'):
@@ -212,6 +220,7 @@ class _Signature:
                     and parameter.default == False
                 ):
                     keyword_value_by_name[name] = True
+                # TODO: does this fail due to popping the same keyword in the previous case statement?
                 case ('', '', name) if parameter := keyword_parameter_by_name.pop(name, None):
                     keyword_value_by_name[name] = parameter(arg_stack.pop())
                 case ('', '', name) if parameter := self.variadic_keyword_parameter:
@@ -364,33 +373,33 @@ class _BoundSignature(_Signature):
             )
 
 
-class Exception(abc_decorator.Exception): ...  # noqa
+class Exception(decorator.Exception): ...  # noqa
 
 
 @typing.runtime_checkable
-class Decoratee[**_Param, _Ret, _Decoratee: typing.Self, _Exit, _Enter, _Decorated, _Decorator](
-    abc_decorator.Decoratee[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
+class Decoratee[**_Param, _Ret, _Exit, _Enter, _Decorated, _Decorator](
+    decorator.Decoratee[_Param, _Ret, _Exit, _Enter, _Decorated, _Decorator],
     typing.Protocol,
 ): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Exit[**_Param, _Ret, _Decoratee, _Exit: typing.Self, _Enter, _Decorated, _Decorator](
-    abc_decorator.Exit[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
+class Exit[**_Param, _Ret, _Decoratee, _Enter, _Decorated, _Decorator](
+    decorator.Exit[_Param, _Ret, _Decoratee, _Enter, _Decorated, _Decorator],
     abc.ABC,
 ): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Enter[** _Param, _Ret, _Decoratee, _Exit, _Enter: typing.Self, _Decorated, _Decorator](
-    abc_decorator.Enter[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
+class Enter[** _Param, _Ret, _Decoratee, _Exit, _Decorated, _Decorator](
+    decorator.Enter[_Param, _Ret, _Decoratee, _Exit, _Decorated, _Decorator],
     abc.ABC,
 ): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorated[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated: typing.Self, _Decorator](
-    abc_decorator.Decorated[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
+class Decorated[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorator](
+    decorator.Decorated[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorator],
     abc.ABC,
 ):
     children: tuple[Decorated, Decorated] | None = None
@@ -437,8 +446,8 @@ class Decorated[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated: typing.Se
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorator[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator: typing.Self](
-    abc_decorator.Decorator[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator],
+class Decorator[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated](
+    decorator.Decorator[_Param, _Ret, _Decoratee, _Exit, _Enter, Decorated],
     abc.ABC,
 ):
     LogLevel = typing.Annotated[

@@ -4,7 +4,7 @@ import tempfile
 
 import pytest
 
-from sqlittle import Table
+from sqlittle import Cache
 
 
 # TODO: Threaded tests are missing. This suite heavily relies upon determining whether coroutines are running vs
@@ -36,7 +36,7 @@ def path() -> pathlib.Path:
 async def test_async_zero_args(path: pathlib.Path) -> None:
     call_count = 0
 
-    @Table(path=path)
+    @Cache(path=path)
     async def foo() -> None:
         nonlocal call_count
         call_count += 1
@@ -49,7 +49,7 @@ async def test_async_zero_args(path: pathlib.Path) -> None:
 def test_multi_zero_args(path: pathlib.Path) -> None:
     call_count = 0
 
-    @Table(path=path)
+    @Cache(path=path)
     def foo() -> None:
         nonlocal call_count
         call_count += 1
@@ -64,7 +64,7 @@ def test_multi_zero_args(path: pathlib.Path) -> None:
 async def test_async_primitive_arg(path: pathlib.Path, arg) -> None:
     call_count = 0
 
-    @Table(path=path)
+    @Cache(path=path)
     async def foo(_) -> None:
         nonlocal call_count
         call_count += 1
@@ -78,7 +78,7 @@ async def test_async_primitive_arg(path: pathlib.Path, arg) -> None:
 def test_multi_primitive_arg(path: pathlib.Path, arg) -> None:
     call_count = 0
 
-    @Table(path=path)
+    @Cache(path=path)
     def foo(_) -> None:
         nonlocal call_count
         call_count += 1
@@ -94,7 +94,7 @@ async def test_async_method(path: pathlib.Path) -> None:
 
     class Foo:
 
-        @Table(path=path)
+        @Cache(path=path)
         async def foo(self) -> None:
             nonlocal call_count
             call_count += 1
@@ -114,7 +114,7 @@ def test_multi_method(path: pathlib.Path) -> None:
 
     class Foo:
 
-        @Table(path=path)
+        @Cache(path=path)
         def foo(self) -> None:
             nonlocal call_count
             call_count += 1
@@ -135,7 +135,7 @@ async def test_async_classmethod(path: pathlib.Path) -> None:
 
     class Foo:
         @classmethod
-        @Table(path=path)
+        @Cache(path=path)
         async def foo(cls) -> None:
             nonlocal call_count
             call_count += 1
@@ -159,7 +159,7 @@ def test_multi_classmethod(path: pathlib.Path) -> None:
 
     class Foo:
         @classmethod
-        @Table(path=path)
+        @Cache(path=path)
         def foo(cls) -> None:
             nonlocal call_count
             call_count += 1
@@ -184,7 +184,7 @@ async def test_async_staticmethod(path: pathlib.Path) -> None:
 
     class Foo:
         @staticmethod
-        @Table(path=path)
+        @Cache(path=path)
         async def foo() -> None:
             nonlocal call_count
             call_count += 1
@@ -208,7 +208,7 @@ def test_multi_staticmethod(path: pathlib.Path) -> None:
 
     class Foo:
         @staticmethod
-        @Table(path=path)
+        @Cache(path=path)
         def foo() -> None:
             nonlocal call_count
             call_count += 1
