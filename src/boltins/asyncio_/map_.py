@@ -4,7 +4,8 @@ import asyncio
 import dataclasses
 import typing
 
-from ...funktools.asyncio_ import decorator
+from funktools.asyncio_ import decorator
+
 from ..abc_ import map_
 
 type _Decoratee[**_Param, _Ret] = Decoratee[_Param, _Ret]
@@ -91,28 +92,36 @@ class Decorated[**_Param, _Ret](
         self,
         params: typing.AsyncIterable[tuple[_Param.args, _Param.kwargs]],
         /,
-    ) -> typing.Iterable[_Ret]:
-        semaphore = asyncio.Semaphore(0)
-        rets = asyncio.Queue()
+    ) -> typing.AsyncIterable[_Ret]:
+        rets = asyncio.LifoQueue()
+        condition = asyncio.Condition()
+        semaphore = asyncio.Semaphore(value=0)
 
         async def putter(*args: _Param.args, **kwargs: _Param.kwargs) -> None:
             await rets.put(await self.decoratee(*args, **kwargs))
-            semaphore.release()
+            await semaphore.acquire()
+            async with condition:
+                condition.notify()
 
         async def submitter() -> None:
-            n_submitted = 0
-            async for  (args, kwargs) in params:
-                n_submitted += 1
-                self.decorator.pool.submit(putter, *args, **kwargs)
+            async for (args, kwargs) in params:
+                semaphore.release()
+                asyncio.ensure_future(putter(*args, **kwargs), loop=self.decorator.loop)
 
-            for _ in range(n_submitted):
-                await semaphore.acquire()
+            async with condition:
+                await condition.wait_for(semaphore.locked)
 
-            await rets.put(StopIteration())
+            rets.shutdown()
 
         asyncio.ensure_future(submitter())
 
-        return (ret for ret in rets),
+        while True:
+            try:
+                ret = await rets.get()
+                yield ret
+                #yield await rets.get()
+            except asyncio.QueueShutDown:
+                break
 
 
 @typing.final

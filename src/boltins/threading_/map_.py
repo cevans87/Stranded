@@ -5,7 +5,7 @@ import queue
 import threading
 import typing
 
-from ...funktools.threading_ import decorator
+from funktools.threading_ import decorator
 from ..abc_ import map_
 
 
@@ -94,27 +94,35 @@ class Decorated[**_Param, _Ret](
         params: typing.Iterable[tuple[_Param.args, _Param.kwargs]],
         /,
     ) -> tuple[typing.Iterable[_Ret]]:
-        semaphore = threading.Semaphore(0)
-        rets = queue.Queue()
+        rets = queue.LifoQueue()
+        condition = threading.Condition()
+        semaphore = threading.Semaphore(value=0)
 
         def putter(*args: _Param.args, **kwargs: _Param.kwargs) -> None:
             rets.put(self.decoratee(*args, **kwargs))
-            semaphore.release()
+            semaphore.acquire()
+            with condition:
+                condition.notify()
 
         def submitter() -> None:
-            n_submitted = 0
             for (args, kwargs) in params:
-                n_submitted += 1
+                semaphore.release()
                 self.decorator.pool.submit(putter, *args, **kwargs)
 
-            for _ in range(n_submitted):
-                semaphore.acquire()
+            with condition:
+                condition.wait_for(lambda: len(semaphore) == 0)
 
-            rets.put(StopIteration())
+            rets.shutdown()
 
         self.decorator.pool.submit(submitter)
 
-        return (ret for ret in rets),
+        while True:
+            try:
+                ret = rets.get()
+                yield ret
+                #yield await rets.get()
+            except queue.ShutDown:
+                break
 
 
 @typing.final

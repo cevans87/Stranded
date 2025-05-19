@@ -6,7 +6,7 @@ import concurrent.futures
 import dataclasses
 import typing
 
-from ...funktools.abc_ import decorator
+from funktools.abc_ import decorator
 
 
 @typing.runtime_checkable
@@ -52,6 +52,7 @@ class Decorated[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorator](
 ): ...
 
 
+@dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorator[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated](
     decorator.Decorator[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated],
     abc.ABC,
