@@ -87,10 +87,6 @@ class _StackedParameter[T](_Parameter[T], abc.ABC): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class _KeywordParameter[T](_Parameter[T], abc.ABC): ...
-
-
-@dataclasses.dataclass(frozen=True, kw_only=True)
 class _RequiredStackedParameter[T](_RequiredParameter[T], _StackedParameter[T]):
 
     def to_short_str(self) -> str:
@@ -105,6 +101,17 @@ class _OptionalStackedParameter[T](_OptionalParameter[T], _StackedParameter[T]):
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
+class _VariadicStackedParameter[T](_VariadicParameter[T], _StackedParameter[T]):
+
+    def to_short_str(self) -> str:
+        return f'[<{self.name}>]...'
+
+
+@dataclasses.dataclass(frozen=True, kw_only=True)
+class _KeywordParameter[T](_Parameter[T], abc.ABC): ...
+
+
+@dataclasses.dataclass(frozen=True, kw_only=True)
 class _RequiredKeywordParameter[T](_RequiredParameter[T], _KeywordParameter[T]):
 
     def to_short_str(self) -> str:
@@ -115,16 +122,9 @@ class _RequiredKeywordParameter[T](_RequiredParameter[T], _KeywordParameter[T]):
 class _OptionalKeywordParameter[T](_OptionalParameter[T], _KeywordParameter[T]):
 
     def to_short_str(self) -> str:
-        return f'[--{self.name}]' if self.t == bool and self.default == False else (
+        return f'[-{self.name}]' if (self.t == bool and self.default == False) else (
             f'[--{self.name} <{self.name}({self.default})>]'
         )
-
-
-@dataclasses.dataclass(frozen=True, kw_only=True)
-class _VariadicStackedParameter[T](_VariadicParameter[T], _StackedParameter[T]):
-
-    def to_short_str(self) -> str:
-        return f'[<{self.name}>]...'
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -140,7 +140,7 @@ class _ReturnAnnotation[T](_Annotation[T]):
     @staticmethod
     def of_annotation(annotation: type) -> _ReturnAnnotation:
         t: type[T]
-        
+
         match annotation, typing.get_origin(annotation), typing.get_args(annotation):
             case t, None, ():
                 return _ReturnAnnotation(t=t)
@@ -161,27 +161,33 @@ class _ReturnAnnotation[T](_Annotation[T]):
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class _Signature:
     return_annotation: _ReturnAnnotation
-    variadic_keyword_parameter: _VariadicKeywordParameter | None
-    variadic_stacked_parameter: _VariadicStackedParameter | None
-    optional_keyword_parameter_by_name: dict[str, _OptionalKeywordParameter]
-    required_keyword_parameter_by_name: dict[str, _RequiredKeywordParameter]
+
+    # Parameters that are detected by position.
     optional_stacked_parameter_by_name: dict[str, _OptionalStackedParameter]
     required_stacked_parameter_by_name: dict[str, _RequiredStackedParameter]
+    variadic_stacked_parameter: _VariadicStackedParameter | None
+
+    # Flags that are detected by two leading dashes.
+    optional_keyword_parameter_by_name: dict[str, _OptionalKeywordParameter]
+    required_keyword_parameter_by_name: dict[str, _RequiredKeywordParameter]
+    variadic_keyword_parameter: _VariadicKeywordParameter | None
 
     ReturnAnnotation: typing.ClassVar = _ReturnAnnotation
-    VariadicKeywordParameter: typing.ClassVar = _VariadicKeywordParameter
-    VariadicStackedParameter: typing.ClassVar = _VariadicStackedParameter
-    OptionalKeywordParameter: typing.ClassVar = _OptionalKeywordParameter
-    RequiredKeywordParameter: typing.ClassVar = _RequiredKeywordParameter
-    OptionalStackedParameter: typing.ClassVar = _OptionalStackedParameter
+
     RequiredStackedParameter: typing.ClassVar = _RequiredStackedParameter
+    OptionalStackedParameter: typing.ClassVar = _OptionalStackedParameter
+    VariadicStackedParameter: typing.ClassVar = _VariadicStackedParameter
+
+    RequiredKeywordParameter: typing.ClassVar = _RequiredKeywordParameter
+    OptionalKeywordParameter: typing.ClassVar = _OptionalKeywordParameter
+    VariadicKeywordParameter: typing.ClassVar = _VariadicKeywordParameter
 
     @property
     def variadic_parameter_by_name(self) -> dict[str, _VariadicParameter]:
         return {
-            parameter_by_name.name: parameter_by_name
-            for parameter_by_name in (self.variadic_stacked_parameter, self.variadic_keyword_parameter)
-            if parameter_by_name is not None
+            parameter.name: parameter
+            for parameter in (self.variadic_stacked_parameter, self.variadic_keyword_parameter)
+            if parameter is not None
         }
 
     @property
@@ -203,48 +209,67 @@ class _Signature:
     def __call__(self, *argv: str) -> _BoundSignature:
         arg_stack = list(reversed(argv))
 
-        stacked_parameter_by_name = dict(self.stacked_parameter_by_name)
-        keyword_parameter_by_name = dict(self.keyword_parameter_by_name)
+        required_stacked_parameter_by_name = dict(self.required_stacked_parameter_by_name)
+        optional_stacked_parameter_by_name = dict(self.optional_stacked_parameter_by_name)
+
+        required_keyword_parameter_by_name = dict(self.required_keyword_parameter_by_name)
+        optional_keyword_parameter_by_name = dict(self.optional_keyword_parameter_by_name)
 
         stacked_value_by_name = dict()
-        keyword_value_by_name = dict()
         variadic_stacked_values = []
+
+        keyword_value_by_name = dict()
         variadic_keyword_value_by_name = dict()
-        
+
         while arg_stack:
             arg = arg_stack.pop()
             match arg.split('-'):
-                case ('', '', name) if (
-                    (parameter := keyword_parameter_by_name.pop(name, None))
-                    and parameter.t == bool
-                    and parameter.default == False
+
+                case (arg,) if required_stacked_parameter_by_name:
+                    name, parameter = required_stacked_parameter_by_name.popitem()
+                    stacked_value_by_name[name] = parameter(arg)
+                case (arg,) if optional_stacked_parameter_by_name:
+                    name, parameter = optional_stacked_parameter_by_name.popitem()
+                    stacked_value_by_name[name] = parameter(arg)
+
+                case ('', '', name) if parameter := required_keyword_parameter_by_name.pop(name, None):
+                    keyword_value_by_name[name] = parameter(arg_stack.pop())
+                case ('', '', name) if parameter := optional_keyword_parameter_by_name.pop(name, None):
+                    keyword_value_by_name[name] = parameter(arg_stack.pop())
+
+                # Special cases of keyword arguments where default is False.
+                case ('', name) if (
+                    (parameter := optional_keyword_parameter_by_name.pop(name, None))
+                    and (parameter.t == bool)
+                    and (parameter.default == False)
                 ):
                     keyword_value_by_name[name] = True
-                # TODO: does this fail due to popping the same keyword in the previous case statement?
-                case ('', '', name) if parameter := keyword_parameter_by_name.pop(name, None):
-                    keyword_value_by_name[name] = parameter(arg_stack.pop())
-                case ('', '', name) if parameter := self.variadic_keyword_parameter:
-                    variadic_keyword_value_by_name[name] = parameter(arg_stack.pop())
-                case ('', '', _) if parameter := self.variadic_stacked_parameter:
-                    variadic_stacked_values += [arg, parameter(arg_stack.pop())]
-                case (arg,) if stacked_parameter_by_name:
-                    name, parameter = stacked_parameter_by_name.popitem()
-                    stacked_value_by_name[name] = parameter(arg)
+                case ('', name) if self.variadic_keyword_parameter:
+                    variadic_keyword_value_by_name[name] = True
+
                 case (arg,) if parameter := self.variadic_stacked_parameter:
                     variadic_stacked_values.append(parameter(arg))
+                case ('', '', name) if parameter := self.variadic_keyword_parameter:
+                    variadic_keyword_value_by_name[name] = parameter(arg_stack.pop())
+
                 case _:
-                    raise RuntimeError(f'{arg=}. Expected valid variable name prefixed with "", "-", or "--".')
+                    raise RuntimeError(f'Could not parse {arg=}.')
 
         return _BoundSignature(
             return_annotation=self.return_annotation,
-            variadic_keyword_parameter=self.variadic_keyword_parameter,
-            variadic_stacked_parameter=self.variadic_stacked_parameter,
-            optional_keyword_parameter_by_name=self.optional_keyword_parameter_by_name,
-            required_keyword_parameter_by_name=self.required_keyword_parameter_by_name,
-            optional_stacked_parameter_by_name=self.optional_stacked_parameter_by_name,
+
             required_stacked_parameter_by_name=self.required_stacked_parameter_by_name,
+            optional_stacked_parameter_by_name=self.optional_stacked_parameter_by_name,
+
+            required_keyword_parameter_by_name=self.required_keyword_parameter_by_name,
+            optional_keyword_parameter_by_name=self.optional_keyword_parameter_by_name,
+
+            variadic_stacked_parameter=self.variadic_stacked_parameter,
+            variadic_keyword_parameter=self.variadic_keyword_parameter,
+
             stacked_value_by_name=stacked_value_by_name,
             keyword_value_by_name=keyword_value_by_name,
+
             variadic_stacked_values=variadic_stacked_values,
             variadic_keyword_value_by_name=variadic_keyword_value_by_name,
         )
@@ -257,36 +282,37 @@ class _Signature:
         required_keyword_parameter_by_name: dict[str, _RequiredKeywordParameter] = {}
         optional_stacked_parameter_by_name: dict[str, _OptionalStackedParameter] = {}
         required_stacked_parameter_by_name: dict[str, _RequiredStackedParameter] = {}
+
         for parameter in reversed(signature.parameters.values()):
             match parameter:
-                case inspect.Parameter(kind=parameter.VAR_KEYWORD):
-                    variadic_keyword_parameter = _VariadicKeywordParameter.of_parameter(parameter)
-                case inspect.Parameter(kind=parameter.VAR_POSITIONAL):
-                    variadic_stacked_parameter = _VariadicStackedParameter.of_parameter(parameter)
-
-                case inspect.Parameter(name=name, kind=parameter.KEYWORD_ONLY, default=parameter.empty):
-                    required_keyword_parameter_by_name[name] = _RequiredKeywordParameter.of_parameter(parameter)
-                case inspect.Parameter(name=name, kind=parameter.KEYWORD_ONLY):
-                    optional_keyword_parameter_by_name[name] = _OptionalKeywordParameter.of_parameter(parameter)
+                case inspect.Parameter(name=name, kind=parameter.POSITIONAL_ONLY, default=parameter.empty):
+                    required_stacked_parameter_by_name[name] = _RequiredStackedParameter.of_parameter(parameter)
+                case inspect.Parameter(name=name, kind=parameter.POSITIONAL_ONLY):
+                    optional_stacked_parameter_by_name[name] = _OptionalStackedParameter.of_parameter(parameter)
 
                 case inspect.Parameter(name=name, kind=parameter.POSITIONAL_OR_KEYWORD, default=parameter.empty):
                     required_stacked_parameter_by_name[name] = _RequiredStackedParameter.of_parameter(parameter)
                 case inspect.Parameter(name=name, kind=parameter.POSITIONAL_OR_KEYWORD):
                     optional_keyword_parameter_by_name[name] = _OptionalKeywordParameter.of_parameter(parameter)
 
-                case inspect.Parameter(name=name, kind=parameter.POSITIONAL_ONLY, default=parameter.empty):
-                    required_stacked_parameter_by_name[name] = _RequiredStackedParameter.of_parameter(parameter)
-                case inspect.Parameter(name=name, kind=parameter.POSITIONAL_ONLY):
-                    optional_stacked_parameter_by_name[name] = _OptionalStackedParameter.of_parameter(parameter)
+                case inspect.Parameter(name=name, kind=parameter.KEYWORD_ONLY, default=parameter.empty):
+                    required_keyword_parameter_by_name[name] = _RequiredKeywordParameter.of_parameter(parameter)
+                case inspect.Parameter(name=name, kind=parameter.KEYWORD_ONLY):
+                    optional_keyword_parameter_by_name[name] = _OptionalKeywordParameter.of_parameter(parameter)
+
+                case inspect.Parameter(kind=parameter.VAR_KEYWORD):
+                    variadic_keyword_parameter = _VariadicKeywordParameter.of_parameter(parameter)
+                case inspect.Parameter(kind=parameter.VAR_POSITIONAL):
+                    variadic_stacked_parameter = _VariadicStackedParameter.of_parameter(parameter)
 
         return _Signature(
             return_annotation=_ReturnAnnotation.of_annotation(signature.return_annotation),
-            variadic_keyword_parameter=variadic_keyword_parameter,
-            variadic_stacked_parameter=variadic_stacked_parameter,
-            optional_keyword_parameter_by_name=optional_keyword_parameter_by_name,
-            required_keyword_parameter_by_name=required_keyword_parameter_by_name,
             optional_stacked_parameter_by_name=optional_stacked_parameter_by_name,
             required_stacked_parameter_by_name=required_stacked_parameter_by_name,
+            optional_keyword_parameter_by_name=optional_keyword_parameter_by_name,
+            required_keyword_parameter_by_name=required_keyword_parameter_by_name,
+            variadic_keyword_parameter=variadic_keyword_parameter,
+            variadic_stacked_parameter=variadic_stacked_parameter,
         )
 
     @staticmethod
@@ -345,6 +371,7 @@ class _Signature:
 class _BoundSignature(_Signature):
     stacked_value_by_name: dict[str, object]
     keyword_value_by_name: dict[str, object]
+
     variadic_stacked_values: list[object]
     variadic_keyword_value_by_name: dict[str, object]
 
@@ -377,8 +404,8 @@ class Exception(decorator.Exception): ...  # noqa
 
 
 @typing.runtime_checkable
-class Decoratee[**_Param, _Ret, _Exit, _Enter, _Decorated, _Decorator](
-    decorator.Decoratee[_Param, _Ret, _Exit, _Enter, _Decorated, _Decorator],
+class Decoratee[**_Param, _Ret](
+    decorator.Decoratee[_Param, _Ret],
     typing.Protocol,
 ): ...
 

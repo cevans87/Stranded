@@ -4,8 +4,9 @@ import asyncio
 import dataclasses
 import typing
 
-from ..abc_ import map_
-from . import executor
+from funktools.asyncio_ import decorator
+from ..abc_ import reduce
+
 
 type _Decoratee[**_Param, _Ret] = Decoratee[_Param, _Ret]
 type _Exit[**_Param, _Ret] = Exit[_Param, _Ret]
@@ -16,8 +17,8 @@ type _Decorator[**_Param, _Ret] = Decorator[_Param, _Ret]
 
 @typing.runtime_checkable
 class Decoratee[**_Param, _Ret](
-    executor.Decoratee[_Param, _Ret],
-    map_.Decoratee[_Param, _Ret],
+    decorator.Decoratee[_Param, _Ret],
+    reduce.Decoratee[_Param, _Ret],
     typing.Protocol,
 ): ...
 
@@ -25,7 +26,7 @@ class Decoratee[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**_Param, _Ret](
-    executor.Exit[
+    decorator.Exit[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -33,7 +34,7 @@ class Exit[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    map_.Exit[
+    reduce.Exit[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -47,7 +48,7 @@ class Exit[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[**_Param, _Ret](
-    executor.Enter[
+    decorator.Enter[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -55,7 +56,7 @@ class Enter[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    map_.Enter[
+    reduce.Enter[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -69,7 +70,7 @@ class Enter[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorated[**_Param, _Ret](
-    executor.Decorated[
+    decorator.Decorated[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -77,7 +78,7 @@ class Decorated[**_Param, _Ret](
         _Enter[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    map_.Decorated[
+    reduce.Decorated[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -86,48 +87,48 @@ class Decorated[**_Param, _Ret](
         _Decorator[_Param, _Ret],
     ],
 ):
+    _busy: typing.ClassVar[object] = object()
+
+    @typing.override
     async def __call__(
         self,
         params: typing.AsyncIterable[tuple[_Param.args, _Param.kwargs]],
         /,
-    ) -> typing.AsyncIterable[_Ret]:
-        q = asyncio.LifoQueue()
+    ) -> _Ret:
+        accum = self.decorator.init
         n = 0
         condition = asyncio.Condition()
 
-        async def putter(*args: _Param.args, **kwargs: _Param.kwargs) -> None:
-            nonlocal n
-            await q.put(await self.decoratee(*args, **kwargs))
-            async with condition:
-                n -= 1
-                if n ==0:
-                    condition.notify()
-
-        async def submitter() -> None:
-            nonlocal n
-            async for (args, kwargs) in params:
+        async def runner(right: _Ret) -> None:
+            nonlocal accum, n
+            while True:
                 async with condition:
-                    n += 1
-                asyncio.ensure_future(putter(*args, **kwargs), loop=self.decorator.loop)
+                    if accum is not self._busy:
+                        left, accum = accum, self._busy
+                    else:
+                        accum = right
+                        n -= 1
+                        if n == 0:
+                            condition.notify()
+                        break
 
+                right = await self.decoratee(left, right)
+
+        async for (args, kwargs) in params:
             async with condition:
-                await condition.wait_for(lambda: n == 0)
+                n += 1
+            asyncio.ensure_future(runner(*args, **kwargs))
 
-            q.shutdown()
+        async with condition:
+            await condition.wait_for(lambda: n == 0)
 
-        asyncio.ensure_future(submitter(), loop=self.decorator.loop)
-
-        while True:
-            try:
-                yield await q.get()
-            except asyncio.QueueShutDown:
-                break
+        return accum
 
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorator[**_Param, _Ret](
-    executor.Decorator[
+    decorator.Decorator[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -135,7 +136,7 @@ class Decorator[**_Param, _Ret](
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
     ],
-    map_.Decorator[
+    reduce.Decorator[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],

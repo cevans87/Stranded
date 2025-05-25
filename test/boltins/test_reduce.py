@@ -3,7 +3,7 @@ import typing
 
 import pytest
 
-from boltins import Map
+from boltins import Reduce
 
 
 @pytest.fixture(scope='module')
@@ -21,26 +21,26 @@ def set_event_loop() -> typing.Generator[None]:
     eager_loop.close()
 
 
-def test_threading_map_applies_sync_function() -> None:
+def test_threading_reduce_applies_sync_function() -> None:
     def inputs(vs: set[int]) -> typing.Iterable:
         for v in vs:
             yield (v,), {}
 
-    @Map()
-    def foo(i: int) -> int:
-        return -i
+    @Reduce(init=0)
+    def foo(l: int, r: int) -> int:
+        return l + r
 
-    assert {i for i in foo(inputs({1, 2, 3, 4}))} == {-1, -2, -3, -4}
+    assert foo(inputs({1, 2, 3, 4})) == sum({1, 2, 3, 4})
 
 
 @pytest.mark.asyncio
-async def test_asyncio_map_applies_async_function() -> None:
+async def test_asyncio_reduce_applies_async_function() -> None:
     async def inputs(vs: set[int]) -> typing.AsyncIterable:
         for v in vs:
             yield (v,), {}
 
-    @Map()
-    async def foo(i: int) -> int:
-        return -i
+    @Reduce(init=0)
+    async def foo(l: int, r: int) -> int:
+        return l + r
 
-    assert {i async for i in foo(inputs({1, 2, 3, 4}))} == {-1, -2, -3, -4}
+    assert await foo(inputs({1, 2, 3, 4})) == sum({1, 2, 3, 4})

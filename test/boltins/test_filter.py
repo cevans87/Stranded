@@ -3,7 +3,7 @@ import typing
 
 import pytest
 
-from boltins import Map
+from boltins import Filter
 
 
 @pytest.fixture(scope='module')
@@ -21,26 +21,26 @@ def set_event_loop() -> typing.Generator[None]:
     eager_loop.close()
 
 
-def test_threading_map_applies_sync_function() -> None:
+def test_threading_filter_applies_sync_function() -> None:
     def inputs(vs: set[int]) -> typing.Iterable:
         for v in vs:
             yield (v,), {}
 
-    @Map()
-    def foo(i: int) -> int:
-        return -i
+    @Filter()
+    def foo(i: int) -> bool:
+        return i % 2 == 0
 
-    assert {i for i in foo(inputs({1, 2, 3, 4}))} == {-1, -2, -3, -4}
+    assert {i for (i,), _ in foo(inputs({1, 2, 3, 4}))} == {2, 4}
 
 
 @pytest.mark.asyncio
-async def test_asyncio_map_applies_async_function() -> None:
-    async def inputs(vs: set[int]) -> typing.AsyncIterable:
+async def test_asyncio_filter_applies_async_function() -> None:
+    async def input(vs: set[int]) -> typing.AsyncIterable:
         for v in vs:
             yield (v,), {}
 
-    @Map()
-    async def foo(i: int) -> int:
-        return -i
+    @Filter()
+    async def foo(i: int) -> bool:
+        return i % 2 == 0
 
-    assert {i async for i in foo(inputs({1, 2, 3, 4}))} == {-1, -2, -3, -4}
+    assert {i async for (i,), _ in foo(input({1, 2, 3, 4}))} == {2, 4}

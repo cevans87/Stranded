@@ -2,12 +2,12 @@ import dataclasses
 import inspect
 import typing
 
-from .abc_ import filter_
+from .abc_ import reduce
 
 
 @typing.runtime_checkable
 class AsyncioDecoratee[**_Param, _Ret](
-    filter_.Decoratee[_Param, _Ret],
+    reduce.Decoratee[_Param, _Ret],
     typing.Protocol,
 ):
     async def __call__(self, *args: _Param.args, **kwargs: _Param.kwargs) -> _Ret: ...
@@ -31,7 +31,7 @@ class AsyncioDecorated[**_Param, _Ret](
 
 
 @typing.runtime_checkable
-class ThreadingDecoratee[**_Param, _Ret](filter_.Decoratee[_Param, _Ret], typing.Protocol):
+class ThreadingDecoratee[**_Param, _Ret](reduce.Decoratee[_Param, _Ret], typing.Protocol):
     def __call__(self, *args: _Param.args, **kwargs: _Param.kwargs) -> _Ret: ...
 
 
@@ -53,7 +53,7 @@ class ThreadingDecorated[**_Param, _Ret](
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Filter(filter_.Decorator):
+class Reduce(reduce.Decorator):
     @typing.overload
     def __call__[**_Param, _Ret](
         self,
@@ -69,9 +69,9 @@ class Filter(filter_.Decorator):
     def __call__(self, decoratee, /):
         match bool(inspect.iscoroutinefunction(decoratee)):
             case True:
-                from .asyncio_.filter_ import Decorator
-                return Decorator(loop=self.loop, pool=self.pool)(decoratee)
+                from .asyncio_.reduce import Decorator
+                return Decorator(init=self.init, loop=self.loop, pool=self.pool)(decoratee)
             case False:
-                from .threading_.filter_ import Decorator
-                return Decorator(loop=self.loop, pool=self.pool)(decoratee)
+                from .threading_.reduce import Decorator
+                return Decorator(init=self.init, loop=self.loop, pool=self.pool)(decoratee)
             case _: raise RuntimeError()

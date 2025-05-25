@@ -1,38 +1,149 @@
 from __future__ import annotations
 
-import abc
+import asyncio
 import dataclasses
 import typing
-from inspect import iscoroutinefunction
+
+from funktools.asyncio_ import decorator
+from ..abc_ import filter_
 
 
-@dataclasses.dataclass(frozen=True)
-class T[_Value]:
-    _f: typing.Callable[[_Value], bool] | typing.Callable[[_Value], typing.Awaitable[bool]] | None
-    _values: typing.AsyncIterable[_Value]
-
-    async def __aiter__(self) -> typing.AsyncIterable[_Value]:
-        match self._f:
-            case None: yield (value async for value in self._values if value)
-            case f if iscoroutinefunction(f): yield (value async for value in self._values if await f(value))
-            case f: yield (value async for value in self._values if f(value))
-
-    def __await__(self):
-        return self.__aiter__()
+type _Decoratee[**_Param, _Ret] = Decoratee[_Param, _Ret]
+type _Exit[**_Param, _Ret] = Exit[_Param, _Ret]
+type _Enter[**_Param, _Ret] = Enter[_Param, _Ret]
+type _Decorated[**_Param, _Ret] = Decorated[_Param, _Ret]
+type _Decorator[**_Param, _Ret] = Decorator[_Param, _Ret]
 
 
-@dataclasses.dataclass(frozen=True)
-class Mixin[_Value](abc.ABC):
-    type Filter = T[_Value]
+@typing.runtime_checkable
+class Decoratee[**_Param, _Ret](
+    decorator.Decoratee[_Param, _Ret],
+    filter_.Decoratee[_Param, _Ret],
+    typing.Protocol,
+): ...
 
-    @abc.abstractmethod
-    @property
-    def _values(self) -> typing.AsyncIterable[_Value]: raise NotImplemented()
 
-    @typing.overload
-    async def filter(self, f: typing.Callable[[_Value], typing.Awaitable[bool]], /) -> Filter: ...
-    @typing.overload
-    async def filter(self, f: typing.Callable[[_Value], bool], /) -> Filter: ...
-    @typing.overload
-    async def filter(self, f: None, /) -> Filter: ...
-    async def filter(self, f=None, /): return await T(f, self._values)
+@typing.final
+@dataclasses.dataclass(frozen=True, kw_only=True)
+class Exit[**_Param, _Ret](
+    decorator.Exit[
+        _Param,
+        _Ret,
+        _Decoratee[_Param, _Ret],
+        _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
+        _Decorator[_Param, _Ret],
+    ],
+    filter_.Exit[
+        _Param,
+        _Ret,
+        _Decoratee[_Param, _Ret],
+        _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
+        _Decorator[_Param, _Ret],
+    ],
+): ...
+
+
+@typing.final
+@dataclasses.dataclass(frozen=True, kw_only=True)
+class Enter[**_Param, _Ret](
+    decorator.Enter[
+        _Param,
+        _Ret,
+        _Decoratee[_Param, _Ret],
+        _Exit[_Param, _Ret],
+        _Decorated[_Param, _Ret],
+        _Decorator[_Param, _Ret],
+    ],
+    filter_.Enter[
+        _Param,
+        _Ret,
+        _Decoratee[_Param, _Ret],
+        _Exit[_Param, _Ret],
+        _Decorated[_Param, _Ret],
+        _Decorator[_Param, _Ret],
+    ],
+): ...
+
+
+@typing.final
+@dataclasses.dataclass(frozen=True, kw_only=True)
+class Decorated[**_Param, _Ret](
+    decorator.Decorated[
+        _Param,
+        _Ret,
+        _Decoratee[_Param, _Ret],
+        _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
+        _Decorator[_Param, _Ret],
+    ],
+    filter_.Decorated[
+        _Param,
+        _Ret,
+        _Decoratee[_Param, _Ret],
+        _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
+        _Decorator[_Param, _Ret],
+    ],
+):
+    @typing.override
+    async def __call__(
+        self,
+        params: typing.AsyncIterable[tuple[_Param.args, _Param.kwargs]],
+        /,
+    ) -> typing.AsyncIterable[_Ret]:
+        q = asyncio.LifoQueue()
+        n = 0
+        condition = asyncio.Condition()
+
+        async def runner(*args: _Param.args, **kwargs: _Param.kwargs) -> None:
+            nonlocal n
+            if await self.decoratee(*args, **kwargs):
+                await q.put((args, kwargs))
+            async with condition:
+                n -= 1
+                if n == 0:
+                    condition.notify()
+
+        async def submitter() -> None:
+            nonlocal n
+            async for (args, kwargs) in params:
+                async with condition:
+                    n += 1
+                asyncio.ensure_future(runner(*args, **kwargs))
+
+            async with condition:
+                await condition.wait_for(lambda: n == 0)
+
+            q.shutdown()
+
+        asyncio.ensure_future(submitter())
+
+        while True:
+            try:
+                yield await q.get()
+            except asyncio.QueueShutDown:
+                break
+
+
+@typing.final
+@dataclasses.dataclass(frozen=True, kw_only=True)
+class Decorator[**_Param, _Ret](
+    decorator.Decorator[
+        _Param,
+        _Ret,
+        _Decoratee[_Param, _Ret],
+        _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
+    ],
+    filter_.Decorator[
+        _Param,
+        _Ret,
+        _Decoratee[_Param, _Ret],
+        _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
+    ],
+): ...

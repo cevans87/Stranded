@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import concurrent.futures
 import dataclasses
 import queue
 import threading
@@ -93,34 +94,37 @@ class Decorated[**_Param, _Ret](
         self,
         params: typing.Iterable[tuple[_Param.args, _Param.kwargs]],
         /,
-    ) -> tuple[typing.Iterable[_Ret]]:
-        rets = queue.LifoQueue()
+    ) -> typing.Iterable[_Ret]:
+        q = queue.LifoQueue()
+        n = 0
         condition = threading.Condition()
-        semaphore = threading.Semaphore(value=0)
 
-        def putter(*args: _Param.args, **kwargs: _Param.kwargs) -> None:
-            rets.put(self.decoratee(*args, **kwargs))
-            semaphore.acquire()
+        def runner(*args: _Param.args, **kwargs: _Param.kwargs) -> None:
+            nonlocal n
+            q.put(self.decoratee(*args, **kwargs))
             with condition:
-                condition.notify()
+                n -= 1
+                if n == 0:
+                    condition.notify()
 
         def submitter() -> None:
+            nonlocal n
             for (args, kwargs) in params:
-                semaphore.release()
-                self.decorator.pool.submit(putter, *args, **kwargs)
+                with condition:
+                    n += 1
+                self.decorator.pool.submit(runner, *args, **kwargs)
 
             with condition:
-                condition.wait_for(lambda: len(semaphore) == 0)
+                condition.wait_for(lambda: n == 0)
 
-            rets.shutdown()
+            q.shutdown()
 
-        self.decorator.pool.submit(submitter)
+        # Create a new thread for submitter to avoid causing pool starvation while blocked.
+        concurrent.futures.ThreadPoolExecutor(max_workers=1).submit(submitter)
 
         while True:
             try:
-                ret = rets.get()
-                yield ret
-                #yield await rets.get()
+                yield q.get()
             except queue.ShutDown:
                 break
 

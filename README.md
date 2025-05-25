@@ -1,5 +1,5 @@
 # stranded
-_...is left behind for a reason._
+_...is the left-behind non-standard._
 
 ## argfarce
 _...is an argparse farce._
@@ -10,14 +10,17 @@ _...is the stuff that wasn't builtin._
 ## funktools
 _...are functools, but **funky**._
 
-## lumbering
-_...is logging with some extra burnishing._
+## logjamming
+_...is what you get with too much logging._
 
 # mistypes
 _...are types that can't be mistyped._
 
-# pathdew
-_...is the path dewy decimal system._
+# pathcon
+_...is the political opposite of pathlib._
+
+# sincurrency
+_...is poor, while concurrency is rich._
 
 # sqlate
 _...is better than sqlnever._

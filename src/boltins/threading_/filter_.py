@@ -1,11 +1,14 @@
 from __future__ import annotations
 
-import asyncio
+import concurrent.futures
 import dataclasses
+import queue
+import threading
 import typing
 
-from ..abc_ import map_
-from . import executor
+from funktools.threading_ import decorator
+from ..abc_ import filter_
+
 
 type _Decoratee[**_Param, _Ret] = Decoratee[_Param, _Ret]
 type _Exit[**_Param, _Ret] = Exit[_Param, _Ret]
@@ -16,8 +19,8 @@ type _Decorator[**_Param, _Ret] = Decorator[_Param, _Ret]
 
 @typing.runtime_checkable
 class Decoratee[**_Param, _Ret](
-    executor.Decoratee[_Param, _Ret],
-    map_.Decoratee[_Param, _Ret],
+    decorator.Decoratee[_Param, _Ret],
+    filter_.Decoratee[_Param, _Ret],
     typing.Protocol,
 ): ...
 
@@ -25,7 +28,7 @@ class Decoratee[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**_Param, _Ret](
-    executor.Exit[
+    decorator.Exit[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -33,7 +36,7 @@ class Exit[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    map_.Exit[
+    filter_.Exit[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -47,7 +50,7 @@ class Exit[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[**_Param, _Ret](
-    executor.Enter[
+    decorator.Enter[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -55,7 +58,7 @@ class Enter[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    map_.Enter[
+    filter_.Enter[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -69,7 +72,7 @@ class Enter[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorated[**_Param, _Ret](
-    executor.Decorated[
+    decorator.Decorated[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -77,7 +80,7 @@ class Decorated[**_Param, _Ret](
         _Enter[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    map_.Decorated[
+    filter_.Decorated[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -86,48 +89,53 @@ class Decorated[**_Param, _Ret](
         _Decorator[_Param, _Ret],
     ],
 ):
-    async def __call__(
+    @typing.override
+    def __call__(
         self,
-        params: typing.AsyncIterable[tuple[_Param.args, _Param.kwargs]],
+        params: typing.Iterable[tuple[_Param.args, _Param.kwargs]],
         /,
-    ) -> typing.AsyncIterable[_Ret]:
-        q = asyncio.LifoQueue()
+    ) -> typing.Iterable[_Ret]:
+        q = queue.LifoQueue()
         n = 0
-        condition = asyncio.Condition()
+        condition = threading.Condition()
 
-        async def putter(*args: _Param.args, **kwargs: _Param.kwargs) -> None:
+        def runner(*args: _Param.args, **kwargs: _Param.kwargs) -> None:
             nonlocal n
-            await q.put(await self.decoratee(*args, **kwargs))
-            async with condition:
+            if self.decoratee(*args, **kwargs):
+                q.put((args, kwargs))
+            with condition:
                 n -= 1
-                if n ==0:
+                if n == 0:
                     condition.notify()
 
-        async def submitter() -> None:
+        def submitter() -> None:
             nonlocal n
-            async for (args, kwargs) in params:
-                async with condition:
+            for (args, kwargs) in params:
+                with condition:
                     n += 1
-                asyncio.ensure_future(putter(*args, **kwargs), loop=self.decorator.loop)
+                self.decorator.pool.submit(runner, *args, **kwargs)
 
-            async with condition:
-                await condition.wait_for(lambda: n == 0)
+            with condition:
+                condition.wait_for(lambda: n == 0)
 
             q.shutdown()
 
-        asyncio.ensure_future(submitter(), loop=self.decorator.loop)
+        # Create a new thread for submitter to avoid causing pool starvation while blocked.
+        concurrent.futures.ThreadPoolExecutor(max_workers=1).submit(submitter)
 
         while True:
             try:
-                yield await q.get()
-            except asyncio.QueueShutDown:
+                ret = q.get()
+                yield ret
+                #yield q.get()
+            except queue.ShutDown:
                 break
 
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorator[**_Param, _Ret](
-    executor.Decorator[
+    decorator.Decorator[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -135,7 +143,7 @@ class Decorator[**_Param, _Ret](
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
     ],
-    map_.Decorator[
+    filter_.Decorator[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],

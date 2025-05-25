@@ -29,17 +29,17 @@ class Enter[**_Param, _Ret, _Decoratee, _Exit, _Decorated, _Decorator](
     @typing.overload
     def __call__(
         self,
-        rets: typing.Iterable[_Ret],
+        params: typing.Iterable[tuple[_Param.args, _Param.kwargs]],
         /,
-    ) -> typing.Iterable[_Ret]: ...
+    ) -> _Ret: ...
     @typing.overload
     async def __call__(
         self,
-        params: typing.AsyncIterable[_Ret],
+        params: typing.AsyncIterable[tuple[_Param.args, _Param.kwargs]],
         /,
-    ) -> typing.AsyncIterable[_Ret]: ...
+    ) -> _Ret: ...
     @abc.abstractmethod
-    def __call__(self, params, /): raise NotImplementedError()
+    def __call__(self, rets, /): raise NotImplementedError()
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -53,4 +53,5 @@ class Decorated[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorator](
 class Decorator[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated](
     executor.Decorator[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated],
     abc.ABC,
-): ...
+):
+    init: _Ret
