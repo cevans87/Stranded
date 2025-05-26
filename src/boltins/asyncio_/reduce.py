@@ -87,42 +87,53 @@ class Decorated[**_Param, _Ret](
         _Decorator[_Param, _Ret],
     ],
 ):
-    _busy: typing.ClassVar[object] = object()
-
     @typing.override
     async def __call__(
         self,
-        params: typing.AsyncIterable[tuple[_Param.args, _Param.kwargs]],
+        rets: typing.AsyncIterable[_Ret],
         /,
     ) -> _Ret:
         accum = self.decorator.init
         n = 0
         condition = asyncio.Condition()
 
-        async def runner(right: _Ret) -> None:
+        async def runner(_right: _Ret) -> None:
             nonlocal accum, n
             while True:
                 async with condition:
-                    if accum is not self._busy:
-                        left, accum = accum, self._busy
-                    else:
-                        accum = right
-                        n -= 1
-                        if n == 0:
-                            condition.notify()
-                        break
+                    match accum:
+                        case self._Busy():
+                            accum = _right
+                            n -= 1
+                            if n == 0:
+                                condition.notify()
+                            break
+                        case Exception():
+                            n -= 1
+                            if n == 0:
+                                condition.notify()
+                            break
+                        case _:
+                            _left, accum = accum, self._busy
 
-                right = await self.decoratee(left, right)
+                try:
+                    _right = await self.decoratee(_left, _right)
+                except Exception as _e:
+                    _right = _e
 
-        async for (args, kwargs) in params:
+        async for ret in rets:
             async with condition:
                 n += 1
-            asyncio.ensure_future(runner(*args, **kwargs))
+            asyncio.ensure_future(runner(ret))
 
         async with condition:
             await condition.wait_for(lambda: n == 0)
 
-        return accum
+        match accum:
+            case Exception() as e:
+                raise e
+            case ret:
+                return ret
 
 
 @typing.final

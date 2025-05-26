@@ -46,7 +46,9 @@ class Enter[**_Param, _Ret, _Decoratee, _Exit, _Decorated, _Decorator](
 class Decorated[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorator](
     executor.Decorated[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorator],
     abc.ABC,
-): ...
+):
+    class _Busy: pass
+    _busy: typing.ClassVar[_Busy] = _Busy()
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -55,3 +57,4 @@ class Decorator[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated](
     abc.ABC,
 ):
     init: _Ret
+

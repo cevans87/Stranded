@@ -101,8 +101,14 @@ class Decorated[**_Param, _Ret](
 
         def runner(*args: _Param.args, **kwargs: _Param.kwargs) -> None:
             nonlocal n
-            if self.decoratee(*args, **kwargs):
-                q.put((args, kwargs))
+            try:
+                keep = self.decoratee(*args, **kwargs)
+            except Exception as _e:
+                q.put(_e)
+            else:
+                if keep:
+                    q.put((args, kwargs))
+
             with condition:
                 n -= 1
                 if n == 0:
@@ -125,11 +131,15 @@ class Decorated[**_Param, _Ret](
 
         while True:
             try:
-                ret = q.get()
-                yield ret
-                #yield q.get()
+                result = q.get()
             except queue.ShutDown:
                 break
+
+            match result:
+                case Exception() as e:
+                    raise e
+                case ret:
+                    yield ret
 
 
 @typing.final

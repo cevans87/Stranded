@@ -96,8 +96,14 @@ class Decorated[**_Param, _Ret](
         condition = asyncio.Condition()
 
         async def putter(*args: _Param.args, **kwargs: _Param.kwargs) -> None:
-            nonlocal n
-            await q.put(await self.decoratee(*args, **kwargs))
+            nonlocal n, self
+            try:
+                _ret = await self.decoratee(*args, **kwargs)
+            except Exception as _e:
+                await q.put(_e)
+            else:
+                await q.put(_ret)
+
             async with condition:
                 n -= 1
                 if n ==0:
@@ -119,9 +125,15 @@ class Decorated[**_Param, _Ret](
 
         while True:
             try:
-                yield await q.get()
+                result = await q.get()
             except asyncio.QueueShutDown:
                 break
+
+            match result:
+                case Exception() as e:
+                    raise e
+                case ret:
+                    yield ret
 
 
 @typing.final

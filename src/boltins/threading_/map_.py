@@ -100,8 +100,14 @@ class Decorated[**_Param, _Ret](
         condition = threading.Condition()
 
         def runner(*args: _Param.args, **kwargs: _Param.kwargs) -> None:
-            nonlocal n
-            q.put(self.decoratee(*args, **kwargs))
+            nonlocal n, self
+            try:
+                _ret = self.decoratee(*args, **kwargs)
+            except Exception as _e:
+                q.put(_e)
+            else:
+                q.put(_ret)
+
             with condition:
                 n -= 1
                 if n == 0:
@@ -119,14 +125,19 @@ class Decorated[**_Param, _Ret](
 
             q.shutdown()
 
-        # Create a new thread for submitter to avoid causing pool starvation while blocked.
         concurrent.futures.ThreadPoolExecutor(max_workers=1).submit(submitter)
 
         while True:
             try:
-                yield q.get()
+                result = q.get()
             except queue.ShutDown:
                 break
+
+            match result:
+                case Exception() as e:
+                    raise e
+                case ret:
+                    yield ret
 
 
 @typing.final

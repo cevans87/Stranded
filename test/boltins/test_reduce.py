@@ -22,9 +22,9 @@ def set_event_loop() -> typing.Generator[None]:
 
 
 def test_threading_reduce_applies_sync_function() -> None:
-    def inputs(vs: set[int]) -> typing.Iterable:
+    def inputs(vs: set[int]) -> typing.Iterable[int]:
         for v in vs:
-            yield (v,), {}
+            yield v
 
     @Reduce(init=0)
     def foo(l: int, r: int) -> int:
@@ -35,12 +35,43 @@ def test_threading_reduce_applies_sync_function() -> None:
 
 @pytest.mark.asyncio
 async def test_asyncio_reduce_applies_async_function() -> None:
-    async def inputs(vs: set[int]) -> typing.AsyncIterable:
+    async def inputs(vs: set[int]) -> typing.AsyncIterable[int]:
         for v in vs:
-            yield (v,), {}
+            yield v
 
     @Reduce(init=0)
     async def foo(l: int, r: int) -> int:
         return l + r
 
     assert await foo(inputs({1, 2, 3, 4})) == sum({1, 2, 3, 4})
+
+
+def test_threading_reduce_propagates_exception() -> None:
+    def inputs(vs: set[int]) -> typing.Iterable[int]:
+        for v in vs:
+            yield v
+
+    @Reduce(init=0)
+    def foo(l: int, r: int) -> int:
+        if r == 4:
+            raise Exception()
+        return l + r
+
+    with pytest.raises(Exception):
+        foo(inputs({1, 2, 3, 4}))
+
+
+@pytest.mark.asyncio
+async def test_asyncio_reduce_propagates_exception() -> None:
+    async def inputs(vs: set[int]) -> typing.AsyncIterable[int]:
+        for v in vs:
+            yield v
+
+    @Reduce(init=0)
+    async def foo(l: int, r: int) -> int:
+        if r == 4:
+            raise Exception()
+        return l + r
+
+    with pytest.raises(Exception):
+        await foo(inputs({1, 2, 3, 4}))

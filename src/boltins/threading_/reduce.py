@@ -87,42 +87,53 @@ class Decorated[**_Param, _Ret](
         _Decorator[_Param, _Ret],
     ],
 ):
-    _busy: typing.ClassVar[object] = object()
-
     @typing.override
     def __call__(
         self,
-        params: typing.Iterable[tuple[_Param.args, _Param.kwargs]],
+        rets: typing.Iterable[_Ret],
         /,
     ) -> _Ret:
         accum = self.decorator.init
         n = 0
         condition = threading.Condition()
 
-        def reducer(right: _Ret) -> None:
+        def reducer(_right: _Ret) -> None:
             nonlocal accum, n
             while True:
                 with condition:
-                    if accum is not self._busy:
-                        left, accum = accum, self._busy
-                    else:
-                        accum = right
-                        n -= 1
-                        if n == 0:
-                            condition.notify()
-                        break
+                    match accum:
+                        case self._Busy():
+                            accum = _right
+                            n -= 1
+                            if n == 0:
+                                condition.notify()
+                            break
+                        case Exception():
+                            n -= 1
+                            if n == 0:
+                                condition.notify()
+                            break
+                        case _:
+                            _left, accum = accum, self._busy
 
-                right = self.decoratee(left, right)
+                try:
+                    _right = self.decoratee(_left, _right)
+                except Exception as _e:
+                    _right = _e
 
-        for (args, kwargs) in params:
+        for ret in rets:
             with condition:
                 n += 1
-            self.decorator.pool.submit(reducer, *args, **kwargs)
+            self.decorator.pool.submit(reducer, ret)
 
         with condition:
             condition.wait_for(lambda: n == 0)
 
-        return accum
+        match accum:
+            case Exception() as e:
+                raise e
+            case ret:
+                return ret
 
 
 @typing.final
