@@ -1,14 +1,14 @@
 import asyncio
 import logging
 
-import funktools
+from stranded import functools
 
 logger = logging.getLogger(__name__)
 
 
-@funktools.CLI()
+@functools.CLI()
 async def aimd(
-    log_level: funktools.CLI.Annotated.log_level(logger) = 'ERROR',
+    log_level: functools.CLI.Annotated.log_level(logger) = 'ERROR',
     /,
 ) -> None:
     """Demo for throttling with AIMD.
@@ -18,7 +18,7 @@ async def aimd(
 
     progress_by_client: dict[int, int] = {}
 
-    @funktools.Throttle(
+    @functools.Throttle(
         start=128,  # Number of clients that can be served simultaneously.
         additive_increase=0,  # Do not increase number of clients to serve.
         max_waiters=128,  # Number of requests that may be queued before additional requests are rejected.
@@ -31,8 +31,8 @@ async def aimd(
 
     async def client(i) -> None:
 
-        @funktools.Retry()
-        @funktools.Throttle()
+        @functools.Retry()
+        @functools.Throttle()
         async def api_call():
             await server()
 
@@ -58,4 +58,4 @@ async def aimd(
 
 
 if __name__ == '__main__':
-    funktools.CLI().run(__name__)
+    functools.CLI().run(__name__)

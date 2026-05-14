@@ -11,10 +11,8 @@ python3 -m demo -h
 
 import logging
 
-import funktools
-
-from . import cli as _, throttle as _
+from stranded import functools
 
 logging.basicConfig(level=logging.CRITICAL, format='%(levelname)s: %(message)s')
 
-funktools.CLI().run(__package__)
+functools.CLI().run(__package__)

@@ -9,7 +9,7 @@ classifiers = [
   'Topic :: Software Development :: Libraries :: Python Modules',
   'Topic :: System :: Logging',
   'License :: OSI Approved :: MIT License',
-  'Programming Language :: Python :: 3.13',
+  'Programming Language :: Python :: 3.12',
 ]
 dependencies = [
     'annotated-types',
@@ -26,7 +26,7 @@ keywords = [
 license = {file = 'LICENSE'}
 name = 'stranded'
 readme = 'README.md'
-requires-python = '>=3.13'
+requires-python = '>=3.12'
 version = '0.0.1'
 
 [project.optional-dependencies]
@@ -38,5 +38,5 @@ Issues = 'https://github.com/cevans87/Stranded/issues'
 Repository = 'https://github.com/cevans87/Stranded.git'
 
 [tool.setuptools.packages.find]
-include = ['argfarce', 'boltins', 'infect', 'funktools', 'logjamming', 'mistypes', 'pathdew', 'sqlittle', 'typong',]
+include = ['*']
 where = ['src']
