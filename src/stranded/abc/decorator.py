@@ -22,6 +22,7 @@ class Raise:
 
 @typing.runtime_checkable
 class Decoratee[**_Param, _Ret](typing.Protocol):
+    def __call__(self, *args: _Param.args, **kwargs: _Param.kwargs) -> _Ret: ...
     def __get__(self, instance: Instance, owner) -> typing.Self: ...
 
 

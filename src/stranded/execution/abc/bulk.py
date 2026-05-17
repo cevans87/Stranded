@@ -4,15 +4,15 @@ import abc
 import dataclasses
 import typing
 
-from stranded.threading import decorator
+from ...abc import decorator
 
-from ..abc import executor
+
+class Exception(decorator.Exception): ...  # noqa
 
 
 @typing.runtime_checkable
 class Decoratee[**_Param, _Ret](
     decorator.Decoratee[_Param, _Ret],
-    executor.Decoratee[_Param, _Ret],
     typing.Protocol,
 ): ...
 
@@ -20,7 +20,6 @@ class Decoratee[**_Param, _Ret](
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**_Param, _Ret, _Decoratee, _Enter, _Decorated, _Decorator](
     decorator.Exit[_Param, _Ret, _Decoratee, _Enter, _Decorated, _Decorator],
-    executor.Exit[_Param, _Ret, _Decoratee, _Enter, _Decorated, _Decorator],
     abc.ABC,
 ): ...
 
@@ -28,7 +27,6 @@ class Exit[**_Param, _Ret, _Decoratee, _Enter, _Decorated, _Decorator](
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[**_Param, _Ret, _Decoratee, _Exit, _Decorated, _Decorator](
     decorator.Enter[_Param, _Ret, _Decoratee, _Exit, _Decorated, _Decorator],
-    executor.Enter[_Param, _Ret, _Decoratee, _Exit, _Decorated, _Decorator],
     abc.ABC,
 ): ...
 
@@ -36,7 +34,6 @@ class Enter[**_Param, _Ret, _Decoratee, _Exit, _Decorated, _Decorator](
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorated[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorator](
     decorator.Decorated[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorator],
-    executor.Decorated[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorator],
     abc.ABC,
 ): ...
 
@@ -44,6 +41,8 @@ class Decorated[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorator](
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorator[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated](
     decorator.Decorator[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated],
-    executor.Decorator[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated],
     abc.ABC,
 ): ...
+
+
+Bulk = Decorator

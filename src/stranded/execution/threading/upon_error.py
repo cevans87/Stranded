@@ -1,11 +1,8 @@
-from __future__ import annotations
-
-import asyncio
 import dataclasses
 import typing
 
-from ...asyncio import decorator
-from ..abc import filter_
+from ..abc import upon_error
+from ...threading import decorator
 
 
 type _Decoratee[**_Param, _Ret] = Decoratee[_Param, _Ret]
@@ -18,7 +15,7 @@ type _Decorator[**_Param, _Ret] = Decorator[_Param, _Ret]
 @typing.runtime_checkable
 class Decoratee[**_Param, _Ret](
     decorator.Decoratee[_Param, _Ret],
-    filter_.Decoratee[_Param, _Ret],
+    upon_error.Decoratee[_Param, _Ret],
     typing.Protocol,
 ): ...
 
@@ -34,7 +31,7 @@ class Exit[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    filter_.Exit[
+    upon_error.Exit[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -56,7 +53,7 @@ class Enter[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    filter_.Enter[
+    upon_error.Enter[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -64,7 +61,22 @@ class Enter[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-): ...
+):
+    def __call__(
+        self,
+        *args: _Param.args,
+        **kwargs: _Param.kwargs,
+    ) -> tuple[_Decoratee[_Param, _Ret] | _Exit[_Param, _Ret] | typing.Self | _Decorated[_Param, _Ret], ...]:
+        exit_, decoratee = super().__call__(*args, **kwargs)
+        fn = self.decorated.decorator.fn
+
+        def caught(*a, **k):
+            try:
+                return decoratee(*a, **k)
+            except Exception as exc:  # noqa
+                return fn(exc)
+
+        return exit_, caught
 
 
 @typing.final
@@ -78,7 +90,7 @@ class Decorated[**_Param, _Ret](
         _Enter[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    filter_.Decorated[
+    upon_error.Decorated[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -86,57 +98,7 @@ class Decorated[**_Param, _Ret](
         _Enter[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-):
-    @typing.override
-    async def __call__(
-        self,
-        params: typing.AsyncIterable[tuple[_Param.args, _Param.kwargs]],
-        /,
-    ) -> typing.AsyncIterable[_Ret]:
-        q = asyncio.LifoQueue()
-        n = 0
-        condition = asyncio.Condition()
-
-        async def runner(*args: _Param.args, **kwargs: _Param.kwargs) -> None:
-            nonlocal n
-            try:
-                keep = await self.decoratee(*args, **kwargs)
-            except Exception as _e:
-                await q.put(_e)
-            else:
-                if keep:
-                    await q.put((args, kwargs))
-
-            async with condition:
-                n -= 1
-                if n == 0:
-                    condition.notify()
-
-        async def submitter() -> None:
-            nonlocal n
-            async for (args, kwargs) in params:
-                async with condition:
-                    n += 1
-                asyncio.ensure_future(runner(*args, **kwargs))
-
-            async with condition:
-                await condition.wait_for(lambda: n == 0)
-
-            q.shutdown()
-
-        asyncio.ensure_future(submitter())
-
-        while True:
-            try:
-                result = await q.get()
-            except asyncio.QueueShutDown:
-                break
-
-            match result:
-                case Exception() as e:
-                    raise e
-                case ret:
-                    yield ret
+): ...
 
 
 @typing.final
@@ -150,7 +112,7 @@ class Decorator[**_Param, _Ret](
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
     ],
-    filter_.Decorator[
+    upon_error.Decorator[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -159,3 +121,6 @@ class Decorator[**_Param, _Ret](
         _Decorated[_Param, _Ret],
     ],
 ): ...
+
+
+UponError = Decorator

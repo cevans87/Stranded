@@ -5,4 +5,7 @@ from .abc import logger
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Logger(decorator.Decorator, logger.Decorator): ...
+class Decorator(decorator.Decorator, logger.Decorator): ...
+
+
+Logger = Decorator

@@ -7,7 +7,7 @@ from stranded.functools import LruCache
 
 
 @pytest.fixture(scope='module')
-def set_event_loop() -> typing.Generator[None]:
+def set_event_loop() -> typing.Generator[None, None, None]:
     """All async tests execute eagerly.
 
     Upon task creation return, we can be sure that the task has gotten to a point that it is either blocked or done.

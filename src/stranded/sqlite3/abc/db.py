@@ -114,3 +114,6 @@ class Decorator[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated](
             instance=None,
             table_name=table_name,
         )
+
+
+Db = Decorator

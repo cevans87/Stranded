@@ -68,17 +68,13 @@ class Decorated[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorator, _Conditio
     lock: threading.Lock = dataclasses.field(default_factory=threading.Lock)
     state: State = dataclasses.field(default_factory=State)
 
-    @property
-    @abc.abstractmethod
-    def condition_t(self) -> type[_Condition]: ...
-
     def __get__(self, instance, owner) -> typing.Self:
         with self.lock:
             return decorated if (decorated := self.decorated_by_instance.get(instance)) is not None else (
                 self.decorated_by_instance.setdefault(
                     instance, dataclasses.replace(
                         self,
-                        condition=self.condition_t(),
+                        condition=type(self.condition)(),
                         decoratee=self.decoratee.__get__(instance, owner),
                         state=State(),
                     )
@@ -96,4 +92,7 @@ class Decorator[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated](
 
     # How many callees are allowed through or to wait concurrently before additional callees are rejected.
     max_waiting: int = sys.maxsize
+
+
+Throttle = Decorator
 

@@ -114,3 +114,6 @@ class Decorator[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorato
             instance=None,
             table_name=table_name,
         )
+
+
+Path = Decorator

@@ -105,3 +105,6 @@ class Decorator[**_Param, _Ret](
         _Decorated[_Param, _Ret],
     ],
 ): ...
+
+
+Retry = Decorator

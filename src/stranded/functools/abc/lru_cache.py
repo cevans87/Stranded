@@ -40,7 +40,6 @@ class Enter[**_Param, _Ret, _Decoratee, _Exit, _Decorated, _Decorator](
     def create_key(*args: _Param.args, **kwargs: _Param.kwargs) -> Key:
         return tuple(args), tuple(sorted([*kwargs.items()]))
 
-
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorated[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorator, _Future](
     decorator.Decorated[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorator],
@@ -68,3 +67,6 @@ class Decorator[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated](
     decorator.Decorator[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated],
     abc.ABC,
 ): size: int = sys.maxsize
+
+
+LruCache = Decorator

@@ -50,3 +50,6 @@ class Decorator[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated](
     decorator.Decorator[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated],
     abc.ABC,
 ): n: int = sys.maxsize
+
+
+Retry = Decorator
