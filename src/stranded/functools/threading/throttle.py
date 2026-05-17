@@ -2,8 +2,8 @@ import dataclasses
 import threading
 import typing
 
-from ..abc import throttle
 from ...threading import decorator
+from ..abc import throttle
 
 
 type _Decoratee[**_Param, _Ret] = Decoratee[_Param, _Ret]
@@ -105,10 +105,6 @@ class Decorated[**_Param, _Ret](
 ):
     condition: _Condition = dataclasses.field(default_factory=threading.Condition)
 
-    @property
-    def condition_t(self) -> type[_Condition]:
-        return threading.Condition
-
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -130,3 +126,6 @@ class Decorator[**_Param, _Ret](
         _Decorated[_Param, _Ret],
     ],
 ): ...
+
+
+Throttle = Decorator

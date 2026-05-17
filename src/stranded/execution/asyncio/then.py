@@ -1,11 +1,8 @@
-from __future__ import annotations
-
-import asyncio
 import dataclasses
 import typing
 
+from ..abc import then
 from ...asyncio import decorator
-from ..abc import reduce
 
 
 type _Decoratee[**_Param, _Ret] = Decoratee[_Param, _Ret]
@@ -18,7 +15,7 @@ type _Decorator[**_Param, _Ret] = Decorator[_Param, _Ret]
 @typing.runtime_checkable
 class Decoratee[**_Param, _Ret](
     decorator.Decoratee[_Param, _Ret],
-    reduce.Decoratee[_Param, _Ret],
+    then.Decoratee[_Param, _Ret],
     typing.Protocol,
 ): ...
 
@@ -34,7 +31,7 @@ class Exit[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    reduce.Exit[
+    then.Exit[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -56,7 +53,7 @@ class Enter[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    reduce.Enter[
+    then.Enter[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -64,7 +61,19 @@ class Enter[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-): ...
+):
+    async def __call__(
+        self,
+        *args: _Param.args,
+        **kwargs: _Param.kwargs,
+    ) -> tuple[_Decoratee[_Param, _Ret] | _Exit[_Param, _Ret] | typing.Self | _Decorated[_Param, _Ret], ...]:
+        exit_, decoratee = await super().__call__(*args, **kwargs)
+        fn = self.decorated.decorator.fn
+
+        async def composed(*a, **k):
+            return await fn(await decoratee(*a, **k))
+
+        return exit_, composed
 
 
 @typing.final
@@ -78,7 +87,7 @@ class Decorated[**_Param, _Ret](
         _Enter[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    reduce.Decorated[
+    then.Decorated[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -86,54 +95,7 @@ class Decorated[**_Param, _Ret](
         _Enter[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-):
-    @typing.override
-    async def __call__(
-        self,
-        rets: typing.AsyncIterable[_Ret],
-        /,
-    ) -> _Ret:
-        accum = self.decorator.init
-        n = 0
-        condition = asyncio.Condition()
-
-        async def runner(_right: _Ret) -> None:
-            nonlocal accum, n
-            while True:
-                async with condition:
-                    match accum:
-                        case self._Busy():
-                            accum = _right
-                            n -= 1
-                            if n == 0:
-                                condition.notify()
-                            break
-                        case Exception():
-                            n -= 1
-                            if n == 0:
-                                condition.notify()
-                            break
-                        case _:
-                            _left, accum = accum, self._busy
-
-                try:
-                    _right = await self.decoratee(_left, _right)
-                except Exception as _e:
-                    _right = _e
-
-        async for ret in rets:
-            async with condition:
-                n += 1
-            asyncio.ensure_future(runner(ret))
-
-        async with condition:
-            await condition.wait_for(lambda: n == 0)
-
-        match accum:
-            case Exception() as e:
-                raise e
-            case ret:
-                return ret
+): ...
 
 
 @typing.final
@@ -147,7 +109,7 @@ class Decorator[**_Param, _Ret](
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
     ],
-    reduce.Decorator[
+    then.Decorator[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -156,3 +118,6 @@ class Decorator[**_Param, _Ret](
         _Decorated[_Param, _Ret],
     ],
 ): ...
+
+
+Then = Decorator

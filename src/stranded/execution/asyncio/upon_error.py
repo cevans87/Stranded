@@ -1,11 +1,8 @@
-from __future__ import annotations
-
 import dataclasses
-import threading
 import typing
 
-from stranded.threading import decorator
-from ..abc import reduce
+from ..abc import upon_error
+from ...asyncio import decorator
 
 
 type _Decoratee[**_Param, _Ret] = Decoratee[_Param, _Ret]
@@ -18,7 +15,7 @@ type _Decorator[**_Param, _Ret] = Decorator[_Param, _Ret]
 @typing.runtime_checkable
 class Decoratee[**_Param, _Ret](
     decorator.Decoratee[_Param, _Ret],
-    reduce.Decoratee[_Param, _Ret],
+    upon_error.Decoratee[_Param, _Ret],
     typing.Protocol,
 ): ...
 
@@ -34,7 +31,7 @@ class Exit[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    reduce.Exit[
+    upon_error.Exit[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -56,7 +53,7 @@ class Enter[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    reduce.Enter[
+    upon_error.Enter[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -64,7 +61,22 @@ class Enter[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-): ...
+):
+    async def __call__(
+        self,
+        *args: _Param.args,
+        **kwargs: _Param.kwargs,
+    ) -> tuple[_Decoratee[_Param, _Ret] | _Exit[_Param, _Ret] | typing.Self | _Decorated[_Param, _Ret], ...]:
+        exit_, decoratee = await super().__call__(*args, **kwargs)
+        fn = self.decorated.decorator.fn
+
+        async def caught(*a, **k):
+            try:
+                return await decoratee(*a, **k)
+            except Exception as exc:  # noqa
+                return await fn(exc)
+
+        return exit_, caught
 
 
 @typing.final
@@ -78,7 +90,7 @@ class Decorated[**_Param, _Ret](
         _Enter[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    reduce.Decorated[
+    upon_error.Decorated[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -86,54 +98,7 @@ class Decorated[**_Param, _Ret](
         _Enter[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-):
-    @typing.override
-    def __call__(
-        self,
-        rets: typing.Iterable[_Ret],
-        /,
-    ) -> _Ret:
-        accum = self.decorator.init
-        n = 0
-        condition = threading.Condition()
-
-        def reducer(_right: _Ret) -> None:
-            nonlocal accum, n
-            while True:
-                with condition:
-                    match accum:
-                        case self._Busy():
-                            accum = _right
-                            n -= 1
-                            if n == 0:
-                                condition.notify()
-                            break
-                        case Exception():
-                            n -= 1
-                            if n == 0:
-                                condition.notify()
-                            break
-                        case _:
-                            _left, accum = accum, self._busy
-
-                try:
-                    _right = self.decoratee(_left, _right)
-                except Exception as _e:
-                    _right = _e
-
-        for ret in rets:
-            with condition:
-                n += 1
-            self.decorator.pool.submit(reducer, ret)
-
-        with condition:
-            condition.wait_for(lambda: n == 0)
-
-        match accum:
-            case Exception() as e:
-                raise e
-            case ret:
-                return ret
+): ...
 
 
 @typing.final
@@ -147,7 +112,7 @@ class Decorator[**_Param, _Ret](
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
     ],
-    reduce.Decorator[
+    upon_error.Decorator[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -156,3 +121,6 @@ class Decorator[**_Param, _Ret](
         _Decorated[_Param, _Ret],
     ],
 ): ...
+
+
+UponError = Decorator

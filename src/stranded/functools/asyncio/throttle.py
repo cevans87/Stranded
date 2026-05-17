@@ -104,10 +104,6 @@ class Decorated[**_Param, _Ret](
 ):
     condition: _Condition = dataclasses.field(default_factory=asyncio.Condition)
 
-    @property
-    def condition_t(self) -> type[_Condition]:
-        return asyncio.Condition
-
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -129,3 +125,6 @@ class Decorator[**_Param, _Ret](
         _Decorated[_Param, _Ret],
     ],
 ): ...
+
+
+Throttle = Decorator

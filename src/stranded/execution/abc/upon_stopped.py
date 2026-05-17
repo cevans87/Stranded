@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import abc
-import asyncio
-import concurrent.futures
 import dataclasses
 import typing
 
-from stranded.abc import decorator
+from ...abc import decorator
+
+
+class Exception(decorator.Exception): ...  # noqa
 
 
 @typing.runtime_checkable
@@ -41,10 +42,7 @@ class Decorated[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorator](
 class Decorator[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated](
     decorator.Decorator[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated],
     abc.ABC,
-):
-    loop: asyncio.AbstractEventLoop = dataclasses.field(
-        default_factory=asyncio.get_event_loop,
-    )
-    pool: concurrent.futures.ThreadPoolExecutor = dataclasses.field(
-        default_factory=concurrent.futures.ThreadPoolExecutor,
-    )
+): ...
+
+
+UponStopped = Decorator

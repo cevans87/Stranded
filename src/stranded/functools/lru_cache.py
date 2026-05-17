@@ -5,4 +5,7 @@ from .. import decorator
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class LruCache(decorator.Decorator, lru_cache.Decorator): ...
+class Decorator(decorator.Decorator, lru_cache.Decorator): ...
+
+
+LruCache = Decorator

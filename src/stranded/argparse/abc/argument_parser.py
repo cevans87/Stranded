@@ -506,3 +506,6 @@ class Decorator[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated](
             decoratee=decoratee,
             decorator=self,
         )
+
+
+ArgumentParser = Decorator

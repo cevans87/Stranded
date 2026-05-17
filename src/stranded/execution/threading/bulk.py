@@ -1,13 +1,8 @@
-from __future__ import annotations
-
-import concurrent.futures
 import dataclasses
-import queue
-import threading
 import typing
 
-from stranded.threading import decorator
-from ..abc import map_
+from ..abc import bulk
+from ...threading import decorator
 
 
 type _Decoratee[**_Param, _Ret] = Decoratee[_Param, _Ret]
@@ -20,7 +15,7 @@ type _Decorator[**_Param, _Ret] = Decorator[_Param, _Ret]
 @typing.runtime_checkable
 class Decoratee[**_Param, _Ret](
     decorator.Decoratee[_Param, _Ret],
-    map_.Decoratee[_Param, _Ret],
+    bulk.Decoratee[_Param, _Ret],
     typing.Protocol,
 ): ...
 
@@ -36,7 +31,7 @@ class Exit[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    map_.Exit[
+    bulk.Exit[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -58,7 +53,7 @@ class Enter[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    map_.Enter[
+    bulk.Enter[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -66,7 +61,22 @@ class Enter[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-): ...
+):
+    def __call__(
+        self,
+        *args: _Param.args,
+        **kwargs: _Param.kwargs,
+    ) -> tuple[_Decoratee[_Param, _Ret] | _Exit[_Param, _Ret] | typing.Self | _Decorated[_Param, _Ret], ...]:
+        exit_, decoratee = super().__call__(*args, **kwargs)
+        d = self.decorated.decorator
+
+        def composed(*a, **k):
+            v = decoratee(*a, **k)
+            for i in range(d.n):
+                d.scheduler(lambda i=i, v=v: d.fn(i, v))
+            return v
+
+        return exit_, composed
 
 
 @typing.final
@@ -80,7 +90,7 @@ class Decorated[**_Param, _Ret](
         _Enter[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    map_.Decorated[
+    bulk.Decorated[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -88,56 +98,7 @@ class Decorated[**_Param, _Ret](
         _Enter[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-):
-    @typing.override
-    def __call__(
-        self,
-        params: typing.Iterable[tuple[_Param.args, _Param.kwargs]],
-        /,
-    ) -> typing.Iterable[_Ret]:
-        q = queue.LifoQueue()
-        n = 0
-        condition = threading.Condition()
-
-        def runner(*args: _Param.args, **kwargs: _Param.kwargs) -> None:
-            nonlocal n, self
-            try:
-                _ret = self.decoratee(*args, **kwargs)
-            except Exception as _e:
-                q.put(_e)
-            else:
-                q.put(_ret)
-
-            with condition:
-                n -= 1
-                if n == 0:
-                    condition.notify()
-
-        def submitter() -> None:
-            nonlocal n
-            for (args, kwargs) in params:
-                with condition:
-                    n += 1
-                self.decorator.pool.submit(runner, *args, **kwargs)
-
-            with condition:
-                condition.wait_for(lambda: n == 0)
-
-            q.shutdown()
-
-        concurrent.futures.ThreadPoolExecutor(max_workers=1).submit(submitter)
-
-        while True:
-            try:
-                result = q.get()
-            except queue.ShutDown:
-                break
-
-            match result:
-                case Exception() as e:
-                    raise e
-                case ret:
-                    yield ret
+): ...
 
 
 @typing.final
@@ -151,7 +112,7 @@ class Decorator[**_Param, _Ret](
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
     ],
-    map_.Decorator[
+    bulk.Decorator[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -160,3 +121,6 @@ class Decorator[**_Param, _Ret](
         _Decorated[_Param, _Ret],
     ],
 ): ...
+
+
+Bulk = Decorator

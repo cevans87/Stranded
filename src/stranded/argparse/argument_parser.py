@@ -5,4 +5,7 @@ from .. import decorator
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class ArgumentParser(decorator.Decorator, argument_parser.Decorator): ...
+class Decorator(decorator.Decorator, argument_parser.Decorator): ...
+
+
+ArgumentParser = Decorator

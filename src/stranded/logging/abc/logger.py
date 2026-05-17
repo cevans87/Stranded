@@ -87,3 +87,6 @@ class Decorator[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated](
     ok_level: Level = 'INFO'
 
     Level: typing.ClassVar[type[Level]] = Level
+
+
+Logger = Decorator

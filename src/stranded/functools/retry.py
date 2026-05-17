@@ -5,4 +5,7 @@ from .. import decorator
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Retry(decorator.Decorator, retry.Decorator): ...
+class Decorator(decorator.Decorator, retry.Decorator): ...
+
+
+Retry = Decorator

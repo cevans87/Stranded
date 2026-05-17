@@ -81,12 +81,14 @@ class Enter[**_Param, _Ret](
         future = self.decorated.future_by_key.pop(key, None)
         while self.decorated.decorator.size <= len(self.decorated.future_by_key):
             self.decorated.future_by_key.popitem(last=False)
-        if future is None:
-            future = self.decorated.future_by_key[key] = asyncio.Future()
-            return self.decorated.decorator.exit_t(enter=self, future=future), self.decorated.decoratee
-        else:
-            self.decorated.future_by_key[key] = future
-            return (lambda *_args, **_kwargs: future),
+        match future is None:
+            case True:
+                future = self.decorated.future_by_key[key] = asyncio.Future()
+                return self.decorated.decorator.exit_t(enter=self, future=future), self.decorated.decoratee
+            case False:
+                self.decorated.future_by_key[key] = future
+                return (lambda *_args, **_kwargs: future),
+        assert False, "Unreachable"
 
 
 @typing.final
@@ -132,3 +134,6 @@ class Decorator[**_Param, _Ret](
         _Decorated[_Param, _Ret],
     ],
 ): ...
+
+
+LruCache = Decorator

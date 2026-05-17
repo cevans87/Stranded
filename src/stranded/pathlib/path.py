@@ -5,4 +5,7 @@ from .. import decorator
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Path(decorator.Decorator, abc_path.Decorator): ...
+class Decorator(decorator.Decorator, abc_path.Decorator): ...
+
+
+Path = Decorator

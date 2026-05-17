@@ -1,11 +1,9 @@
-from __future__ import annotations
-
-import asyncio
 import dataclasses
 import typing
 
-from ..abc import map_
-from . import executor
+from ..abc import then
+from ...threading import decorator
+
 
 type _Decoratee[**_Param, _Ret] = Decoratee[_Param, _Ret]
 type _Exit[**_Param, _Ret] = Exit[_Param, _Ret]
@@ -16,8 +14,8 @@ type _Decorator[**_Param, _Ret] = Decorator[_Param, _Ret]
 
 @typing.runtime_checkable
 class Decoratee[**_Param, _Ret](
-    executor.Decoratee[_Param, _Ret],
-    map_.Decoratee[_Param, _Ret],
+    decorator.Decoratee[_Param, _Ret],
+    then.Decoratee[_Param, _Ret],
     typing.Protocol,
 ): ...
 
@@ -25,7 +23,7 @@ class Decoratee[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**_Param, _Ret](
-    executor.Exit[
+    decorator.Exit[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -33,7 +31,7 @@ class Exit[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    map_.Exit[
+    then.Exit[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -47,7 +45,7 @@ class Exit[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[**_Param, _Ret](
-    executor.Enter[
+    decorator.Enter[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -55,7 +53,7 @@ class Enter[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    map_.Enter[
+    then.Enter[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -63,13 +61,25 @@ class Enter[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-): ...
+):
+    def __call__(
+        self,
+        *args: _Param.args,
+        **kwargs: _Param.kwargs,
+    ) -> tuple[_Decoratee[_Param, _Ret] | _Exit[_Param, _Ret] | typing.Self | _Decorated[_Param, _Ret], ...]:
+        exit_, decoratee = super().__call__(*args, **kwargs)
+        fn = self.decorated.decorator.fn
+
+        def composed(*a, **k):
+            return fn(decoratee(*a, **k))
+
+        return exit_, composed
 
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorated[**_Param, _Ret](
-    executor.Decorated[
+    decorator.Decorated[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -77,7 +87,7 @@ class Decorated[**_Param, _Ret](
         _Enter[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    map_.Decorated[
+    then.Decorated[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -85,61 +95,13 @@ class Decorated[**_Param, _Ret](
         _Enter[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-):
-    async def __call__(
-        self,
-        params: typing.AsyncIterable[tuple[_Param.args, _Param.kwargs]],
-        /,
-    ) -> typing.AsyncIterable[_Ret]:
-        q = asyncio.LifoQueue()
-        n = 0
-        condition = asyncio.Condition()
-
-        async def putter(*args: _Param.args, **kwargs: _Param.kwargs) -> None:
-            nonlocal n, self
-            try:
-                _ret = await self.decoratee(*args, **kwargs)
-            except Exception as _e:
-                await q.put(_e)
-            else:
-                await q.put(_ret)
-
-            async with condition:
-                n -= 1
-                if n ==0:
-                    condition.notify()
-
-        async def submitter() -> None:
-            nonlocal n
-            async for (args, kwargs) in params:
-                async with condition:
-                    n += 1
-                asyncio.ensure_future(putter(*args, **kwargs), loop=self.decorator.loop)
-
-            async with condition:
-                await condition.wait_for(lambda: n == 0)
-
-            q.shutdown()
-
-        asyncio.ensure_future(submitter(), loop=self.decorator.loop)
-
-        while True:
-            try:
-                result = await q.get()
-            except asyncio.QueueShutDown:
-                break
-
-            match result:
-                case Exception() as e:
-                    raise e
-                case ret:
-                    yield ret
+): ...
 
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorator[**_Param, _Ret](
-    executor.Decorator[
+    decorator.Decorator[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -147,7 +109,7 @@ class Decorator[**_Param, _Ret](
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
     ],
-    map_.Decorator[
+    then.Decorator[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
@@ -156,3 +118,6 @@ class Decorator[**_Param, _Ret](
         _Decorated[_Param, _Ret],
     ],
 ): ...
+
+
+Then = Decorator

@@ -131,3 +131,6 @@ class Decorator[**_Param, _Ret](
         _Decorator[_Param, _Ret],
     ],
 ): ...
+
+
+Path = Decorator
