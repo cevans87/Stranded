@@ -1,4 +1,3 @@
-import asyncio
 import dataclasses
 import typing
 
@@ -7,6 +6,7 @@ from ...asyncio import decorator
 
 
 type _Decoratee[**_Param, _Ret] = Decoratee[_Param, _Ret]
+type _Connect[**_Param, _Ret] = Connect[_Param, _Ret]
 type _Exit[**_Param, _Ret] = Exit[_Param, _Ret]
 type _Enter[**_Param, _Ret] = Enter[_Param, _Ret]
 type _Decorated[**_Param, _Ret] = Decorated[_Param, _Ret]
@@ -23,11 +23,39 @@ class Decoratee[**_Param, _Ret](
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
+class Connect[**_Param, _Ret](
+    decorator.Connect[
+        _Param,
+        _Ret,
+        _Decoratee[_Param, _Ret],
+        _Connect[_Param, _Ret],
+        _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
+        _Decorator[_Param, _Ret],
+    ],
+    bulk.Connect[
+        _Param,
+        _Ret,
+        _Decoratee[_Param, _Ret],
+        _Connect[_Param, _Ret],
+        _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
+        _Decorator[_Param, _Ret],
+    ],
+): ...
+
+
+@typing.final
+@dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**_Param, _Ret](
     decorator.Exit[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
+        _Connect[_Param, _Ret],
+        _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
@@ -36,6 +64,8 @@ class Exit[**_Param, _Ret](
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
+        _Connect[_Param, _Ret],
+        _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
@@ -50,7 +80,9 @@ class Enter[**_Param, _Ret](
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
+        _Connect[_Param, _Ret],
         _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
@@ -58,32 +90,13 @@ class Enter[**_Param, _Ret](
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
+        _Connect[_Param, _Ret],
         _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-):
-    async def __call__(
-        self,
-        *args: _Param.args,
-        **kwargs: _Param.kwargs,
-    ) -> tuple[_Decoratee[_Param, _Ret] | _Exit[_Param, _Ret] | typing.Self | _Decorated[_Param, _Ret], ...]:
-        exit_, decoratee = await super().__call__(*args, **kwargs)
-        d = self.decorated.decorator
-
-        async def composed(*a, **k):
-            v = await decoratee(*a, **k)
-
-            def make_runner(i, v):
-                async def runner():
-                    return await d.fn(i, v)
-                return runner
-
-            coros = [d.scheduler(make_runner(i, v)) for i in range(d.n)]
-            await asyncio.gather(*coros)
-            return v
-
-        return exit_, composed
+): ...
 
 
 @typing.final
@@ -93,16 +106,20 @@ class Decorated[**_Param, _Ret](
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
+        _Connect[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
     bulk.Decorated[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
+        _Connect[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
 ): ...
@@ -115,17 +132,21 @@ class Decorator[**_Param, _Ret](
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
+        _Connect[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
+        _Decorator[_Param, _Ret],
     ],
     bulk.Decorator[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
+        _Connect[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
+        _Decorator[_Param, _Ret],
     ],
 ): ...
 

@@ -27,10 +27,22 @@ class Decoratee[**_Param, _Ret](typing.Protocol):
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Base[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator](abc.ABC):
+class Base[_Decoratee, _Connect, _Exit, _Enter, _Decorated, _Decorator](abc.ABC):
     @property
     def decoratee_t(self) -> type[_Decoratee]:
         return inspect.getmodule(type(self)).Decoratee
+
+    @property
+    def exit_t(self) -> type[_Exit]:
+        return inspect.getmodule(type(self)).Exit
+
+    @property
+    def enter_t(self) -> type[_Enter]:
+        return inspect.getmodule(type(self)).Enter
+
+    @property
+    def connect_t(self) -> type[_Connect]:
+        return inspect.getmodule(type(self)).Connect
 
     @property
     def decorated_t(self) -> type[_Decorated]:
@@ -40,13 +52,6 @@ class Base[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, _Decorator](ab
     def decorator_t(self) -> type[_Decorator]:
         return inspect.getmodule(type(self)).Decorator
 
-    @property
-    def enter_t(self) -> type[_Enter]:
-        return inspect.getmodule(type(self)).Enter
-
-    @property
-    def exit_t(self) -> type[_Exit]:
-        return inspect.getmodule(type(self)).Exit
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -56,19 +61,64 @@ class Param[**_Param]:
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Exit[**_Param, _Ret, _Decoratee, _Enter, _Decorated, _Decorator](
-    Base[_Param, _Ret, _Decoratee, _Enter, typing.Self, _Decorated, _Decorator],
+class OperationState[
+    **_SParam, _SRet, _SDecoratee, _SConnect, _SExit, _SEnter, _SDecorated, _SDecorator,
+    **_RParam, _RRet, _RDecoratee, _RConnect, _RExit, _REnter, _RDecorated, _RDecorator,
+](
+    Base[_SDecoratee, _SConnect, _SExit, _SEnter, _SDecorated, _SDecorator],
+    abc.ABC,
+):
+    sender: _SDecorator
+    receiver: _RDecorator
+
+    def __call__(self, s_ret: _SRet, *s_args: _SParam.args, **s_kwargs: _SParam.kwargs) -> Param[_RParam]:
+        # TODO
+        ...
+
+
+@dataclasses.dataclass(frozen=True, kw_only=True)
+class Connect[**_SParam, _SRet, _SDecoratee, _SConnect, _SExit, _SEnter, _SDecorated, _SDecorator](
+    Base[_SDecoratee, _SConnect, _SExit, _SEnter, _SDecorated, _SDecorator],
+    abc.ABC,
+):
+    sender: Decorator[_SParam, _SRet, _SDecoratee, _SConnect, _SExit, _SEnter, _SDecorated, _SDecorator]
+
+    def __call__[**_RParam, _RRet, _RDecoratee, _RConnect, _RExit, _REnter, _RDecorated, _RDecorator](
+        self,
+        sender: Decorator[
+            _SParam,
+            _SRet,
+            _SDecoratee,
+            _SConnect,
+            _SExit,
+            _SEnter,
+            _SDecorated,
+            _SDecorator,
+        ],
+        receiver: Decorator[_RParam, _RRet, _RDecoratee, _RConnect, _RExit, _REnter, _RDecorated, _RDecorator],
+    ) -> OperationState[
+        _SParam, _SRet, _SDecoratee, _SConnect, _SExit, _SEnter, _SDecorated, _SDecorator,
+        _RParam, _RRet, _RDecoratee, _RConnect, _RExit, _REnter, _RDecorated, _RDecorator,
+    ]:
+        return OperationState(sender=sender, receiver=receiver)
+
+
+
+
+@dataclasses.dataclass(frozen=True, kw_only=True)
+class Exit[**_Param, _Ret, _Decoratee, _Connect, _Exit, _Enter, _Decorated, _Decorator](
+    Base[_Decoratee, _Connect, _Enter, _Exit, _Decorated, _Decorator],
     abc.ABC,
 ):
     enter: _Enter
 
-    def __call__(self, result: Raise | _Ret) -> ():
+    def __call__(self, result: Raise | _Ret) -> tuple[()]:
         return ()
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Enter[**_Param, _Ret, _Decoratee, _Exit, _Decorated, _Decorator](
-    Base[_Param, _Ret, _Decoratee, _Decorator, _Decorated, typing.Self, _Exit],
+class Enter[**_Param, _Ret, _Decoratee, _Connect, _Exit, _Enter, _Decorated, _Decorator](
+    Base[_Decoratee, _Connect, _Decorator, _Decorated, _Enter, _Exit],
     abc.ABC,
 ):
     decorated: _Decorated
@@ -78,8 +128,8 @@ class Enter[**_Param, _Ret, _Decoratee, _Exit, _Decorated, _Decorator](
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorated[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorator](
-    Base[_Param, _Ret, _Decoratee, _Exit, _Enter, typing.Self, _Decorator],
+class Decorated[**_Param, _Ret, _Decoratee, _Connect, _Exit, _Enter, _Decorated, _Decorator](
+    Base[_Decoratee, _Connect, _Exit, _Enter, _Decorated, _Decorator],
     abc.ABC,
 ):
     __doc__: str
@@ -89,17 +139,38 @@ class Decorated[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorator](
     __signature__: inspect.Signature
     decoratee: _Decoratee
     decorator: _Decorator
+    stack: tuple[OperationState | Decorated, ...] = ()
 
     def __get__(self, instance: Instance, owner) -> typing.Self:
         return dataclasses.replace(self, decoratee=self.decoratee.__get__(instance, owner))
 
-    def create_context(self) -> tuple[_Decoratee | _Exit | _Enter | _Decorator, ...]:
+    def __or__[**_Param2, _Ret2, _Decoratee2, _Connect2, _Exit2, _Enter2, _Decorated2, _Decorator2](
+        self,
+        receiver: Decorated[_Param2, _Ret2, _Decoratee2, _Connect2, _Exit2, _Enter2, _Decorated2, _Decorator2],
+        /,
+    ) -> Decorated[_Param, _Ret2, Decoratee[_Param, _Ret2], _Connect2, _Exit2, _Enter2, _Decorated2, _Decorator2]:
+        return dataclasses.replace(
+            receiver,
+            __doc__=f'{self.__doc__}\n\n{receiver.__doc__}',
+            __module__ = f'{self.__module__}, {receiver.__module__}',
+            __name__ = f'{self.__name__}, {receiver.__name__}',
+            __qualname__ = f'{self.__qualname__}, {receiver.__qualname__}',
+            __signature__ = inspect.Signature().replace(
+                parameters = self.__signature__.parameters,
+                return_annotation = receiver.__signature__.return_annotation,
+            ),
+            stack=(self.connect_t()(sender=self, reciever=receiver), self, *self.stack),
+        )
+
+
+
+    def create_context(self) -> tuple[_Decoratee | _Connect | _Exit | _Enter | _Decorator, ...]:
         return self.enter_t(decorated=self),
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorator[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated](
-    Base[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated, typing.Self],
+class Decorator[**_Param, _Ret, _Decoratee, _Connect, _Exit, _Enter, _Decorated, _Decorator](
+    Base[_Decoratee, _Connect, _Exit, _Enter, _Decorated, _Decorator],
     abc.ABC,
 ):
     def __call__(self, decoratee: _Decoratee, /) -> _Decorated:
