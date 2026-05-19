@@ -28,8 +28,15 @@ class Decoratee[**_Param, _Ret](
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Exit[**_Param, _Ret, _Decoratee, _Enter, _Decorated, _Decorator](
-    decorator.Exit[_Param, _Ret, _Decoratee, _Enter, _Decorated, _Decorator],
+class Connect[**_Param, _Ret, _Decoratee, _Connect, _Exit, _Enter, _Decorated, _Decorator](
+    decorator.Connect[_Param, _Ret, _Decoratee, _Connect, _Exit, _Enter, _Decorated, _Decorator],
+    abc.ABC,
+): ...
+
+
+@dataclasses.dataclass(frozen=True, kw_only=True)
+class Exit[**_Param, _Ret, _Decoratee, _Connect, _Exit, _Enter, _Decorated, _Decorator](
+    decorator.Exit[_Param, _Ret, _Decoratee, _Connect, _Exit, _Enter, _Decorated, _Decorator],
     abc.ABC,
 ):
     def __call__(self, result: decorator.Raise | _Ret) -> ():
@@ -50,15 +57,15 @@ class Exit[**_Param, _Ret, _Decoratee, _Enter, _Decorated, _Decorator](
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Enter[** _Param, _Ret, _Decoratee, _Exit, _Decorated, _Decorator](
-    decorator.Enter[_Param, _Ret, _Decoratee, _Exit, _Decorated, _Decorator],
+class Enter[** _Param, _Ret, _Decoratee, _Connect, _Exit, _Enter, _Decorated, _Decorator](
+    decorator.Enter[_Param, _Ret, _Decoratee, _Connect, _Exit, _Enter, _Decorated, _Decorator],
     abc.ABC,
 ): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorated[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorator, _Condition](
-    decorator.Decorated[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorator],
+class Decorated[**_Param, _Ret, _Decoratee, _Connect, _Exit, _Enter, _Decorated, _Decorator, _Condition](
+    decorator.Decorated[_Param, _Ret, _Decoratee, _Connect, _Exit, _Enter, _Decorated, _Decorator],
     abc.ABC,
 ):
     condition: _Condition
@@ -83,8 +90,8 @@ class Decorated[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorator, _Conditio
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorator[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated](
-    decorator.Decorator[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated],
+class Decorator[**_Param, _Ret, _Decoratee, _Connect, _Exit, _Enter, _Decorated, _Decorator](
+    decorator.Decorator[_Param, _Ret, _Decoratee, _Connect, _Exit, _Enter, _Decorated, _Decorator],
     abc.ABC,
 ):
     # How many callees are allowed through concurrently before additional callees become waiters.

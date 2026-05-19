@@ -1,8 +1,11 @@
 import dataclasses
 
-from .asyncio import scheduler as _asyncio_scheduler
-from .threading import scheduler as _threading_scheduler
+from . import decorator
+from .abc import scheduler
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Scheduler(_threading_scheduler.Scheduler, _asyncio_scheduler.Scheduler): ...
+class Decorator(decorator.Decorator, scheduler.Decorator): ...
+
+
+Scheduler = Decorator

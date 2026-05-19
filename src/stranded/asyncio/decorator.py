@@ -20,8 +20,15 @@ class Decoratee[**_Param, _Ret](decorator.Decoratee[_Param, _Ret], typing.Protoc
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Exit[**_Param, _Ret, _Decoratee, _Enter, _Decorated, _Decorator](
-    decorator.Exit[_Param, _Ret, _Decoratee, _Enter, _Decorated, _Decorator],
+class Connect[**_Param, _Ret, _Decoratee, _Connect, _Exit, _Enter, _Decorated, _Decorator](
+    decorator.Connect[_Param, _Ret, _Decoratee, _Connect, _Exit, _Enter, _Decorated, _Decorator],
+    abc.ABC,
+): ...
+
+
+@dataclasses.dataclass(frozen=True, kw_only=True)
+class Exit[**_Param, _Ret, _Decoratee, _Connect, _Exit, _Enter, _Decorated, _Decorator](
+    decorator.Exit[_Param, _Ret, _Decoratee, _Connect, _Exit, _Enter, _Decorated, _Decorator],
     abc.ABC,
 ):
     async def __call__(
@@ -32,8 +39,8 @@ class Exit[**_Param, _Ret, _Decoratee, _Enter, _Decorated, _Decorator](
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Enter[**_Param, _Ret, _Decoratee, _Exit, _Decorated, _Decorator](
-    decorator.Enter[_Param, _Ret, _Decoratee, _Exit, _Decorated, _Decorator],
+class Enter[**_Param, _Ret, _Decoratee, _Connect, _Exit, _Enter, _Decorated, _Decorator](
+    decorator.Enter[_Param, _Ret, _Decoratee, _Connect, _Exit, _Enter, _Decorated, _Decorator],
     abc.ABC,
 ):
     async def __call__(
@@ -45,13 +52,13 @@ class Enter[**_Param, _Ret, _Decoratee, _Exit, _Decorated, _Decorator](
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorated[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorator](
-    decorator.Decorated[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorator],
+class Decorated[**_Param, _Ret, _Decoratee, _Connect, _Exit, _Enter, _Decorated, _Decorator](
+    decorator.Decorated[_Param, _Ret, _Decoratee, _Connect, _Exit, _Enter, _Decorated, _Decorator],
     abc.ABC,
 ):
     async def __call__(self, *args: _Param.args, **kwargs: _Param.kwargs) -> _Ret:
         result: decorator.Raise | _Ret = ...
-        stack = [self]
+        stack = [self, *self.stack]
         while stack:
             match stack.pop():
                 case decorator.Param(args=args, kwargs=kwargs): pass
@@ -69,12 +76,12 @@ class Decorated[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorator](
 
         return result
 
-    async def create_context(self) -> tuple[_Decoratee | _Exit | _Enter | _Decorator, ...]:
+    async def create_context(self) -> tuple[_Decoratee | _Connect | _Exit | _Enter | _Decorator, ...]:
         return super().create_context()
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorator[**_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated](
-    decorator.Decorator[_Param, _Ret, _Decoratee, _Exit, _Enter, _Decorated],
+class Decorator[**_Param, _Ret, _Decoratee, _Connect, _Exit, _Enter, _Decorated, _Decorator](
+    decorator.Decorator[_Param, _Ret, _Decoratee, _Connect, _Exit, _Enter, _Decorated, _Decorator],
     abc.ABC,
 ): ...
