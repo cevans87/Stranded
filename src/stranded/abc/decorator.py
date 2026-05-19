@@ -72,8 +72,7 @@ class OperationState[
     receiver: _RDecorator
 
     def __call__(self, s_ret: _SRet, *s_args: _SParam.args, **s_kwargs: _SParam.kwargs) -> Param[_RParam]:
-        # TODO
-        ...
+        return Param(args=(s_ret,), kwargs={})
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -156,10 +155,10 @@ class Decorated[**_Param, _Ret, _Decoratee, _Connect, _Exit, _Enter, _Decorated,
             __name__ = f'{self.__name__}, {receiver.__name__}',
             __qualname__ = f'{self.__qualname__}, {receiver.__qualname__}',
             __signature__ = inspect.Signature().replace(
-                parameters = self.__signature__.parameters,
+                parameters = list(self.__signature__.parameters.values()),
                 return_annotation = receiver.__signature__.return_annotation,
             ),
-            stack=(self.connect_t()(sender=self, reciever=receiver), self, *self.stack),
+            stack=(self.connect_t(sender=self.decorator)(sender=self, receiver=receiver), self, *self.stack),
         )
 
 

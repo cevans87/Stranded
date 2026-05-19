@@ -62,6 +62,7 @@ class Decorated[**_Param, _Ret, _Decoratee, _Connect, _Exit, _Enter, _Decorated,
         while stack:
             match stack.pop():
                 case decorator.Param(args=args, kwargs=kwargs): pass
+                case decorator.OperationState() as op_state_: stack.append(op_state_(result))
                 case Decorated() as decorated_: stack.extend(decorated_.create_context())
                 case Enter() as enter_: stack.extend(enter_(*args, **kwargs))
                 case Exit() as exit_: stack.extend(exit_(result))
