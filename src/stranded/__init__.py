@@ -2,23 +2,6 @@ import importlib as _importlib
 import types as _types
 import typing as _typing
 
-if _typing.TYPE_CHECKING:
-    from . import abc
-    from . import argparse
-    from . import asyncio
-    from . import builtins
-    from . import decorator
-    from .decorator import Decorator
-    from . import execution
-    from . import functools
-    from . import inspect
-    from . import logging
-    from . import pathlib
-    from . import sqlite3
-    from . import threading
-    from . import types
-    from . import typing
-
 
 @_typing.overload
 def __getattr__(name: _typing.Literal['abc']) -> _types.ModuleType: ...
@@ -31,7 +14,7 @@ def __getattr__(name: _typing.Literal['builtins']) -> _types.ModuleType: ...
 @_typing.overload
 def __getattr__(name: _typing.Literal['decorator']) -> _types.ModuleType: ...
 @_typing.overload
-def __getattr__(name: _typing.Literal['Decorator']) -> type[Decorator]: ...
+def __getattr__(name: _typing.Literal['Decorator']) -> 'type[stranded.decorator.Decorator]': ...
 @_typing.overload
 def __getattr__(name: _typing.Literal['execution']) -> _types.ModuleType: ...
 @_typing.overload

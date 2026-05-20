@@ -2,27 +2,19 @@ import importlib as _importlib
 import types as _types
 import typing as _typing
 
-if _typing.TYPE_CHECKING:
-    from . import lru_cache
-    from .lru_cache import LruCache
-    from . import retry
-    from .retry import Retry
-    from . import throttle
-    from .throttle import Throttle
-
 
 @_typing.overload
 def __getattr__(name: _typing.Literal['lru_cache']) -> _types.ModuleType: ...
 @_typing.overload
-def __getattr__(name: _typing.Literal['LruCache']) -> type[LruCache]: ...
+def __getattr__(name: _typing.Literal['LruCache']) -> 'type[stranded.functools.lru_cache.LruCache]': ...
 @_typing.overload
 def __getattr__(name: _typing.Literal['retry']) -> _types.ModuleType: ...
 @_typing.overload
-def __getattr__(name: _typing.Literal['Retry']) -> type[Retry]: ...
+def __getattr__(name: _typing.Literal['Retry']) -> 'type[stranded.functools.retry.Retry]': ...
 @_typing.overload
 def __getattr__(name: _typing.Literal['throttle']) -> _types.ModuleType: ...
 @_typing.overload
-def __getattr__(name: _typing.Literal['Throttle']) -> type[Throttle]: ...
+def __getattr__(name: _typing.Literal['Throttle']) -> 'type[stranded.functools.throttle.Throttle]': ...
 def __getattr__(name):
     match name:
         case 'lru_cache': return _importlib.import_module('.lru_cache', __name__)

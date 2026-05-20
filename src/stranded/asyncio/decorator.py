@@ -20,15 +20,22 @@ class Decoratee[**_Param, _Ret](decorator.Decoratee[_Param, _Ret], typing.Protoc
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Connect[**_Param, _Ret, _Decoratee, _Connect, _Exit, _Enter, _Decorated, _Decorator](
-    decorator.Connect[_Param, _Ret, _Decoratee, _Connect, _Exit, _Enter, _Decorated, _Decorator],
+class Receive[**_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator](
+    decorator.Receive[_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator],
     abc.ABC,
 ): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Exit[**_Param, _Ret, _Decoratee, _Connect, _Exit, _Enter, _Decorated, _Decorator](
-    decorator.Exit[_Param, _Ret, _Decoratee, _Connect, _Exit, _Enter, _Decorated, _Decorator],
+class Send[**_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator](
+    decorator.Send[_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator],
+    abc.ABC,
+): ...
+
+
+@dataclasses.dataclass(frozen=True, kw_only=True)
+class Exit[**_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator](
+    decorator.Exit[_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator],
     abc.ABC,
 ):
     async def __call__(
@@ -39,8 +46,8 @@ class Exit[**_Param, _Ret, _Decoratee, _Connect, _Exit, _Enter, _Decorated, _Dec
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Enter[**_Param, _Ret, _Decoratee, _Connect, _Exit, _Enter, _Decorated, _Decorator](
-    decorator.Enter[_Param, _Ret, _Decoratee, _Connect, _Exit, _Enter, _Decorated, _Decorator],
+class Enter[**_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator](
+    decorator.Enter[_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator],
     abc.ABC,
 ):
     async def __call__(
@@ -52,8 +59,8 @@ class Enter[**_Param, _Ret, _Decoratee, _Connect, _Exit, _Enter, _Decorated, _De
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorated[**_Param, _Ret, _Decoratee, _Connect, _Exit, _Enter, _Decorated, _Decorator](
-    decorator.Decorated[_Param, _Ret, _Decoratee, _Connect, _Exit, _Enter, _Decorated, _Decorator],
+class Decorated[**_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator](
+    decorator.Decorated[_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator],
     abc.ABC,
 ):
     async def __call__(self, *args: _Param.args, **kwargs: _Param.kwargs) -> _Ret:
@@ -61,11 +68,12 @@ class Decorated[**_Param, _Ret, _Decoratee, _Connect, _Exit, _Enter, _Decorated,
         stack = [self, *self.stack]
         while stack:
             match stack.pop():
-                case decorator.Param(args=args, kwargs=kwargs): pass
-                case decorator.OperationState() as op_state_: stack.append(op_state_(result))
+                case Param(args=args, kwargs=kwargs): pass
                 case Decorated() as decorated_: stack.extend(await decorated_.create_context())
                 case Enter() as enter_: stack.extend(await enter_(*args, **kwargs))
                 case Exit() as exit_: stack.extend(await exit_(result))
+                case Send() as send_: stack.append(send_(result))
+                case Receive() as receive_: stack.append(receive_(*args, **kwargs))
                 case Decoratee() as decoratee_:
                     try:
                         result = await decoratee_(*args, **kwargs)
@@ -77,12 +85,12 @@ class Decorated[**_Param, _Ret, _Decoratee, _Connect, _Exit, _Enter, _Decorated,
 
         return result
 
-    async def create_context(self) -> tuple[_Decoratee | _Connect | _Exit | _Enter | _Decorator, ...]:
+    async def create_context(self) -> tuple[_Decoratee | _Receive | _Send | _Exit | _Enter | _Decorator, ...]:
         return super().create_context()
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorator[**_Param, _Ret, _Decoratee, _Connect, _Exit, _Enter, _Decorated, _Decorator](
-    decorator.Decorator[_Param, _Ret, _Decoratee, _Connect, _Exit, _Enter, _Decorated, _Decorator],
+class Decorator[**_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator](
+    decorator.Decorator[_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator],
     abc.ABC,
 ): ...

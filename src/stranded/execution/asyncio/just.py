@@ -2,15 +2,12 @@ import dataclasses
 import typing
 
 from ..abc import just
-from ..stopped import Stopped
-from . import operation_state
-from . import receiver
-from . import sender
 from ...asyncio import decorator
 
 
 type _Decoratee[**_Param, _Ret] = Decoratee[_Param, _Ret]
-type _Connect[**_Param, _Ret] = Connect[_Param, _Ret]
+type _Receive[**_Param, _Ret] = Receive[_Param, _Ret]
+type _Send[**_Param, _Ret] = Send[_Param, _Ret]
 type _Exit[**_Param, _Ret] = Exit[_Param, _Ret]
 type _Enter[**_Param, _Ret] = Enter[_Param, _Ret]
 type _Decorated[**_Param, _Ret] = Decorated[_Param, _Ret]
@@ -27,22 +24,52 @@ class Decoratee[**_Param, _Ret](
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Connect[**_Param, _Ret](
-    decorator.Connect[
+class Send[**_Param, _Ret](
+    decorator.Send[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
-        _Connect[_Param, _Ret],
+        _Receive[_Param, _Ret],
+        _Send[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-    just.Connect[
+    just.Send[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
-        _Connect[_Param, _Ret],
+        _Receive[_Param, _Ret],
+        _Send[_Param, _Ret],
+        _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
+        _Decorator[_Param, _Ret],
+    ],
+): ...
+
+
+@typing.final
+@dataclasses.dataclass(frozen=True, kw_only=True)
+class Receive[**_Param, _Ret](
+    decorator.Receive[
+        _Param,
+        _Ret,
+        _Decoratee[_Param, _Ret],
+        _Receive[_Param, _Ret],
+        _Send[_Param, _Ret],
+        _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
+        _Decorator[_Param, _Ret],
+    ],
+    just.Receive[
+        _Param,
+        _Ret,
+        _Decoratee[_Param, _Ret],
+        _Receive[_Param, _Ret],
+        _Send[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
@@ -58,7 +85,8 @@ class Exit[**_Param, _Ret](
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
-        _Connect[_Param, _Ret],
+        _Receive[_Param, _Ret],
+        _Send[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
@@ -68,7 +96,8 @@ class Exit[**_Param, _Ret](
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
-        _Connect[_Param, _Ret],
+        _Receive[_Param, _Ret],
+        _Send[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
@@ -84,7 +113,8 @@ class Enter[**_Param, _Ret](
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
-        _Connect[_Param, _Ret],
+        _Receive[_Param, _Ret],
+        _Send[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
@@ -94,7 +124,8 @@ class Enter[**_Param, _Ret](
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
-        _Connect[_Param, _Ret],
+        _Receive[_Param, _Ret],
+        _Send[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
@@ -106,36 +137,29 @@ class Enter[**_Param, _Ret](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorated[**_Param, _Ret](
-    sender.Decorated[_Param, _Ret],
-    just.Decorated[
+    decorator.Decorated[
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
-        _Connect[_Param, _Ret],
+        _Receive[_Param, _Ret],
+        _Send[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-):
-    def connect(
-        self,
-        receiver: receiver.Decorated,
-        /,
-    ) -> operation_state.Decorated:
-        produce = self.decoratee
-
-        async def _thunk() -> None:
-            try:
-                value = await produce()
-            except Stopped:
-                await receiver.set_stopped()
-            except Exception as exc:  # noqa: BLE001
-                await receiver.set_error(exc)
-            else:
-                await receiver.set_value(value)
-
-        return operation_state.Decorator()(_thunk)
+    just.Decorated[
+        _Param,
+        _Ret,
+        _Decoratee[_Param, _Ret],
+        _Receive[_Param, _Ret],
+        _Send[_Param, _Ret],
+        _Exit[_Param, _Ret],
+        _Enter[_Param, _Ret],
+        _Decorated[_Param, _Ret],
+        _Decorator[_Param, _Ret],
+    ],
+): ...
 
 
 @typing.final
@@ -145,7 +169,8 @@ class Decorator[**_Param, _Ret](
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
-        _Connect[_Param, _Ret],
+        _Receive[_Param, _Ret],
+        _Send[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],
@@ -155,7 +180,8 @@ class Decorator[**_Param, _Ret](
         _Param,
         _Ret,
         _Decoratee[_Param, _Ret],
-        _Connect[_Param, _Ret],
+        _Receive[_Param, _Ret],
+        _Send[_Param, _Ret],
         _Exit[_Param, _Ret],
         _Enter[_Param, _Ret],
         _Decorated[_Param, _Ret],

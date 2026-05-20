@@ -2,15 +2,11 @@ import importlib as _importlib
 import types as _types
 import typing as _typing
 
-if _typing.TYPE_CHECKING:
-    from . import argument_parser
-    from .argument_parser import ArgumentParser
-
 
 @_typing.overload
 def __getattr__(name: _typing.Literal['argument_parser']) -> _types.ModuleType: ...
 @_typing.overload
-def __getattr__(name: _typing.Literal['ArgumentParser']) -> type[ArgumentParser]: ...
+def __getattr__(name: _typing.Literal['ArgumentParser']) -> 'type[stranded.argparse.threading.argument_parser.ArgumentParser]': ...
 def __getattr__(name):
     match name:
         case 'argument_parser': return _importlib.import_module('.argument_parser', __name__)

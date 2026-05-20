@@ -2,15 +2,11 @@ import importlib as _importlib
 import types as _types
 import typing as _typing
 
-if _typing.TYPE_CHECKING:
-    from . import logger
-    from .logger import Logger
-
 
 @_typing.overload
 def __getattr__(name: _typing.Literal['logger']) -> _types.ModuleType: ...
 @_typing.overload
-def __getattr__(name: _typing.Literal['Logger']) -> type[Logger]: ...
+def __getattr__(name: _typing.Literal['Logger']) -> 'type[stranded.logging.threading.logger.Logger]': ...
 def __getattr__(name):
     match name:
         case 'logger': return _importlib.import_module('.logger', __name__)
