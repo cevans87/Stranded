@@ -4,6 +4,9 @@ import importlib as _importlib
 import typing as _typing
 
 if _typing.TYPE_CHECKING:
+    from . import herd_
+    from .herd_ import Herd
+    from .herd_ import herd
     from . import lru_cache_
     from .lru_cache_ import LruCache
     from .lru_cache_ import lru_cache
@@ -15,6 +18,12 @@ if _typing.TYPE_CHECKING:
     from .throttle_ import throttle
 
 
+@_typing.overload
+def __getattr__(name: _typing.Literal['herd_']) -> type[herd_]: ...
+@_typing.overload
+def __getattr__(name: _typing.Literal['Herd']) -> type[Herd]: ...
+@_typing.overload
+def __getattr__(name: _typing.Literal['herd']) -> type[herd]: ...
 @_typing.overload
 def __getattr__(name: _typing.Literal['lru_cache_']) -> type[lru_cache_]: ...
 @_typing.overload
@@ -35,6 +44,9 @@ def __getattr__(name: _typing.Literal['Throttle']) -> type[Throttle]: ...
 def __getattr__(name: _typing.Literal['throttle']) -> type[throttle]: ...
 def __getattr__(name):
     match name:
+        case 'herd_': return _importlib.import_module('.herd_', __name__)
+        case 'Herd': return _importlib.import_module('.herd_', __name__).Herd
+        case 'herd': return _importlib.import_module('.herd_', __name__).herd
         case 'lru_cache_': return _importlib.import_module('.lru_cache_', __name__)
         case 'LruCache': return _importlib.import_module('.lru_cache_', __name__).LruCache
         case 'lru_cache': return _importlib.import_module('.lru_cache_', __name__).lru_cache
@@ -48,6 +60,9 @@ def __getattr__(name):
 
 
 __all__ = (
+    'herd_',
+    'Herd',
+    'herd',
     'lru_cache_',
     'LruCache',
     'lru_cache',
