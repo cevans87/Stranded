@@ -42,7 +42,7 @@ class Receive[**_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decor
 class Exit[**_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator, _Future](
     decorator.Exit[_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator],
     abc.ABC,
-): future: _Future
+): key: Key
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -84,4 +84,6 @@ class LruCache[**_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Deco
 
 
 Decorator = LruCache
+# TODO(claude): This instantiates from an abstract class. We shouldn't do this pattern with any of the abstract base
+#  decorators. Note that we also export this in this directory's __init__.py file, so that export will need to go away.
 lru_cache = LruCache()

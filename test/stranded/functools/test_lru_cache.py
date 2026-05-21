@@ -233,6 +233,7 @@ async def test_async_size_staticmethod_is_per_declaration() -> None:
 
 @pytest.mark.asyncio
 async def test_herds_only_call_once() -> None:
+    asyncio.get_running_loop().set_task_factory(asyncio.eager_task_factory)
     call_count = 0
     event = asyncio.Event()
 
