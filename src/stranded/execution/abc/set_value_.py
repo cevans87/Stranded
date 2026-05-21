@@ -60,4 +60,3 @@ class SetValue[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decor
 
 
 Decorator = SetValue
-set_value = SetValue()

@@ -60,4 +60,3 @@ class Sender[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorat
 
 
 Decorator = Sender
-sender = Sender()

@@ -60,4 +60,3 @@ class SyncWait[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decor
 
 
 Decorator = SyncWait
-sync_wait = SyncWait()

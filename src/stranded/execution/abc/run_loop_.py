@@ -60,4 +60,3 @@ class RunLoop[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decora
 
 
 Decorator = RunLoop
-run_loop = RunLoop()

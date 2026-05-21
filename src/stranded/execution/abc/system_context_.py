@@ -60,4 +60,3 @@ class SystemContext[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, 
 
 
 Decorator = SystemContext
-system_context = SystemContext()

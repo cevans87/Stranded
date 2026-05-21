@@ -60,4 +60,3 @@ class Env[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT
 
 
 Decorator = Env
-env = Env()

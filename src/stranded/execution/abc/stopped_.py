@@ -60,4 +60,3 @@ class Stopped[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decora
 
 
 Decorator = Stopped
-stopped = Stopped()

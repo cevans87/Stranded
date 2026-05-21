@@ -60,4 +60,3 @@ class WhenAllWithVariant[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, Ent
 
 
 Decorator = WhenAllWithVariant
-when_all_with_variant = WhenAllWithVariant()

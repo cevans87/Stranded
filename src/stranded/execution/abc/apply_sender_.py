@@ -60,4 +60,3 @@ class ApplySender[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, De
 
 
 Decorator = ApplySender
-apply_sender = ApplySender()

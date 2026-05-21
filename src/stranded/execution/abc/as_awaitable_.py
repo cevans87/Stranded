@@ -60,4 +60,3 @@ class AsAwaitable[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, De
 
 
 Decorator = AsAwaitable
-as_awaitable = AsAwaitable()

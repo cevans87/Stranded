@@ -60,4 +60,3 @@ class TransformSender[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT
 
 
 Decorator = TransformSender
-transform_sender = TransformSender()

@@ -60,4 +60,3 @@ class StoppedAsError[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT,
 
 
 Decorator = StoppedAsError
-stopped_as_error = StoppedAsError()

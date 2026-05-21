@@ -60,4 +60,3 @@ class StopToken[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
 
 
 Decorator = StopToken
-stop_token = StopToken()

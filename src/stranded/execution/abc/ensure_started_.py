@@ -60,4 +60,3 @@ class EnsureStarted[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, 
 
 
 Decorator = EnsureStarted
-ensure_started = EnsureStarted()

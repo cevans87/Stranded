@@ -60,4 +60,3 @@ class GetStopToken[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, D
 
 
 Decorator = GetStopToken
-get_stop_token = GetStopToken()

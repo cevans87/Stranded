@@ -60,4 +60,3 @@ class InplaceStopSource[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, Ente
 
 
 Decorator = InplaceStopSource
-inplace_stop_source = InplaceStopSource()

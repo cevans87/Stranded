@@ -60,4 +60,3 @@ class InlineScheduler[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT
 
 
 Decorator = InlineScheduler
-inline_scheduler = InlineScheduler()

@@ -60,4 +60,3 @@ class SyncWaitWithVariant[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, En
 
 
 Decorator = SyncWaitWithVariant
-sync_wait_with_variant = SyncWaitWithVariant()

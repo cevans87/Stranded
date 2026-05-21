@@ -60,4 +60,3 @@ class GetDelegationScheduler[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT,
 
 
 Decorator = GetDelegationScheduler
-get_delegation_scheduler = GetDelegationScheduler()

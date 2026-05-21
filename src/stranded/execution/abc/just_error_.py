@@ -60,4 +60,3 @@ class JustError[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
 
 
 Decorator = JustError
-just_error = JustError()

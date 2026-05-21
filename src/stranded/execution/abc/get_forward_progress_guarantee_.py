@@ -60,4 +60,3 @@ class GetForwardProgressGuarantee[**ParamT, RetT, DecorateeT, ReceiveT, SendT, E
 
 
 Decorator = GetForwardProgressGuarantee
-get_forward_progress_guarantee = GetForwardProgressGuarantee()

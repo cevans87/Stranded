@@ -60,4 +60,3 @@ class Bulk[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorated
 
 
 Decorator = Bulk
-bulk = Bulk()

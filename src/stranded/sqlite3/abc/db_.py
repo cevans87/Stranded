@@ -131,4 +131,3 @@ class Db[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT,
 
 
 Decorator = Db
-db = Db()

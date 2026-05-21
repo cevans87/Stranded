@@ -60,4 +60,3 @@ class UponStopped[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, De
 
 
 Decorator = UponStopped
-upon_stopped = UponStopped()

@@ -523,4 +523,3 @@ class ArgumentParser[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT,
 
 
 Decorator = ArgumentParser
-argument_parser = ArgumentParser()

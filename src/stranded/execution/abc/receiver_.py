@@ -60,4 +60,3 @@ class Receiver[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decor
 
 
 Decorator = Receiver
-receiver = Receiver()

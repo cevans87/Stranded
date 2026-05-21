@@ -60,4 +60,3 @@ class EmptyEnv[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decor
 
 
 Decorator = EmptyEnv
-empty_env = EmptyEnv()

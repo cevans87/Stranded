@@ -60,4 +60,3 @@ class Schedule[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decor
 
 
 Decorator = Schedule
-schedule = Schedule()

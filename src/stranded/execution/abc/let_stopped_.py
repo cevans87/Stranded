@@ -60,4 +60,3 @@ class LetStopped[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Dec
 
 
 Decorator = LetStopped
-let_stopped = LetStopped()

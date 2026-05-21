@@ -60,4 +60,3 @@ class Start[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorate
 
 
 Decorator = Start
-start = Start()

@@ -67,4 +67,3 @@ class Retry[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorate
 
 
 Decorator = Retry
-retry = Retry()

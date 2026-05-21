@@ -60,4 +60,3 @@ class WithAwaitableSenders[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, E
 
 
 Decorator = WithAwaitableSenders
-with_awaitable_senders = WithAwaitableSenders()

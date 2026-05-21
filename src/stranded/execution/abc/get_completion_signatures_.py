@@ -60,4 +60,3 @@ class GetCompletionSignatures[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT
 
 
 Decorator = GetCompletionSignatures
-get_completion_signatures = GetCompletionSignatures()

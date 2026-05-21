@@ -60,4 +60,3 @@ class TransformEnv[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, D
 
 
 Decorator = TransformEnv
-transform_env = TransformEnv()

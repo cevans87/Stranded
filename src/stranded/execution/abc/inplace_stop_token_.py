@@ -60,4 +60,3 @@ class InplaceStopToken[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, Enter
 
 
 Decorator = InplaceStopToken
-inplace_stop_token = InplaceStopToken()

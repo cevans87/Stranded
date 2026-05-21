@@ -60,4 +60,3 @@ class StoppedAsOptional[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, Ente
 
 
 Decorator = StoppedAsOptional
-stopped_as_optional = StoppedAsOptional()

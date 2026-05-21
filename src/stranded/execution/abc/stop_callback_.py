@@ -60,4 +60,3 @@ class StopCallback[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, D
 
 
 Decorator = StopCallback
-stop_callback = StopCallback()

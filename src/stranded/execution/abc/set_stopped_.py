@@ -60,4 +60,3 @@ class SetStopped[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Dec
 
 
 Decorator = SetStopped
-set_stopped = SetStopped()
