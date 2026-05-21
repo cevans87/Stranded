@@ -15,6 +15,18 @@ type Key = typing.Hashable
 class Exception(decorator.Exception): ...  # noqa
 
 
+@dataclasses.dataclass(frozen=True, kw_only=True)
+class Future(abc.ABC):
+    @abc.abstractmethod
+    def set_result(self, value: typing.Any) -> None: ...
+
+    @abc.abstractmethod
+    def __call__(self, *args: typing.Any, **kwargs: typing.Any) -> typing.Any: ...
+
+    def __get__(self, instance, owner) -> typing.Self:
+        return self
+
+
 @typing.runtime_checkable
 class Decoratee[**ParamT, RetT](
     decorator.Decoratee[ParamT, RetT],
@@ -54,6 +66,19 @@ class Enter[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorate
     def create_key(*args: ParamT.args, **kwargs: ParamT.kwargs) -> Key:
         return tuple(args), tuple(sorted([*kwargs.items()]))
 
+    def _dispatch(
+        self, *args: ParamT.args, **kwargs: ParamT.kwargs,
+    ) -> tuple[ExitT, DecorateeT] | tuple[Future]:
+        key = self.create_key(*args, **kwargs)
+        future = self.decorated.future_by_key.get(key)
+        match future is None:
+            case True:
+                future = self.decorated.future_by_key[key] = self.decorated.decorator.future_t()
+                return self.exit_t(enter=self, future=future, key=key), self.decorated.decoratee
+            case False:
+                return future,
+        assert False, "Unreachable"
+
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT, FutureT](
@@ -81,7 +106,10 @@ class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
 class Herd[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
     decorator.Decorator[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
     abc.ABC,
-): ...
+):
+    @property
+    @abc.abstractmethod
+    def future_t(self) -> type: ...
 
 
 Decorator = Herd
