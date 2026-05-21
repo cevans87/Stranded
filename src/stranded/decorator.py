@@ -8,7 +8,7 @@ from .abc import decorator
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorator(decorator.Decorator):
 
-    def __call__[_Decoratee](self, decoratee: _Decoratee) -> _Decoratee:
+    def __call__[DecorateeT](self, decoratee: DecorateeT) -> DecorateeT:
         (name_parts := self.__module__.split('.')).insert(
             -1,
             'asyncio' if inspect.iscoroutinefunction(decoratee) else 'threading'
