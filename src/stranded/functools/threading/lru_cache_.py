@@ -2,6 +2,7 @@ import concurrent.futures
 import dataclasses
 import typing
 
+from . import herd_
 from ..abc import lru_cache_
 from ...threading import decorator
 
@@ -109,10 +110,13 @@ class Exit[**_Param, _Ret](
         _Future[_Ret],
     ],
 ):
-    future: _Future[_Ret] = dataclasses.field(default_factory=concurrent.futures.Future)
-
     def __call__(self, result: decorator.Raise | _Ret) -> tuple[()]:
-        self.future.set_result(result)
+        future_by_key = self.enter.decorated.future_by_key
+        while self.enter.decorated.decorator.size <= len(future_by_key):
+            future_by_key.popitem(last=False)
+        future = concurrent.futures.Future()
+        future.set_result(result)
+        future_by_key[self.key] = future
 
         return ()
 
@@ -148,15 +152,12 @@ class Enter[**_Param, _Ret](
         self, *args: _Param.args, **kwargs: _Param.kwargs,
     ) -> tuple[_Exit[_Param, _Ret], _Decoratee[_Param, _Ret]] | tuple[typing.Callable[_Param, _Ret]]:
         key = self.create_key(*args, **kwargs)
-        future = self.decorated.future_by_key.pop(key, None)
-        while self.decorated.decorator.size <= len(self.decorated.future_by_key):
-            self.decorated.future_by_key.popitem(last=False)
+        future = self.decorated.future_by_key.get(key)
         match future is None:
             case True:
-                future = self.decorated.future_by_key[key] = concurrent.futures.Future()
-                return self.decorated.decorator.exit_t(enter=self, future=future), self.decorated.decoratee
+                return self.exit_t(enter=self, key=key), self.decorated.decoratee
             case False:
-                self.decorated.future_by_key[key] = future
+                self.decorated.future_by_key.move_to_end(key)
                 return (lambda *_args, **_kwargs: future.result()),
         assert False, "Unreachable"
 
@@ -215,7 +216,10 @@ class LruCache[**_Param, _Ret](
         _Decorated[_Param, _Ret],
         _Decorator[_Param, _Ret],
     ],
-): ...
+):
+    @typing.override
+    def __call__(self, decoratee: _Decoratee[_Param, _Ret], /) -> _Decorated[_Param, _Ret]:
+        return super().__call__(herd_.Herd()(decoratee))
 
 
 Decorator = LruCache
