@@ -13,7 +13,7 @@ type _Exit[**ParamT, RetT] = Exit[ParamT, RetT]
 type _Enter[**ParamT, RetT] = Enter[ParamT, RetT]
 type _Decorated[**ParamT, RetT] = Decorated[ParamT, RetT]
 type _Decorator[**ParamT, RetT] = Herd[ParamT, RetT]
-type _Future[RetT] = asyncio.Future[RetT]
+type _Future[RetT] = Future[RetT]
 
 
 @typing.runtime_checkable
@@ -22,6 +22,20 @@ class Decoratee[**ParamT, RetT](
     herd_.Decoratee[ParamT, RetT],
     typing.Protocol,
 ): ...
+
+
+@typing.final
+@dataclasses.dataclass(frozen=True, kw_only=True)
+class Future[RetT](herd_.Future):
+    future: asyncio.Future[RetT] = dataclasses.field(default_factory=asyncio.Future)
+
+    @typing.override
+    def set_result(self, value: decorator.Raise | RetT) -> None:
+        self.future.set_result(value)
+
+    @typing.override
+    def __call__(self, *args: typing.Any, **kwargs: typing.Any) -> asyncio.Future[RetT]:
+        return self.future
 
 
 @typing.final
@@ -109,7 +123,7 @@ class Exit[**ParamT, RetT](
         _Future[RetT],
     ],
 ):
-    future: _Future[RetT] = dataclasses.field(default_factory=asyncio.Future)
+    future: _Future[RetT] = dataclasses.field(default_factory=Future)
 
     @typing.override
     async def __call__(self, result: decorator.Raise | RetT) -> tuple[()]:
@@ -145,20 +159,11 @@ class Enter[**ParamT, RetT](
         _Decorator[ParamT, RetT],
     ],
 ):
-    # TODO: Dedup this with the threading version.
     @typing.override
     async def __call__(
         self, *args: ParamT.args, **kwargs: ParamT.kwargs,
-    ) -> tuple[_Exit[ParamT, RetT], _Decoratee[ParamT, RetT]] | tuple[typing.Callable[ParamT, typing.Awaitable[RetT]]]:
-        key = self.create_key(*args, **kwargs)
-        future = self.decorated.future_by_key.get(key)
-        match future is None:
-            case True:
-                future = self.decorated.future_by_key[key] = asyncio.Future()
-                return self.exit_t(enter=self, future=future, key=key), self.decorated.decoratee
-            case False:
-                return (lambda *_args, **_kwargs: future),
-        assert False, "Unreachable"
+    ) -> tuple[_Exit[ParamT, RetT], _Decoratee[ParamT, RetT]] | tuple[_Future[RetT]]:
+        return self._dispatch(*args, **kwargs)
 
 
 @typing.final
@@ -215,7 +220,11 @@ class Herd[**ParamT, RetT](
         _Decorated[ParamT, RetT],
         _Decorator[ParamT, RetT],
     ],
-): ...
+):
+    @property
+    @typing.override
+    def future_t(self) -> type[_Future[RetT]]:
+        return Future
 
 
 Decorator = Herd
