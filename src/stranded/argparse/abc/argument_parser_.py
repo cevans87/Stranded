@@ -412,43 +412,43 @@ class Exception(decorator.Exception): ...  # noqa
 
 
 @typing.runtime_checkable
-class Decoratee[**_Param, _Ret](
-    decorator.Decoratee[_Param, _Ret],
+class Decoratee[**ParamT, RetT](
+    decorator.Decoratee[ParamT, RetT],
     typing.Protocol,
 ): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Send[**_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator](
-    decorator.Send[_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator],
+class Send[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
+    decorator.Send[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
     abc.ABC,
 ): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Receive[**_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator](
-    decorator.Receive[_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator],
+class Receive[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
+    decorator.Receive[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
     abc.ABC,
 ): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Exit[**_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator](
-    decorator.Exit[_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator],
+class Exit[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
+    decorator.Exit[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
     abc.ABC,
 ): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Enter[** _Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator](
-    decorator.Enter[_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator],
+class Enter[** ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
+    decorator.Enter[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
     abc.ABC,
 ): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorated[**_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator](
-    decorator.Decorated[_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator],
+class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
+    decorator.Decorated[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
     abc.ABC,
 ):
     children: tuple[Decorated, Decorated] | None = None
@@ -467,10 +467,10 @@ class Decorated[**_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Dec
         yield from self.to_signature()(*argv)(self.decorateds)
 
 
-    def __or__[_Decorated: Decorated](self, other: _Decorated) -> _Decorated:
+    def __or__[DecoratedT: Decorated](self, other: DecoratedT) -> DecoratedT:
         return dataclasses.replace(other, children=(self, other))
 
-    def __xor__[_Decorated: Decorated](self, other: _Decorated) -> _Decorated:
+    def __xor__[DecoratedT: Decorated](self, other: DecoratedT) -> DecoratedT:
         # TODO make this mark flags in the two CLI's as mutually exclusive.
         ...
 
@@ -495,8 +495,8 @@ class Decorated[**_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Dec
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class ArgumentParser[**_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator](
-    decorator.Decorator[_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, Decorated, _Decorator],
+class ArgumentParser[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
+    decorator.Decorator[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorated, DecoratorT],
     abc.ABC,
 ):
     LogLevel = typing.Annotated[
@@ -506,7 +506,7 @@ class ArgumentParser[**_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter,
 
     Signature: typing.ClassVar = _Signature
 
-    def __call__(self, decoratee: _Decoratee, /) -> _Decorated:
+    def __call__(self, decoratee: DecorateeT, /) -> DecoratedT:
         return self.decorated_t(
             __doc__=str(decoratee.__doc__),
             __module__=str(decoratee.__module__),

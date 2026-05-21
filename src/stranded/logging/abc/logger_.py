@@ -16,35 +16,35 @@ class Exception(decorator.Exception): ...  # noqa
 
 
 @typing.runtime_checkable
-class Decoratee[**_Param, _Ret](
-    decorator.Decoratee[_Param, _Ret],
+class Decoratee[**ParamT, RetT](
+    decorator.Decoratee[ParamT, RetT],
     typing.Protocol,
 ): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Send[**_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator](
-    decorator.Send[_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator],
+class Send[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
+    decorator.Send[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
     abc.ABC,
 ): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Receive[**_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator](
-    decorator.Receive[_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator],
+class Receive[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
+    decorator.Receive[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
     abc.ABC,
 ): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Exit[**_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator](
-    decorator.Exit[_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator],
+class Exit[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
+    decorator.Exit[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
     abc.ABC,
 ):
     bound_arguments: inspect.BoundArguments
 
     @abc.abstractmethod
-    def __call__(self, result: decorator.Raise | _Ret) -> ():
+    def __call__(self, result: decorator.Raise | RetT) -> ():
         if isinstance(result, decorator.Raise):
             self.enter.decorated.decorator.logger.log(
                 logging.getLevelNamesMapping()[self.enter.decorated.decorator.err_level],
@@ -66,12 +66,12 @@ class Exit[**_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorate
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Enter[** _Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator](
-    decorator.Enter[_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator],
+class Enter[** ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
+    decorator.Enter[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
     abc.ABC,
 ):
     @abc.abstractmethod
-    def __call__(self, *args: _Param.args, **kwargs: _Param.kwargs) -> tuple[_Exit, _Decoratee]:
+    def __call__(self, *args: ParamT.args, **kwargs: ParamT.kwargs) -> tuple[ExitT, DecorateeT]:
         bound_arguments = self.decorated.__signature__.bind(*args, **kwargs)
 
         self.decorated.decorator.logger.log(
@@ -84,15 +84,15 @@ class Enter[** _Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decora
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorated[**_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator](
-    decorator.Decorated[_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator],
+class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
+    decorator.Decorated[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
     abc.ABC,
 ): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Logger[**_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator](
-    decorator.Decorator[_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator],
+class Logger[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
+    decorator.Decorator[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
     abc.ABC,
 ):
     logger: logging.Logger

@@ -35,7 +35,7 @@ def _to_async(obj):
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorator(decorator.Decorator):
-    def __call__[_Decoratee](self, decoratee: _Decoratee) -> _Decoratee:
+    def __call__[DecorateeT](self, decoratee: DecorateeT) -> DecorateeT:
         promotable = {
             field.name: getattr(self, field.name)
             for field in dataclasses.fields(self)

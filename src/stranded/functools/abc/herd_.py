@@ -16,54 +16,54 @@ class Exception(decorator.Exception): ...  # noqa
 
 
 @typing.runtime_checkable
-class Decoratee[**_Param, _Ret](
-    decorator.Decoratee[_Param, _Ret],
+class Decoratee[**ParamT, RetT](
+    decorator.Decoratee[ParamT, RetT],
     typing.Protocol,
 ): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Send[**_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator, _Future](
-    decorator.Send[_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator],
+class Send[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT, FutureT](
+    decorator.Send[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
     abc.ABC,
 ): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Receive[**_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator, _Future](
-    decorator.Receive[_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator],
+class Receive[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT, FutureT](
+    decorator.Receive[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
     abc.ABC,
 ): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Exit[**_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator, _Future](
-    decorator.Exit[_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator],
+class Exit[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT, FutureT](
+    decorator.Exit[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
     abc.ABC,
 ):
-    future: _Future
+    future: FutureT
     key: Key
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Enter[**_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator](
-    decorator.Enter[_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator],
+class Enter[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
+    decorator.Enter[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
     abc.ABC,
 ):
     @staticmethod
-    def create_key(*args: _Param.args, **kwargs: _Param.kwargs) -> Key:
+    def create_key(*args: ParamT.args, **kwargs: ParamT.kwargs) -> Key:
         return tuple(args), tuple(sorted([*kwargs.items()]))
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorated[**_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator, _Future](
-    decorator.Decorated[_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator],
+class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT, FutureT](
+    decorator.Decorated[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
     abc.ABC,
 ):
     decorated_by_instance: weakref.WeakKeyDictionary[
         decorator.Instance, typing.Self,
     ] = dataclasses.field(default_factory=weakref.WeakKeyDictionary)
-    future_by_key: dict[Key, _Future] = dataclasses.field(default_factory=dict)
+    future_by_key: dict[Key, FutureT] = dataclasses.field(default_factory=dict)
 
     def __get__(self, instance, owner) -> typing.Self:
         return decorated if (decorated := self.decorated_by_instance.get(instance)) is not None else (
@@ -78,8 +78,8 @@ class Decorated[**_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Dec
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Herd[**_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator](
-    decorator.Decorator[_Param, _Ret, _Decoratee, _Receive, _Send, _Exit, _Enter, _Decorated, _Decorator],
+class Herd[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
+    decorator.Decorator[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
     abc.ABC,
 ): ...
 
