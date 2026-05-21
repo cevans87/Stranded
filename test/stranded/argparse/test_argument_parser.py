@@ -1,4 +1,3 @@
-import asyncio
 import builtins
 import inspect
 import logging
@@ -14,19 +13,6 @@ from stranded.argparse import ArgumentParser
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler(sys.stdout))
 logger.setLevel(logging.INFO)
-
-
-@pytest.fixture(autouse=True, scope='module')
-def event_loop() -> typing.Generator[asyncio.AbstractEventLoop]:
-    """All async tests execute eagerly.
-
-    Upon task creation return, we can be sure that the task has gotten to a point that it is either blocked or done.
-    """
-
-    eager_loop = asyncio.new_event_loop()
-    eager_loop.set_task_factory(asyncio.eager_task_factory)
-    yield eager_loop
-    eager_loop.close()
 
 
 def test_union_preserves_order() -> None:
