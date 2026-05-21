@@ -60,4 +60,3 @@ class Connect[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decora
 
 
 Decorator = Connect
-connect = Connect()

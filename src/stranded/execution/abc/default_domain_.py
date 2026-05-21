@@ -60,4 +60,3 @@ class DefaultDomain[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, 
 
 
 Decorator = DefaultDomain
-default_domain = DefaultDomain()

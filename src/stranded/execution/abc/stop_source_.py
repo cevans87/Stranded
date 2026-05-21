@@ -60,4 +60,3 @@ class StopSource[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Dec
 
 
 Decorator = StopSource
-stop_source = StopSource()

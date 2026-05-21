@@ -60,4 +60,3 @@ class StartsOn[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decor
 
 
 Decorator = StartsOn
-starts_on = StartsOn()

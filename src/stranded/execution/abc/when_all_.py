@@ -60,4 +60,3 @@ class WhenAll[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decora
 
 
 Decorator = WhenAll
-when_all = WhenAll()

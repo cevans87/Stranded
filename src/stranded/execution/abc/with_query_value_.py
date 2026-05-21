@@ -60,4 +60,3 @@ class WithQueryValue[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT,
 
 
 Decorator = WithQueryValue
-with_query_value = WithQueryValue()

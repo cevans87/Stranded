@@ -60,4 +60,3 @@ class Just[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorated
 
 
 Decorator = Just
-just = Just()

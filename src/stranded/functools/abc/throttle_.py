@@ -109,4 +109,3 @@ class Throttle[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decor
 
 
 Decorator = Throttle
-throttle = Throttle()

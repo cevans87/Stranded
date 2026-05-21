@@ -60,4 +60,3 @@ class OperationState[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT,
 
 
 Decorator = OperationState
-operation_state = OperationState()

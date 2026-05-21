@@ -60,4 +60,3 @@ class GetAllocator[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, D
 
 
 Decorator = GetAllocator
-get_allocator = GetAllocator()

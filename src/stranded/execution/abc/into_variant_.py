@@ -60,4 +60,3 @@ class IntoVariant[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, De
 
 
 Decorator = IntoVariant
-into_variant = IntoVariant()

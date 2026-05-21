@@ -84,6 +84,3 @@ class LruCache[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decor
 
 
 Decorator = LruCache
-# TODO(claude): This instantiates from an abstract class. We shouldn't do this pattern with any of the abstract base
-#  decorators. Note that we also export this in this directory's __init__.py file, so that export will need to go away.
-lru_cache = LruCache()

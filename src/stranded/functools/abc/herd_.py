@@ -85,4 +85,3 @@ class Herd[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorated
 
 
 Decorator = Herd
-herd = Herd()

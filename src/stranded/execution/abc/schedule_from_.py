@@ -60,4 +60,3 @@ class ScheduleFrom[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, D
 
 
 Decorator = ScheduleFrom
-schedule_from = ScheduleFrom()

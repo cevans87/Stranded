@@ -60,4 +60,3 @@ class StaticThreadPool[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, Enter
 
 
 Decorator = StaticThreadPool
-static_thread_pool = StaticThreadPool()

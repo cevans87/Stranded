@@ -60,4 +60,3 @@ class JustStopped[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, De
 
 
 Decorator = JustStopped
-just_stopped = JustStopped()

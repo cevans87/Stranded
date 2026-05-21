@@ -60,4 +60,3 @@ class SetError[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decor
 
 
 Decorator = SetError
-set_error = SetError()

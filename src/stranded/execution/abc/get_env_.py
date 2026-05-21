@@ -60,4 +60,3 @@ class GetEnv[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorat
 
 
 Decorator = GetEnv
-get_env = GetEnv()

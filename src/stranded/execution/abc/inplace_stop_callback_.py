@@ -60,4 +60,3 @@ class InplaceStopCallback[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, En
 
 
 Decorator = InplaceStopCallback
-inplace_stop_callback = InplaceStopCallback()

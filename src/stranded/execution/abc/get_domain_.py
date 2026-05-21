@@ -60,4 +60,3 @@ class GetDomain[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
 
 
 Decorator = GetDomain
-get_domain = GetDomain()

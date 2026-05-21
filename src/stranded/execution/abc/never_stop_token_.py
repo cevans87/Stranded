@@ -60,4 +60,3 @@ class NeverStopToken[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT,
 
 
 Decorator = NeverStopToken
-never_stop_token = NeverStopToken()

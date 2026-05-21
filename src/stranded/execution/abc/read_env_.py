@@ -60,4 +60,3 @@ class ReadEnv[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decora
 
 
 Decorator = ReadEnv
-read_env = ReadEnv()

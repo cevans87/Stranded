@@ -60,4 +60,3 @@ class ForwardingQuery[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT
 
 
 Decorator = ForwardingQuery
-forwarding_query = ForwardingQuery()

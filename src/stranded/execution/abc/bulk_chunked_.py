@@ -60,4 +60,3 @@ class BulkChunked[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, De
 
 
 Decorator = BulkChunked
-bulk_chunked = BulkChunked()

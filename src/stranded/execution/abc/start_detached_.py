@@ -60,4 +60,3 @@ class StartDetached[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, 
 
 
 Decorator = StartDetached
-start_detached = StartDetached()

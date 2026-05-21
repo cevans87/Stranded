@@ -60,4 +60,3 @@ class GetCompletionScheduler[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT,
 
 
 Decorator = GetCompletionScheduler
-get_completion_scheduler = GetCompletionScheduler()

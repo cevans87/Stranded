@@ -60,4 +60,3 @@ class LetError[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decor
 
 
 Decorator = LetError
-let_error = LetError()

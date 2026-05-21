@@ -60,4 +60,3 @@ class Prop[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorated
 
 
 Decorator = Prop
-prop = Prop()

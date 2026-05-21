@@ -60,4 +60,3 @@ class Split[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorate
 
 
 Decorator = Split
-split = Split()

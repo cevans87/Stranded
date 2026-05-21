@@ -60,4 +60,3 @@ class Then[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorated
 
 
 Decorator = Then
-then = Then()

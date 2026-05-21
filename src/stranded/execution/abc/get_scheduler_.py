@@ -60,4 +60,3 @@ class GetScheduler[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, D
 
 
 Decorator = GetScheduler
-get_scheduler = GetScheduler()

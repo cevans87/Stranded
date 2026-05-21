@@ -60,4 +60,3 @@ class Scheduler[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
 
 
 Decorator = Scheduler
-scheduler = Scheduler()

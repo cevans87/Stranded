@@ -60,4 +60,3 @@ class UponError[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
 
 
 Decorator = UponError
-upon_error = UponError()

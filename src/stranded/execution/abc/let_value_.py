@@ -60,4 +60,3 @@ class LetValue[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decor
 
 
 Decorator = LetValue
-let_value = LetValue()

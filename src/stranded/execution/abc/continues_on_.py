@@ -60,4 +60,3 @@ class ContinuesOn[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, De
 
 
 Decorator = ContinuesOn
-continues_on = ContinuesOn()
