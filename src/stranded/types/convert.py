@@ -69,7 +69,7 @@ class Convert[T]:
                 )
                 return getattr(t, arg)
             case t:
-                return t(arg)
+                return t(arg)  # type: ignore[call-arg]
 
     def _using_type_alias(self, args: _Args, /) -> T:
         match typing.get_origin(self.t), typing.get_args(self.t):

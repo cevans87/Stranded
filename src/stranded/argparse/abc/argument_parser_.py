@@ -38,7 +38,7 @@ class _Parameter[T](_Annotation[T], abc.ABC):
 class _RequiredParameter[T](_Parameter[T], abc.ABC):
 
     @classmethod
-    def of_parameter[T](cls: type[T], parameter: inspect.Parameter, /) -> T:
+    def of_parameter(cls, parameter: inspect.Parameter, /) -> typing.Self:
         match parameter.annotation, typing.get_origin(parameter.annotation), typing.get_args(parameter.annotation):
             case t, None, ():
                 return cls(name=parameter.name, t=t)
@@ -55,7 +55,7 @@ class _OptionalParameter[T](_Parameter[T], abc.ABC):
     default: T
 
     @classmethod
-    def of_parameter[T](cls: type[T], parameter: inspect.Parameter, /) -> T:
+    def of_parameter(cls, parameter: inspect.Parameter, /) -> typing.Self:
         match parameter.annotation, typing.get_origin(parameter.annotation), typing.get_args(parameter.annotation):
             case t, None, ():
                 return cls(name=parameter.name, t=t, default=parameter.default)
@@ -71,7 +71,7 @@ class _OptionalParameter[T](_Parameter[T], abc.ABC):
 class _VariadicParameter[T](_Parameter[T], abc.ABC):
 
     @classmethod
-    def of_parameter[T](cls: type[T], parameter: inspect.Parameter, /) -> T:
+    def of_parameter(cls, parameter: inspect.Parameter, /) -> typing.Self:
         match parameter.annotation, typing.get_origin(parameter.annotation), typing.get_args(parameter.annotation):
             case t, None, ():
                 return cls(name=parameter.name, t=t)
@@ -508,7 +508,7 @@ class ArgumentParser[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT,
     Signature: typing.ClassVar = _Signature
 
     def __call__(self, decoratee: DecorateeT, /) -> DecoratedT:
-        return self.decorated_t(
+        return self.decorated_t(  # type: ignore[call-arg]
             __doc__=str(decoratee.__doc__),
             __module__=str(decoratee.__module__),
             __name__=str(decoratee.__name__),
