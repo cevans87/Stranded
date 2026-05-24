@@ -63,7 +63,7 @@ class Enter[** ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorat
         match value:
             case Param() as param_:
                 new_self = dataclasses.replace(self, param=param_)
-                return new_self.exit_t(enter=new_self), self.decorated.decoratee
+                return new_self.exit_t(enter=new_self), self.decorated.decoratee  # type: ignore[call-arg]
             case _: return ()
 
 

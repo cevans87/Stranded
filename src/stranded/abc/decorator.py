@@ -117,7 +117,7 @@ class Send[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorated
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
-    Base[DecorateeT, ReceiveT, SendT, EnterT, ExitT, DecoratedT, DecoratorT],
+    Base[DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
     abc.ABC,
 ):
     enter: EnterT
@@ -128,7 +128,7 @@ class Exit[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorated
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
-    Base[DecorateeT, ReceiveT, SendT, DecoratorT, DecoratedT, EnterT, ExitT],
+    Base[DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
     abc.ABC,
 ):
     decorated: DecoratedT
@@ -139,7 +139,7 @@ class Enter[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorate
     def __call__(self, value: Raise | Return[RetT] | Stop, /) -> tuple[()]: ...
     def __call__(self, value: Param[ParamT] | Raise | Return[RetT] | Stop, /) -> tuple[ExitT, DecorateeT] | tuple[()]:
         match value:
-            case Param(): return self.exit_t(enter=self), self.decorated.decoratee,
+            case Param(): return self.exit_t(enter=self), self.decorated.decoratee,  # type: ignore[call-arg]
             case _: return ()
 
 
@@ -176,15 +176,15 @@ class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
                 return_annotation=decorated.__signature__.return_annotation,
             ),
             stack=(
-                decorated.receive_t(decorated=decorated),
-                self.send_t(decorated=self),
+                decorated.receive_t(decorated=decorated),  # type: ignore[call-arg]
+                self.send_t(decorated=self),  # type: ignore[call-arg]
                 *self.create_context(),
                 *self.stack,
             ),
         )
 
     def create_context(self) -> tuple[DecorateeT | ReceiveT | SendT | ExitT | EnterT | DecoratorT, ...]:
-        return self.enter_t(decorated=self),
+        return self.enter_t(decorated=self),  # type: ignore[call-arg]
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -193,7 +193,7 @@ class Decorator[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
     abc.ABC,
 ):
     def __call__(self, decoratee: DecorateeT, /) -> DecoratedT:
-        return self.decorated_t(
+        return self.decorated_t(  # type: ignore[call-arg]
             __doc__=str(decoratee.__doc__),
             __module__=str(decoratee.__module__),
             __name__=str(decoratee.__name__),

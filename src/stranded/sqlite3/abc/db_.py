@@ -92,7 +92,7 @@ class Enter[** ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorat
                 if ret:
                     return Return(ret=self.decorated.decorator.serialize(ret[0])),
 
-                return self.exit_t(enter=self, key=key), self.decorated.decoratee,
+                return self.exit_t(enter=self, key=key), self.decorated.decoratee,  # type: ignore[call-arg]
 
         raise ValueError(f'Invalid {value=}')
 
@@ -130,7 +130,7 @@ class Db[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT,
             f'(key STRING PRIMARY KEY NOT NULL UNIQUE, ret STRING NOT NULL)',  # noqa
         )
 
-        return self.decorated_t(
+        return self.decorated_t(  # type: ignore[call-arg]
             __doc__=str(decoratee.__doc__),
             __module__=str(decoratee.__module__),
             __name__=str(decoratee.__name__),
