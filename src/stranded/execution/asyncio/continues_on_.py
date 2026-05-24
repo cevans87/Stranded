@@ -191,4 +191,4 @@ class ContinuesOn[**ParamT, RetT](
 
 
 Decorator = ContinuesOn
-continues_on = ContinuesOn()
+continues_on: ContinuesOn[..., typing.Any] = ContinuesOn()

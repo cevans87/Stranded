@@ -191,4 +191,4 @@ class EmptyEnv[**ParamT, RetT](
 
 
 Decorator = EmptyEnv
-empty_env = EmptyEnv()
+empty_env: EmptyEnv[..., typing.Any] = EmptyEnv()

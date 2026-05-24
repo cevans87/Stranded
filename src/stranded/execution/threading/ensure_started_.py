@@ -191,4 +191,4 @@ class EnsureStarted[**ParamT, RetT](
 
 
 Decorator = EnsureStarted
-ensure_started = EnsureStarted()
+ensure_started: EnsureStarted[..., typing.Any] = EnsureStarted()

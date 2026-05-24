@@ -191,4 +191,4 @@ class TransformEnv[**ParamT, RetT](
 
 
 Decorator = TransformEnv
-transform_env = TransformEnv()
+transform_env: TransformEnv[..., typing.Any] = TransformEnv()

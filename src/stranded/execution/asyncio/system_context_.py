@@ -191,4 +191,4 @@ class SystemContext[**ParamT, RetT](
 
 
 Decorator = SystemContext
-system_context = SystemContext()
+system_context: SystemContext[..., typing.Any] = SystemContext()

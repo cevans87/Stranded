@@ -191,4 +191,4 @@ class StopToken[**ParamT, RetT](
 
 
 Decorator = StopToken
-stop_token = StopToken()
+stop_token: StopToken[..., typing.Any] = StopToken()

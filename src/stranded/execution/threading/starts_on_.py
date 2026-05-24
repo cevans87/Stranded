@@ -191,4 +191,4 @@ class StartsOn[**ParamT, RetT](
 
 
 Decorator = StartsOn
-starts_on = StartsOn()
+starts_on: StartsOn[..., typing.Any] = StartsOn()

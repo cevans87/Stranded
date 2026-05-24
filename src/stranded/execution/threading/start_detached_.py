@@ -191,4 +191,4 @@ class StartDetached[**ParamT, RetT](
 
 
 Decorator = StartDetached
-start_detached = StartDetached()
+start_detached: StartDetached[..., typing.Any] = StartDetached()

@@ -191,4 +191,4 @@ class GetEnv[**ParamT, RetT](
 
 
 Decorator = GetEnv
-get_env = GetEnv()
+get_env: GetEnv[..., typing.Any] = GetEnv()

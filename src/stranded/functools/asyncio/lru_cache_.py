@@ -248,4 +248,4 @@ class LruCache[**ParamT, RetT](
 
 
 Decorator = LruCache
-lru_cache = LruCache()
+lru_cache: LruCache[..., typing.Any] = LruCache()

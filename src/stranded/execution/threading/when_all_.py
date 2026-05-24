@@ -191,4 +191,4 @@ class WhenAll[**ParamT, RetT](
 
 
 Decorator = WhenAll
-when_all = WhenAll()
+when_all: WhenAll[..., typing.Any] = WhenAll()

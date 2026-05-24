@@ -191,4 +191,4 @@ class ScheduleFrom[**ParamT, RetT](
 
 
 Decorator = ScheduleFrom
-schedule_from = ScheduleFrom()
+schedule_from: ScheduleFrom[..., typing.Any] = ScheduleFrom()

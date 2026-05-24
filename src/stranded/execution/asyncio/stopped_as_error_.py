@@ -191,4 +191,4 @@ class StoppedAsError[**ParamT, RetT](
 
 
 Decorator = StoppedAsError
-stopped_as_error = StoppedAsError()
+stopped_as_error: StoppedAsError[..., typing.Any] = StoppedAsError()

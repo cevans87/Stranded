@@ -190,4 +190,4 @@ class Retry[**ParamT, RetT](
 
 
 Decorator = Retry
-retry = Retry()
+retry: Retry[..., typing.Any] = Retry()

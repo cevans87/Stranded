@@ -191,4 +191,4 @@ class StopCallback[**ParamT, RetT](
 
 
 Decorator = StopCallback
-stop_callback = StopCallback()
+stop_callback: StopCallback[..., typing.Any] = StopCallback()

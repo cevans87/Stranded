@@ -191,4 +191,4 @@ class Connect[**ParamT, RetT](
 
 
 Decorator = Connect
-connect = Connect()
+connect: Connect[..., typing.Any] = Connect()

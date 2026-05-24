@@ -191,4 +191,4 @@ class GetStopToken[**ParamT, RetT](
 
 
 Decorator = GetStopToken
-get_stop_token = GetStopToken()
+get_stop_token: GetStopToken[..., typing.Any] = GetStopToken()

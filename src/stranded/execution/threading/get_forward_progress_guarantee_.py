@@ -191,4 +191,4 @@ class GetForwardProgressGuarantee[**ParamT, RetT](
 
 
 Decorator = GetForwardProgressGuarantee
-get_forward_progress_guarantee = GetForwardProgressGuarantee()
+get_forward_progress_guarantee: GetForwardProgressGuarantee[..., typing.Any] = GetForwardProgressGuarantee()

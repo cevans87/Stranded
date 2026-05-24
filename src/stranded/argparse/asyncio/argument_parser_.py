@@ -198,4 +198,4 @@ class ArgumentParser[**ParamT, RetT](
 
 
 Decorator = ArgumentParser
-argument_parser = ArgumentParser()
+argument_parser: ArgumentParser[..., typing.Any] = ArgumentParser()

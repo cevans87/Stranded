@@ -191,4 +191,4 @@ class Split[**ParamT, RetT](
 
 
 Decorator = Split
-split = Split()
+split: Split[..., typing.Any] = Split()

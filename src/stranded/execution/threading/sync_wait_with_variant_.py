@@ -191,4 +191,4 @@ class SyncWaitWithVariant[**ParamT, RetT](
 
 
 Decorator = SyncWaitWithVariant
-sync_wait_with_variant = SyncWaitWithVariant()
+sync_wait_with_variant: SyncWaitWithVariant[..., typing.Any] = SyncWaitWithVariant()

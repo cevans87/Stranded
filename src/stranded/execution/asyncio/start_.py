@@ -191,4 +191,4 @@ class Start[**ParamT, RetT](
 
 
 Decorator = Start
-start = Start()
+start: Start[..., typing.Any] = Start()

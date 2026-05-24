@@ -191,4 +191,4 @@ class JustStopped[**ParamT, RetT](
 
 
 Decorator = JustStopped
-just_stopped = JustStopped()
+just_stopped: JustStopped[..., typing.Any] = JustStopped()

@@ -191,4 +191,4 @@ class GetCompletionScheduler[**ParamT, RetT](
 
 
 Decorator = GetCompletionScheduler
-get_completion_scheduler = GetCompletionScheduler()
+get_completion_scheduler: GetCompletionScheduler[..., typing.Any] = GetCompletionScheduler()

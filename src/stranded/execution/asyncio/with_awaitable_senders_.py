@@ -191,4 +191,4 @@ class WithAwaitableSenders[**ParamT, RetT](
 
 
 Decorator = WithAwaitableSenders
-with_awaitable_senders = WithAwaitableSenders()
+with_awaitable_senders: WithAwaitableSenders[..., typing.Any] = WithAwaitableSenders()

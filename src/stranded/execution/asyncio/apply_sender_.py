@@ -191,4 +191,4 @@ class ApplySender[**ParamT, RetT](
 
 
 Decorator = ApplySender
-apply_sender = ApplySender()
+apply_sender: ApplySender[..., typing.Any] = ApplySender()

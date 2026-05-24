@@ -191,4 +191,4 @@ class Env[**ParamT, RetT](
 
 
 Decorator = Env
-env = Env()
+env: Env[..., typing.Any] = Env()

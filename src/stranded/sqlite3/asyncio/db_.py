@@ -191,4 +191,4 @@ class Db[**ParamT, RetT](
 
 
 Decorator = Db
-db = Db()
+db: Db[..., typing.Any] = Db()

@@ -199,4 +199,4 @@ class Decorator[**ParamT, RetT](
 ): ...
 
 
-sender = Decorator()
+sender: Decorator[..., typing.Any] = Decorator()

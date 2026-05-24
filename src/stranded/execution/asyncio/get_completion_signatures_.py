@@ -191,4 +191,4 @@ class GetCompletionSignatures[**ParamT, RetT](
 
 
 Decorator = GetCompletionSignatures
-get_completion_signatures = GetCompletionSignatures()
+get_completion_signatures: GetCompletionSignatures[..., typing.Any] = GetCompletionSignatures()

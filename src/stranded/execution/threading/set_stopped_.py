@@ -191,4 +191,4 @@ class SetStopped[**ParamT, RetT](
 
 
 Decorator = SetStopped
-set_stopped = SetStopped()
+set_stopped: SetStopped[..., typing.Any] = SetStopped()

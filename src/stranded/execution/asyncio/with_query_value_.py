@@ -191,4 +191,4 @@ class WithQueryValue[**ParamT, RetT](
 
 
 Decorator = WithQueryValue
-with_query_value = WithQueryValue()
+with_query_value: WithQueryValue[..., typing.Any] = WithQueryValue()

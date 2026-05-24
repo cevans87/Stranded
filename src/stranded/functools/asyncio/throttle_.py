@@ -216,4 +216,4 @@ class Throttle[**ParamT, RetT](
 
 
 Decorator = Throttle
-throttle = Throttle()
+throttle: Throttle[..., typing.Any] = Throttle()

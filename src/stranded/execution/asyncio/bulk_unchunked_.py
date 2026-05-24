@@ -191,4 +191,4 @@ class BulkUnchunked[**ParamT, RetT](
 
 
 Decorator = BulkUnchunked
-bulk_unchunked = BulkUnchunked()
+bulk_unchunked: BulkUnchunked[..., typing.Any] = BulkUnchunked()

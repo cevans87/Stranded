@@ -191,4 +191,4 @@ class GetScheduler[**ParamT, RetT](
 
 
 Decorator = GetScheduler
-get_scheduler = GetScheduler()
+get_scheduler: GetScheduler[..., typing.Any] = GetScheduler()

@@ -191,4 +191,4 @@ class GetDelegationScheduler[**ParamT, RetT](
 
 
 Decorator = GetDelegationScheduler
-get_delegation_scheduler = GetDelegationScheduler()
+get_delegation_scheduler: GetDelegationScheduler[..., typing.Any] = GetDelegationScheduler()

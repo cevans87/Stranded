@@ -191,4 +191,4 @@ class NeverStopToken[**ParamT, RetT](
 
 
 Decorator = NeverStopToken
-never_stop_token = NeverStopToken()
+never_stop_token: NeverStopToken[..., typing.Any] = NeverStopToken()
