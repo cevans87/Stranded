@@ -8,7 +8,7 @@ from .abc import bulk_unchunked_
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class BulkUnchunked(
     decorator.Decorator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
-    bulk_unchunked_.Decorator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
+    bulk_unchunked_.BulkUnchunked[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
 ): ...
 
 

@@ -86,8 +86,8 @@ class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
                 case Decoratee() if isinstance(value, Param):
                     try:
                         value = Return(ret=popped(*value.args, **value.kwargs))
-                    except Stop as stop_:
-                        value = stop_
+                    except Stop as stopped:
+                        value = stopped
                     except Exception:
                         value = Raise(*sys.exc_info())
 

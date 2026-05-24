@@ -11,7 +11,7 @@ class Decorator[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
     decorator.Decorator[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
 ):
 
-    def __call__[DecorateeT](self, decoratee: DecorateeT) -> DecorateeT:  # type: ignore[override]
+    def __call__[DecorateeT](self, decoratee: DecorateeT) -> DecorateeT:  # type: ignore[override, misc]
         (name_parts := self.__module__.split('.')).insert(
             -1,
             'asyncio' if inspect.iscoroutinefunction(decoratee) else 'threading'

@@ -8,7 +8,7 @@ from .abc import into_variant_
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class IntoVariant(
     decorator.Decorator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
-    into_variant_.Decorator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
+    into_variant_.IntoVariant[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
 ): ...
 
 

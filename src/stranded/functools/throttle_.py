@@ -8,7 +8,7 @@ from .. import decorator
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Throttle(
     decorator.Decorator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
-    throttle_.Decorator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
+    throttle_.Throttle[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
 ): ...
 
 

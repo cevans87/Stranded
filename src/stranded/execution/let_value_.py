@@ -8,7 +8,7 @@ from .abc import let_value_
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class LetValue(
     decorator.Decorator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
-    let_value_.Decorator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
+    let_value_.LetValue[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
 ): ...
 
 

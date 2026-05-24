@@ -8,7 +8,7 @@ from .abc import get_env_
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class GetEnv(
     decorator.Decorator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
-    get_env_.Decorator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
+    get_env_.GetEnv[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
 ): ...
 
 
