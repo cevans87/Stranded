@@ -12,7 +12,7 @@ from ...abc import decorator
 Level = typing.Literal['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'NOTSET']
 
 
-class Exception(decorator.Exception): ...  # noqa
+class Exception(decorator.DecoratorException): ...  # noqa
 
 
 @typing.runtime_checkable

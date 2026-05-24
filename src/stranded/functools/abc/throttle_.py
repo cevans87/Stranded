@@ -10,7 +10,7 @@ import weakref
 from ...abc import decorator
 
 
-class Exception(decorator.Exception): ...  # noqa
+class Exception(decorator.DecoratorException): ...  # noqa
 
 
 @dataclasses.dataclass(kw_only=True)
