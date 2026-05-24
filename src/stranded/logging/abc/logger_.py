@@ -107,7 +107,7 @@ class Logger[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorat
     err_level: Level = 'ERROR'
     ok_level: Level = 'INFO'
 
-    Level: typing.ClassVar[type[Level]] = Level
+    Level: typing.ClassVar[type[Level]] = Level  # type: ignore[assignment, valid-type]
 
 
 Decorator = Logger
