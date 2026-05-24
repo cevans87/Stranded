@@ -8,7 +8,7 @@ async def test_one_retry() -> None:
     call_count = 0
 
     @Retry(n=1)
-    async def foo():
+    async def foo() -> None:
         nonlocal call_count
         call_count += 1
         raise Exception()

@@ -48,11 +48,11 @@ def test_multi_zero_args(path: pathlib.Path) -> None:
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize('arg', [None, 1, 'foo', 0.0])
-async def test_async_primitive_arg(path: pathlib.Path, arg) -> None:
+async def test_async_primitive_arg(path: pathlib.Path, arg: object) -> None:
     call_count = 0
 
     @Db(path=path)
-    async def foo(_) -> None:
+    async def foo(_: object) -> None:
         nonlocal call_count
         call_count += 1
 
@@ -62,11 +62,11 @@ async def test_async_primitive_arg(path: pathlib.Path, arg) -> None:
 
 
 @pytest.mark.parametrize('arg', [None, 1, 'foo', 0.0])
-def test_multi_primitive_arg(path: pathlib.Path, arg) -> None:
+def test_multi_primitive_arg(path: pathlib.Path, arg: object) -> None:
     call_count = 0
 
     @Db(path=path)
-    def foo(_) -> None:
+    def foo(_: object) -> None:
         nonlocal call_count
         call_count += 1
 

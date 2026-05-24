@@ -2,6 +2,7 @@ import dataclasses
 import functools
 import importlib
 import inspect
+import typing
 
 from ..abc import decorator
 
@@ -22,12 +23,12 @@ def _is_promotable(obj: object) -> bool:
     return inspect.isfunction(obj) or inspect.ismethod(obj)
 
 
-def _to_async(obj):
+def _to_async(obj: typing.Callable[..., typing.Any]) -> typing.Callable[..., typing.Any]:
     if _is_async(obj):
         return obj
 
     @functools.wraps(obj)
-    async def _wrapped(*args, **kwargs):
+    async def _wrapped(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
         return obj(*args, **kwargs)
 
     return _wrapped

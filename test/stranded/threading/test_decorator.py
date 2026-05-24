@@ -7,12 +7,12 @@ from stranded import Decorator
 
 def test_or_combines_metadata() -> None:
     @Decorator()
-    def foo(v):
+    def foo(v: int) -> int:
         """foo doc"""
         return v + 1
 
     @Decorator()
-    def bar(v):
+    def bar(v: int) -> int:
         """bar doc"""
         return v * 2
 
@@ -28,17 +28,17 @@ def test_or_calls_each_decoratee() -> None:
     calls: list[tuple[str, int]] = []
 
     @Decorator()
-    def foo(v):
+    def foo(v: int) -> int:
         calls.append(('foo', v))
         return v + 1
 
     @Decorator()
-    def bar(v):
+    def bar(v: int) -> int:
         calls.append(('bar', v))
         return v * 10
 
     @Decorator()
-    def baz(v):
+    def baz(v: int) -> int:
         calls.append(('baz', v))
         return v - 3
 
@@ -50,15 +50,15 @@ def test_or_calls_each_decoratee() -> None:
 
 def test_or_stack_grows() -> None:
     @Decorator()
-    def foo(v):
+    def foo(v: int) -> int:
         return v
 
     @Decorator()
-    def bar(v):
+    def bar(v: int) -> int:
         return v
 
     @Decorator()
-    def baz(v):
+    def baz(v: int) -> int:
         return v
 
     assert foo.stack == ()

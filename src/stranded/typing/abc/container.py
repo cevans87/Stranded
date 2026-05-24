@@ -14,7 +14,7 @@ class T[TT, VT](typing.Iterable[TT], abc.ABC):
     def filter(self, *, f: typing.Callable[[TT], TT | None]) -> T[TT]: ...
 
     @abc.abstractmethod
-    def filter(self, *, f): raise NotImplementedError()
+    def filter(self, *, f: typing.Callable[[TT], TT | None] | typing.Callable[[TT], typing.Awaitable[TT | None]]) -> T[TT]: raise NotImplementedError()
 
     @abc.abstractmethod
     async def fold[UT](self, _u: UT, /, f: typing.Callable[[TT, UT], typing.Awaitable[UT]]) -> UT: ...
@@ -32,4 +32,4 @@ class T[TT, VT](typing.Iterable[TT], abc.ABC):
     def reduce(self, f: typing.Callable[[TT, TT], TT]) -> TT: ...
 
     @abc.abstractmethod
-    def reduce(self, f): raise NotImplementedError()
+    def reduce(self, f: typing.Callable[[TT, TT], TT] | typing.Callable[[TT, TT], typing.Awaitable[TT]]) -> TT: raise NotImplementedError()
