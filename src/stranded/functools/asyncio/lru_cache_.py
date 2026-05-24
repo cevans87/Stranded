@@ -2,7 +2,6 @@ import asyncio
 import dataclasses
 import typing
 
-from . import herd_
 from ..abc import lru_cache_
 from ...asyncio import decorator
 
@@ -14,7 +13,14 @@ type _Exit[**ParamT, RetT] = Exit[ParamT, RetT]
 type _Enter[**ParamT, RetT] = Enter[ParamT, RetT]
 type _Decorated[**ParamT, RetT] = Decorated[ParamT, RetT]
 type _Decorator[**ParamT, RetT] = LruCache[ParamT, RetT]
-type _Future[RetT] = asyncio.Future[RetT]
+type _Future[RetT] = Future[RetT]
+
+
+DecoratorException = decorator.DecoratorException
+Raise = decorator.Raise
+Stop = decorator.Stop
+Param = decorator.Param
+Return = decorator.Return
 
 
 @typing.runtime_checkable
@@ -23,6 +29,23 @@ class Decoratee[**ParamT, RetT](
     lru_cache_.Decoratee[ParamT, RetT],
     typing.Protocol,
 ): ...
+
+
+@typing.final
+@dataclasses.dataclass(frozen=True, kw_only=True)
+class Future[RetT](lru_cache_.Future[RetT]):
+    future: asyncio.Future[RetT] = dataclasses.field(default_factory=asyncio.Future)
+
+    @typing.override
+    def set_value(self, value: Return[RetT] | Raise | Stop) -> None:
+        match value:
+            case Return(ret=ret): self.future.set_result(ret)
+            case Raise() as raise_: self.future.set_exception(raise_.exc_val)
+            case Stop() as stop_: self.future.set_exception(stop_)
+
+    @typing.override
+    async def __call__(self, *args: typing.Any, **kwargs: typing.Any) -> RetT:
+        return await self.future
 
 
 @typing.final
@@ -111,17 +134,10 @@ class Exit[**ParamT, RetT](
     ],
 ):
     @typing.override
-    async def __call__(self, value: decorator.Param | decorator.Raise | decorator.Return | decorator.Stop) -> tuple[()]:
-        future_by_key = self.enter.decorated.future_by_key
-        while self.enter.decorated.decorator.size <= len(future_by_key):
-            future_by_key.popitem(last=False)
-        future = asyncio.Future()
+    async def __call__(self, value: Param | Raise | Return | Stop) -> tuple[()]:
         match value:
-            case decorator.Return(ret=ret): future.set_result(ret)
-            case decorator.Raise() as raise_: future.set_exception(raise_.exc_val)
-            case decorator.Stop() as stop_: future.set_exception(stop_)
-            case decorator.Param(): return ()
-        future_by_key[self.key] = future
+            case Param(): pass
+            case Return() | Raise() | Stop(): self.future.set_value(value)
 
         return ()
 
@@ -155,16 +171,19 @@ class Enter[**ParamT, RetT](
     # TODO: Dedup this with the threading version.
     @typing.override
     async def __call__(
-        self, value: decorator.Param | decorator.Raise | decorator.Return | decorator.Stop,
-    ) -> tuple[_Exit[ParamT, RetT], _Decoratee[ParamT, RetT]] | tuple[typing.Callable[ParamT, typing.Awaitable[RetT]]] | tuple[()]:
+        self, value: Param | Raise | Return | Stop,
+    ) -> tuple[_Exit[ParamT, RetT], _Decoratee[ParamT, RetT]] | tuple[_Future[RetT]] | tuple[()]:
         match value:
-            case decorator.Param():
+            case Param():
                 key = self.create_key(*value.args, **value.kwargs)
                 future = self.decorated.future_by_key.get(key)
                 if future is None:
-                    return self.exit_t(enter=self, key=key), self.decorated.decoratee
+                    while self.decorated.decorator.size <= len(self.decorated.future_by_key):
+                        self.decorated.future_by_key.popitem(last=False)
+                    future = self.decorated.future_by_key[key] = self.decorated.decorator.future_t()
+                    return self.exit_t(enter=self, future=future, key=key), self.decorated.decoratee
                 self.decorated.future_by_key.move_to_end(key)
-                return (lambda *_args, **_kwargs: future),
+                return future,
             case _: return ()
 
 
@@ -223,9 +242,10 @@ class LruCache[**ParamT, RetT](
         _Decorator[ParamT, RetT],
     ],
 ):
+    @property
     @typing.override
-    def __call__(self, decoratee: _Decoratee[ParamT, RetT], /) -> _Decorated[ParamT, RetT]:
-        return super().__call__(herd_.Herd()(decoratee))
+    def future_t(self) -> type[_Future[RetT]]:
+        return Future
 
 
 Decorator = LruCache

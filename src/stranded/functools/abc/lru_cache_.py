@@ -14,7 +14,27 @@ type GenerateKey = typing.Callable[..., Key]
 type Key = typing.Hashable
 
 
+DecoratorException = decorator.DecoratorException
+Raise = decorator.Raise
+Stop = decorator.Stop
+Param = decorator.Param
+Return = decorator.Return
+
+
 class Exception(decorator.DecoratorException): ...  # noqa
+
+
+@dataclasses.dataclass(frozen=True, kw_only=True)
+class Future[RetT](abc.ABC):
+
+    @abc.abstractmethod
+    def set_value(self, value: Return[RetT] | Raise | Stop) -> None: ...
+
+    @abc.abstractmethod
+    def __call__(self, *args: typing.Any, **kwargs: typing.Any) -> typing.Any: ...
+
+    def __get__(self, instance, owner) -> typing.Self:
+        return self
 
 
 @typing.runtime_checkable
@@ -42,7 +62,9 @@ class Receive[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decora
 class Exit[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT, FutureT](
     decorator.Exit[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
     abc.ABC,
-): key: Key
+):
+    future: FutureT
+    key: Key
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -80,7 +102,12 @@ class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
 class LruCache[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
     decorator.Decorator[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
     abc.ABC,
-): size: int = sys.maxsize
+):
+    size: int = sys.maxsize
+
+    @property
+    @abc.abstractmethod
+    def future_t(self) -> type: ...
 
 
 Decorator = LruCache
