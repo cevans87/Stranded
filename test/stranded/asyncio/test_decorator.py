@@ -8,12 +8,12 @@ from stranded.abc import decorator as abc_decorator
 
 @pytest.mark.asyncio
 async def test_or_combines_metadata() -> None:
-    @Decorator()
+    @Decorator()  # type: ignore[arg-type]
     async def foo(v: int) -> int:
         """foo doc"""
         return v + 1
 
-    @Decorator()
+    @Decorator()  # type: ignore[arg-type]
     async def bar(v: int) -> int:
         """bar doc"""
         return v * 2
@@ -30,17 +30,17 @@ async def test_or_combines_metadata() -> None:
 async def test_or_calls_each_decoratee() -> None:
     calls: list[tuple[str, int]] = []
 
-    @Decorator()
+    @Decorator()  # type: ignore[arg-type]
     async def foo(v: int) -> int:
         calls.append(('foo', v))
         return v + 1
 
-    @Decorator()
+    @Decorator()  # type: ignore[arg-type]
     async def bar(v: int) -> int:
         calls.append(('bar', v))
         return v * 10
 
-    @Decorator()
+    @Decorator()  # type: ignore[arg-type]
     async def baz(v: int) -> int:
         calls.append(('baz', v))
         return v - 3
@@ -53,15 +53,15 @@ async def test_or_calls_each_decoratee() -> None:
 
 @pytest.mark.asyncio
 async def test_or_stack_grows() -> None:
-    @Decorator()
+    @Decorator()  # type: ignore[arg-type]
     async def foo(v: int) -> int:
         return v
 
-    @Decorator()
+    @Decorator()  # type: ignore[arg-type]
     async def bar(v: int) -> int:
         return v
 
-    @Decorator()
+    @Decorator()  # type: ignore[arg-type]
     async def baz(v: int) -> int:
         return v
 
@@ -72,7 +72,7 @@ async def test_or_stack_grows() -> None:
 
 @pytest.mark.asyncio
 async def test_decoratee_exception_propagates() -> None:
-    @Decorator()
+    @Decorator()  # type: ignore[arg-type]
     async def boom() -> None:
         raise ValueError('boom')
 
@@ -84,11 +84,11 @@ async def test_decoratee_exception_propagates() -> None:
 async def test_raise_skips_downstream_decoratee() -> None:
     inner_called = False
 
-    @Decorator()
+    @Decorator()  # type: ignore[arg-type]
     async def boom() -> None:
         raise ValueError('boom')
 
-    @Decorator()
+    @Decorator()  # type: ignore[arg-type]
     async def inner(v: int) -> int:
         nonlocal inner_called
         inner_called = True
@@ -113,7 +113,7 @@ async def test_raise_dataclass_carries_exception() -> None:
 
 @pytest.mark.asyncio
 async def test_decoratee_stop_propagates() -> None:
-    @Decorator()
+    @Decorator()  # type: ignore[arg-type]
     async def cancelled() -> None:
         raise abc_decorator.Stop()
 
@@ -125,11 +125,11 @@ async def test_decoratee_stop_propagates() -> None:
 async def test_stop_skips_downstream_decoratee() -> None:
     inner_called = False
 
-    @Decorator()
+    @Decorator()  # type: ignore[arg-type]
     async def cancelled() -> None:
         raise abc_decorator.Stop()
 
-    @Decorator()
+    @Decorator()  # type: ignore[arg-type]
     async def inner(v: int) -> int:
         nonlocal inner_called
         inner_called = True
@@ -145,7 +145,7 @@ async def test_stop_skips_downstream_decoratee() -> None:
 async def test_stop_is_not_caught_by_except_exception() -> None:
     swallowed = False
 
-    @Decorator()
+    @Decorator()  # type: ignore[arg-type]
     async def cancelled() -> None:
         nonlocal swallowed
         try:

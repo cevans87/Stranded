@@ -177,9 +177,9 @@ class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
             ),
             stack=(
                 decorated.receive_t(decorated=decorated),  # type: ignore[call-arg]
-                self.send_t(decorated=self),  # type: ignore[call-arg]
-                *self.create_context(),
-                *self.stack,
+                self.send_t(decorated=self),  # type: ignore[call-arg, arg-type]
+                *self.create_context(),  # type: ignore[arg-type]
+                *self.stack,  # type: ignore[arg-type]
             ),
         )
 
@@ -198,7 +198,7 @@ class Decorator[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
             __module__=str(decoratee.__module__),
             __name__=str(decoratee.__name__),  # type: ignore[attr-defined]
             __qualname__=str(decoratee.__qualname__),  # type: ignore[attr-defined]
-            __signature__=inspect.signature(decoratee),
+            __signature__=inspect.signature(decoratee),  # type: ignore[arg-type]
             decoratee=decoratee,
             decorator=self,
         )
