@@ -191,4 +191,4 @@ class GetAllocator[**ParamT, RetT](
 
 
 Decorator = GetAllocator
-get_allocator = GetAllocator()
+get_allocator: GetAllocator[..., typing.Any] = GetAllocator()

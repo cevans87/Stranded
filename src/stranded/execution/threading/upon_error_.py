@@ -191,4 +191,4 @@ class UponError[**ParamT, RetT](
 
 
 Decorator = UponError
-upon_error = UponError()
+upon_error: UponError[..., typing.Any] = UponError()

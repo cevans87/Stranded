@@ -191,4 +191,4 @@ class DefaultDomain[**ParamT, RetT](
 
 
 Decorator = DefaultDomain
-default_domain = DefaultDomain()
+default_domain: DefaultDomain[..., typing.Any] = DefaultDomain()

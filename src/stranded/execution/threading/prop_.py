@@ -191,4 +191,4 @@ class Prop[**ParamT, RetT](
 
 
 Decorator = Prop
-prop = Prop()
+prop: Prop[..., typing.Any] = Prop()

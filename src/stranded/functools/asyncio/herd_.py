@@ -241,4 +241,4 @@ class Herd[**ParamT, RetT](
 
 
 Decorator = Herd
-herd = Herd()
+herd: Herd[..., typing.Any] = Herd()

@@ -191,4 +191,4 @@ class Then[**ParamT, RetT](
 
 
 Decorator = Then
-then = Then()
+then: Then[..., typing.Any] = Then()

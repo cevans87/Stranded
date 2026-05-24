@@ -194,4 +194,4 @@ class Decorator[**ParamT, RetT](
 ): ...
 
 
-operation_state = Decorator()
+operation_state: Decorator[..., typing.Any] = Decorator()

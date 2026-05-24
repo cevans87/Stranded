@@ -191,4 +191,4 @@ class Schedule[**ParamT, RetT](
 
 
 Decorator = Schedule
-schedule = Schedule()
+schedule: Schedule[..., typing.Any] = Schedule()

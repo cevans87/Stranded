@@ -191,4 +191,4 @@ class StoppedAsOptional[**ParamT, RetT](
 
 
 Decorator = StoppedAsOptional
-stopped_as_optional = StoppedAsOptional()
+stopped_as_optional: StoppedAsOptional[..., typing.Any] = StoppedAsOptional()

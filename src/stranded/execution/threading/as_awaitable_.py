@@ -191,4 +191,4 @@ class AsAwaitable[**ParamT, RetT](
 
 
 Decorator = AsAwaitable
-as_awaitable = AsAwaitable()
+as_awaitable: AsAwaitable[..., typing.Any] = AsAwaitable()

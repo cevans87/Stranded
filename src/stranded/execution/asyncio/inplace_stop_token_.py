@@ -191,4 +191,4 @@ class InplaceStopToken[**ParamT, RetT](
 
 
 Decorator = InplaceStopToken
-inplace_stop_token = InplaceStopToken()
+inplace_stop_token: InplaceStopToken[..., typing.Any] = InplaceStopToken()

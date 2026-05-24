@@ -191,4 +191,4 @@ class IntoVariant[**ParamT, RetT](
 
 
 Decorator = IntoVariant
-into_variant = IntoVariant()
+into_variant: IntoVariant[..., typing.Any] = IntoVariant()

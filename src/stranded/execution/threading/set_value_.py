@@ -191,4 +191,4 @@ class SetValue[**ParamT, RetT](
 
 
 Decorator = SetValue
-set_value = SetValue()
+set_value: SetValue[..., typing.Any] = SetValue()

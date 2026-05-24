@@ -191,4 +191,4 @@ class InplaceStopCallback[**ParamT, RetT](
 
 
 Decorator = InplaceStopCallback
-inplace_stop_callback = InplaceStopCallback()
+inplace_stop_callback: InplaceStopCallback[..., typing.Any] = InplaceStopCallback()

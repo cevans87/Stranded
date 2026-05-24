@@ -191,4 +191,4 @@ class RunLoop[**ParamT, RetT](
 
 
 Decorator = RunLoop
-run_loop = RunLoop()
+run_loop: RunLoop[..., typing.Any] = RunLoop()

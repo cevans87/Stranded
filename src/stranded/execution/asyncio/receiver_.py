@@ -191,4 +191,4 @@ class Receiver[**ParamT, RetT](
 
 
 Decorator = Receiver
-receiver = Receiver()
+receiver: Receiver[..., typing.Any] = Receiver()

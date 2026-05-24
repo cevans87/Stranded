@@ -191,4 +191,4 @@ class StopSource[**ParamT, RetT](
 
 
 Decorator = StopSource
-stop_source = StopSource()
+stop_source: StopSource[..., typing.Any] = StopSource()

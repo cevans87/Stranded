@@ -191,4 +191,4 @@ class SyncWait[**ParamT, RetT](
 
 
 Decorator = SyncWait
-sync_wait = SyncWait()
+sync_wait: SyncWait[..., typing.Any] = SyncWait()

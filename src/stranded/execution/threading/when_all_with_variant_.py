@@ -191,4 +191,4 @@ class WhenAllWithVariant[**ParamT, RetT](
 
 
 Decorator = WhenAllWithVariant
-when_all_with_variant = WhenAllWithVariant()
+when_all_with_variant: WhenAllWithVariant[..., typing.Any] = WhenAllWithVariant()

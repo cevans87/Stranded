@@ -191,4 +191,4 @@ class SetError[**ParamT, RetT](
 
 
 Decorator = SetError
-set_error = SetError()
+set_error: SetError[..., typing.Any] = SetError()

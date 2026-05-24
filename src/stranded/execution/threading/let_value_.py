@@ -191,4 +191,4 @@ class LetValue[**ParamT, RetT](
 
 
 Decorator = LetValue
-let_value = LetValue()
+let_value: LetValue[..., typing.Any] = LetValue()

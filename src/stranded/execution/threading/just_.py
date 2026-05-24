@@ -191,4 +191,4 @@ class Just[**ParamT, RetT](
 
 
 Decorator = Just
-just = Just()
+just: Just[..., typing.Any] = Just()

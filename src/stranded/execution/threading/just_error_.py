@@ -191,4 +191,4 @@ class JustError[**ParamT, RetT](
 
 
 Decorator = JustError
-just_error = JustError()
+just_error: JustError[..., typing.Any] = JustError()

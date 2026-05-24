@@ -191,4 +191,4 @@ class Bulk[**ParamT, RetT](
 
 
 Decorator = Bulk
-bulk = Bulk()
+bulk: Bulk[..., typing.Any] = Bulk()

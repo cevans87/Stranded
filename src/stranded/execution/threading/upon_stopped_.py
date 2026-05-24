@@ -191,4 +191,4 @@ class UponStopped[**ParamT, RetT](
 
 
 Decorator = UponStopped
-upon_stopped = UponStopped()
+upon_stopped: UponStopped[..., typing.Any] = UponStopped()

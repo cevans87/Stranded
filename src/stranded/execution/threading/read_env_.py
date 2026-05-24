@@ -191,4 +191,4 @@ class ReadEnv[**ParamT, RetT](
 
 
 Decorator = ReadEnv
-read_env = ReadEnv()
+read_env: ReadEnv[..., typing.Any] = ReadEnv()

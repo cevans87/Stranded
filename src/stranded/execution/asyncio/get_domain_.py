@@ -191,4 +191,4 @@ class GetDomain[**ParamT, RetT](
 
 
 Decorator = GetDomain
-get_domain = GetDomain()
+get_domain: GetDomain[..., typing.Any] = GetDomain()

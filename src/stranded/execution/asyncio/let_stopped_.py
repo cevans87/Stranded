@@ -191,4 +191,4 @@ class LetStopped[**ParamT, RetT](
 
 
 Decorator = LetStopped
-let_stopped = LetStopped()
+let_stopped: LetStopped[..., typing.Any] = LetStopped()

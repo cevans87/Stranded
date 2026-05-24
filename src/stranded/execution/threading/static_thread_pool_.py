@@ -191,4 +191,4 @@ class StaticThreadPool[**ParamT, RetT](
 
 
 Decorator = StaticThreadPool
-static_thread_pool = StaticThreadPool()
+static_thread_pool: StaticThreadPool[..., typing.Any] = StaticThreadPool()

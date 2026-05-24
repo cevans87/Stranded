@@ -191,4 +191,4 @@ class ForwardingQuery[**ParamT, RetT](
 
 
 Decorator = ForwardingQuery
-forwarding_query = ForwardingQuery()
+forwarding_query: ForwardingQuery[..., typing.Any] = ForwardingQuery()

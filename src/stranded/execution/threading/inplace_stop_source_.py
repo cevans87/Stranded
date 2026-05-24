@@ -191,4 +191,4 @@ class InplaceStopSource[**ParamT, RetT](
 
 
 Decorator = InplaceStopSource
-inplace_stop_source = InplaceStopSource()
+inplace_stop_source: InplaceStopSource[..., typing.Any] = InplaceStopSource()

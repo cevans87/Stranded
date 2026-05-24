@@ -191,4 +191,4 @@ class TransformSender[**ParamT, RetT](
 
 
 Decorator = TransformSender
-transform_sender = TransformSender()
+transform_sender: TransformSender[..., typing.Any] = TransformSender()

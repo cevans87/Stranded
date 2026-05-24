@@ -191,4 +191,4 @@ class InlineScheduler[**ParamT, RetT](
 
 
 Decorator = InlineScheduler
-inline_scheduler = InlineScheduler()
+inline_scheduler: InlineScheduler[..., typing.Any] = InlineScheduler()
