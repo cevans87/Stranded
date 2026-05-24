@@ -89,7 +89,7 @@ class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
     lock: threading.Lock = dataclasses.field(default_factory=threading.Lock)
     state: State = dataclasses.field(default_factory=State)
 
-    def __get__(self, instance, owner) -> typing.Self:
+    def __get__(self, instance: decorator.Instance, owner: type[object] | None) -> typing.Self:
         with self.lock:
             return decorated if (decorated := self.decorated_by_instance.get(instance)) is not None else (
                 self.decorated_by_instance.setdefault(

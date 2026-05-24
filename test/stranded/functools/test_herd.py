@@ -79,7 +79,7 @@ async def test_different_keys_do_not_coalesce() -> None:
     event = asyncio.Event()
 
     @Herd()
-    async def foo(_) -> None:
+    async def foo(_: object) -> None:
         nonlocal call_count
         await event.wait()
         call_count += 1

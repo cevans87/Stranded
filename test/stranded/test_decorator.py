@@ -9,7 +9,7 @@ from stranded import Decorator
 
 def test_base() -> None:
     @Decorator()
-    def foo():
+    def foo() -> None:
         ...
 
     foo()
@@ -21,7 +21,7 @@ async def test_async_method() -> None:
     class Foo:
 
         @Decorator()
-        async def bar(self, v):
+        async def bar(self, v: int) -> dict[str, object]:
             return locals()
 
     assert await (foo := Foo()).bar(42) == {'self': foo, 'v': 42}
@@ -32,7 +32,7 @@ def test_multi_method() -> None:
     class Foo:
 
         @Decorator()
-        def bar(self, v):
+        def bar(self, v: int) -> dict[str, object]:
             return locals()
 
     assert (foo := Foo()).bar(42) == {'self': foo, 'v': 42}
@@ -45,7 +45,7 @@ async def test_async_classmethod() -> None:
 
         @classmethod
         @Decorator()
-        async def bar(cls, v):
+        async def bar(cls, v: int) -> dict[str, object]:
             return locals()
 
     assert await Foo().bar(42) == {'cls': Foo, 'v': 42}
@@ -57,7 +57,7 @@ def test_multi_classmethod() -> None:
 
         @classmethod
         @Decorator()
-        def bar(cls, v):
+        def bar(cls, v: int) -> dict[str, object]:
             return locals()
 
     assert Foo().bar(42) == {'cls': Foo, 'v': 42}
@@ -71,7 +71,7 @@ async def test_async_staticmethod() -> None:
 
         @staticmethod
         @Decorator()
-        async def bar(v):
+        async def bar(v: int) -> dict[str, object]:
             return locals()
 
     assert await Foo.bar(42) == {'v': 42}
@@ -83,7 +83,7 @@ def test_multi_staticmethod() -> None:
 
         @staticmethod
         @Decorator()
-        def bar(v):
+        def bar(v: int) -> dict[str, object]:
             return locals()
 
     assert Foo.bar(42) == {'v': 42}

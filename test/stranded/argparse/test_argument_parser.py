@@ -101,19 +101,19 @@ def test_merged_merges_signatures() -> None:
 
 def test_merged_requires_matching_annotations() -> None:
     @ArgumentParser()
-    def foo(a: int):
+    def foo(a: int) -> dict[str, object]:
         return locals()
 
     @ArgumentParser()
-    def bar(a: float):
+    def bar(a: float) -> dict[str, object]:
         return locals()
 
     @ArgumentParser()
-    def baz(a: typing.Annotated[int, "An a to set"]):
+    def baz(a: typing.Annotated[int, "An a to set"]) -> dict[str, object]:
         return locals()
 
     @ArgumentParser()
-    def qux(*, a: int):
+    def qux(*, a: int) -> dict[str, object]:
         return locals()
 
     _ = (foo | foo).to_signature()

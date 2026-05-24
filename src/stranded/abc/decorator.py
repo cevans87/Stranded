@@ -74,7 +74,7 @@ class Return[RetT]:
 @typing.runtime_checkable
 class Decoratee[**ParamT, RetT](typing.Protocol):
     def __call__(self, *args: ParamT.args, **kwargs: ParamT.kwargs) -> RetT: ...
-    def __get__(self, instance: Instance, owner) -> typing.Self: ...
+    def __get__(self, instance: Instance, owner: type[object] | None) -> typing.Self: ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -137,7 +137,7 @@ class Enter[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorate
     def __call__(self, value: Param[ParamT], /) -> tuple[ExitT, DecorateeT]: ...
     @typing.overload
     def __call__(self, value: Raise | Return[RetT] | Stop, /) -> tuple[()]: ...
-    def __call__(self, value, /):
+    def __call__(self, value: Param[ParamT] | Raise | Return[RetT] | Stop, /) -> tuple[ExitT, DecorateeT] | tuple[()]:
         match value:
             case Param(): return self.exit_t(enter=self), self.decorated.decoratee,
             case _: return ()
@@ -157,7 +157,7 @@ class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
     decorator: DecoratorT
     stack: tuple[EnterT | ExitT | ReceiveT | SendT, ...] = ()
 
-    def __get__(self, instance: Instance, owner) -> typing.Self:
+    def __get__(self, instance: Instance, owner: type[object] | None) -> typing.Self:
         return dataclasses.replace(self, decoratee=self.decoratee.__get__(instance, owner))
 
     def __or__[**Param2T, Ret2T, Decoratee2T, Receive2T, Send2T, Exit2T, Enter2T, Decorated2T, Decorator2T](

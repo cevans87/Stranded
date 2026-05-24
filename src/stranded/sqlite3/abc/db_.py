@@ -77,7 +77,7 @@ class Enter[** ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorat
     @typing.overload
     def __call__(self, value: Raise | Return[RetT] | Stop, /) -> tuple[Return[RetT]]: ...
     @abc.abstractmethod
-    def __call__(self, value: Param[ParamT] | Raise | Return[RetT] | Stop, /):
+    def __call__(self, value: Param[ParamT] | Raise | Return[RetT] | Stop, /) -> tuple[ExitT, DecorateeT] | tuple[Return[RetT]] | tuple[()]:
         match value:
             case Raise() | Return() | Stop(): return ()
             case Param():
@@ -107,7 +107,7 @@ class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
     table_name: str
     lock: threading.Lock = dataclasses.field(default_factory=threading.Lock)
 
-    def __get__(self, instance: decorator.Instance, owner) -> typing.Self:
+    def __get__(self, instance: decorator.Instance, owner: type[object] | None) -> typing.Self:
         return dataclasses.replace(self, decoratee=self.decoratee.__get__(instance, owner), instance=instance)
 
 

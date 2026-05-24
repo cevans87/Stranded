@@ -11,7 +11,7 @@ async def test_throttle_additive_increase_adds_1() -> None:
     n_running = 0
 
     @Throttle()
-    async def foo():
+    async def foo() -> None:
         nonlocal n_running
         n_running += 1
         await event.wait()

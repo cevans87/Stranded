@@ -53,7 +53,7 @@ class Exit[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorated
     def __call__(self, value: Param[ParamT], /) -> tuple[ExitT, DecorateeT]: ...
     @typing.overload
     def __call__(self, value: Raise | Return[RetT] | Stop, /) -> tuple[()]: ...
-    def __call__(self, value, /):
+    def __call__(self, value: Param[ParamT] | Raise | Return[RetT] | Stop, /) -> tuple[ExitT, DecorateeT] | tuple[()]:
         return super().__call__(value)
 
 
@@ -66,7 +66,7 @@ class Enter[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorate
     def __call__(self, value: Param[ParamT], /) -> tuple[ExitT, DecorateeT]: ...
     @typing.overload
     def __call__(self, value: Raise | Return[RetT] | Stop, /) -> tuple[()]: ...
-    def __call__(self, value, /):
+    def __call__(self, value: Param[ParamT] | Raise | Return[RetT] | Stop, /) -> tuple[ExitT, DecorateeT] | tuple[()]:
         return super().__call__(value)
 
 

@@ -21,11 +21,11 @@ async def test_async_zero_args() -> None:
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize('arg', [None, 1, 'foo', 0.0])
-async def test_async_primitive_arg(arg) -> None:
+async def test_async_primitive_arg(arg: object) -> None:
     call_count = 0
 
     @LruCache()
-    async def foo(_) -> int:
+    async def foo(_: object) -> int:
         nonlocal call_count
         call_count += 1
         return call_count
@@ -113,7 +113,7 @@ async def test_async_size_expires_memos() -> None:
     class Foo:
 
         @LruCache(size=1)
-        async def foo(self, _) -> None:
+        async def foo(self, _: object) -> None:
             nonlocal call_count
             call_count += 1
 
@@ -131,7 +131,7 @@ async def test_async_size_method_is_per_instance() -> None:
     class Foo:
 
         @LruCache(size=1)
-        async def foo(self, _) -> None:
+        async def foo(self, _: object) -> None:
             nonlocal call_count
             call_count += 1
 
@@ -167,7 +167,7 @@ async def test_async_size_classmethod_is_per_declaration() -> None:
 
         @classmethod
         @LruCache(size=3)
-        async def foo(cls, _) -> None:
+        async def foo(cls, _: object) -> None:
             nonlocal call_count
             call_count += 1
 
@@ -203,7 +203,7 @@ async def test_async_size_staticmethod_is_per_declaration() -> None:
 
         @staticmethod
         @LruCache(size=1)
-        async def foo(_) -> None:
+        async def foo(_: object) -> None:
             nonlocal call_count
             call_count += 1
 

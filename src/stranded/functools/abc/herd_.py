@@ -27,7 +27,7 @@ class Future[RetT](abc.ABC):
     @abc.abstractmethod
     def __call__(self, *args: typing.Any, **kwargs: typing.Any) -> typing.Any: ...
 
-    def __get__(self, instance, owner) -> typing.Self:
+    def __get__(self, instance: decorator.Instance, owner: type[object] | None) -> typing.Self:
         return self
 
 
@@ -94,7 +94,7 @@ class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
     ] = dataclasses.field(default_factory=weakref.WeakKeyDictionary)
     future_by_key: dict[Key, FutureT] = dataclasses.field(default_factory=dict)
 
-    def __get__(self, instance, owner) -> typing.Self:
+    def __get__(self, instance: decorator.Instance, owner: type[object] | None) -> typing.Self:
         return decorated if (decorated := self.decorated_by_instance.get(instance)) is not None else (
             self.decorated_by_instance.setdefault(
                 instance, dataclasses.replace(
