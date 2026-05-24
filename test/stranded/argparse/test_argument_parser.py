@@ -326,7 +326,7 @@ def test_help_goes_to_subcommand() -> None:
     calls = []
 
     @ArgumentParser()
-    def help_flag(subcommand: typing.Literal['bar', 'baz'] = ..., /, *, help: bool = False) -> None:  # noqa
+    def help_flag(subcommand: typing.Literal['bar', 'baz'] = ..., /, *, help: bool = False) -> None:  # type: ignore[assignment]
         calls.append({'subcommand': subcommand, 'help': help})
         if help:
             match subcommand:
@@ -342,7 +342,7 @@ def test_help_goes_to_subcommand() -> None:
             assert False, 'In a normal Cli, this should be `sys.exit(0)`.'
 
     @ArgumentParser()
-    def foo(subcommand: typing.Literal['bar', 'baz'] = ..., /, *args: str) -> None:
+    def foo(subcommand: typing.Literal['bar', 'baz'] = ..., /, *args: str) -> None:  # type: ignore[assignment]
         calls.append({'subcommand': subcommand})
         match subcommand:
             case  builtins.Ellipsis:

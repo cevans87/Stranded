@@ -82,7 +82,7 @@ class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
             match popped := stack.pop():
                 case Param() | Raise() | Return() | Stop(): value = popped
                 case Enter() | Exit(): stack.extend(popped(value))  # type: ignore[arg-type]
-                case Send() | Receive(): value = popped(value)  # type: ignore[arg-type]
+                case Send() | Receive(): value = popped(value)  # type: ignore[arg-type, assignment]
                 case Decoratee() if isinstance(value, Param):
                     try:
                         value = Return(ret=popped(*value.args, **value.kwargs))
