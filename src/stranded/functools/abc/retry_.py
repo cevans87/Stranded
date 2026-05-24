@@ -46,7 +46,7 @@ class Exit[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorated
 ):
     def __call__(self, value: Param[ParamT] | Raise | Return[RetT] | Stop) -> tuple[()] | tuple[EnterT, Param[ParamT]]:  # type: ignore[override]
         if self.enter.n_retried < self.enter.decorated.decorator.n and isinstance(value, Raise):  # type: ignore[attr-defined]
-            return dataclasses.replace(self.enter, n_retried=self.enter.n_retried + 1), self.enter.param  # type: ignore[attr-defined]
+            return dataclasses.replace(self.enter, n_retried=self.enter.n_retried + 1), self.enter.param  # type: ignore[attr-defined, type-var]
 
         return ()
 

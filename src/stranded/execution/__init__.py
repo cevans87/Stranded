@@ -164,7 +164,7 @@ if _typing.TYPE_CHECKING:
     from .stop_token_ import StopToken
     from .stop_token_ import stop_token
     from . import stopped
-    from .stopped_ import Stopped
+    from .stopped import Stopped
     from . import stopped_as_error_
     from .stopped_as_error_ import StoppedAsError
     from .stopped_as_error_ import stopped_as_error

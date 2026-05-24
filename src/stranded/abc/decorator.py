@@ -7,7 +7,6 @@ import types
 import typing
 
 type Instance = object
-type Name = typing.Annotated[str, annotated_types.Predicate(str.isidentifier)]  # noqa
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -22,31 +21,31 @@ class Base[DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](a
 
     @property
     def decoratee_t(self) -> type[DecorateeT]:
-        return inspect.getmodule(type(self)).Decoratee  # type: ignore[no-any-return]
+        return inspect.getmodule(type(self)).Decoratee  # type: ignore[no-any-return, union-attr]
 
     @property
     def receive_t(self) -> type[ReceiveT]:
-        return inspect.getmodule(type(self)).Receive  # type: ignore[no-any-return]
+        return inspect.getmodule(type(self)).Receive  # type: ignore[no-any-return, union-attr]
 
     @property
     def send_t(self) -> type[SendT]:
-        return inspect.getmodule(type(self)).Send  # type: ignore[no-any-return]
+        return inspect.getmodule(type(self)).Send  # type: ignore[no-any-return, union-attr]
 
     @property
     def exit_t(self) -> type[ExitT]:
-        return inspect.getmodule(type(self)).Exit  # type: ignore[no-any-return]
+        return inspect.getmodule(type(self)).Exit  # type: ignore[no-any-return, union-attr]
 
     @property
     def enter_t(self) -> type[EnterT]:
-        return inspect.getmodule(type(self)).Enter  # type: ignore[no-any-return]
+        return inspect.getmodule(type(self)).Enter  # type: ignore[no-any-return, union-attr]
 
     @property
     def decorated_t(self) -> type[DecoratedT]:
-        return inspect.getmodule(type(self)).Decorated  # type: ignore[no-any-return]
+        return inspect.getmodule(type(self)).Decorated  # type: ignore[no-any-return, union-attr]
 
     @property
     def decorator_t(self) -> type[DecoratorT]:
-        return inspect.getmodule(type(self)).Decorator  # type: ignore[no-any-return]
+        return inspect.getmodule(type(self)).Decorator  # type: ignore[no-any-return, union-attr]
 
 
 @dataclasses.dataclass(frozen=True)
@@ -62,8 +61,8 @@ class Stop(BaseException): ...
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Param[**ParamT]:
-    args: ParamT.args = dataclasses.field(default=tuple)
-    kwargs: ParamT.kwargs = dataclasses.field(default_factory=dict)
+    args: ParamT.args = dataclasses.field(default=tuple)  # type: ignore[valid-type]
+    kwargs: ParamT.kwargs = dataclasses.field(default_factory=dict)  # type: ignore[valid-type]
 
 
 @dataclasses.dataclass(frozen=True)

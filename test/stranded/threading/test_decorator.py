@@ -16,7 +16,7 @@ def test_or_combines_metadata() -> None:
         """bar doc"""
         return v * 2
 
-    combined = foo | bar
+    combined = foo | bar  # type: ignore[var-annotated]
 
     assert combined.__doc__ == f'{foo.__doc__}\n\n{bar.__doc__}'
     assert combined.__name__ == f'{foo.__name__}, {bar.__name__}'
@@ -42,7 +42,7 @@ def test_or_calls_each_decoratee() -> None:
         calls.append(('baz', v))
         return v - 3
 
-    result = (foo | bar | baz)(7)
+    result = (foo | bar | baz)(7)  # type: ignore[var-annotated]
 
     assert calls == [('foo', 7), ('bar', 8), ('baz', 80)]
     assert result == 77
