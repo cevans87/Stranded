@@ -132,7 +132,7 @@ class Exit[**ParamT, RetT](
         _Future[RetT],
     ],
 ):
-    def __call__(self, value: Param[ParamT] | Raise | Return[RetT] | Stop) -> tuple[()]:
+    def __call__(self, value: Param[ParamT] | Raise | Return[RetT] | Stop) -> tuple[()]:  # type: ignore[override]
         match value:
             case Param(): pass
             case Return() | Raise() | Stop(): self.future.set_value(value)
@@ -167,7 +167,7 @@ class Enter[**ParamT, RetT](
     ],
 ):
     # TODO: Dedup this with the asyncio version.
-    def __call__(
+    def __call__(  # type: ignore[override]
         self, value: Param[ParamT] | Raise | Return[RetT] | Stop,
     ) -> tuple[_Exit[ParamT, RetT], _Decoratee[ParamT, RetT]] | tuple[_Future[RetT]] | tuple[()]:
         match value:

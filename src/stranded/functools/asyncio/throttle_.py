@@ -111,9 +111,9 @@ class Exit[**ParamT, RetT](
         _Decorator[ParamT, RetT],
     ],
 ):
-    async def __call__(self, result: Raise | RetT) -> tuple[()]:
+    async def __call__(self, result: Raise | RetT) -> tuple[()]:  # type: ignore[override]
         async with self.enter.decorated.condition:
-            return super().__call__(result)
+            return super().__call__(result)  # type: ignore[arg-type, return-value]
 
 
 @typing.final
@@ -142,7 +142,7 @@ class Enter[**ParamT, RetT](
         _Decorator[ParamT, RetT],
     ],
 ):
-    async def __call__(self, *args: ParamT.args, **kwargs: ParamT.kwargs) -> tuple[_Exit[ParamT, RetT], _Decoratee[ParamT, RetT]]:
+    async def __call__(self, *args: ParamT.args, **kwargs: ParamT.kwargs) -> tuple[_Exit[ParamT, RetT], _Decoratee[ParamT, RetT]]:  # type: ignore[override]
         # TODO: this is mostly duplicate with the threading version. Try to consolidate.
         state = self.decorated.state
         async with self.decorated.condition:

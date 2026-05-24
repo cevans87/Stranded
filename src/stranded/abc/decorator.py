@@ -21,31 +21,31 @@ class Base[DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](a
 
     @property
     def decoratee_t(self) -> type[DecorateeT]:
-        return inspect.getmodule(type(self)).Decoratee
+        return inspect.getmodule(type(self)).Decoratee  # type: ignore[no-any-return, union-attr]
 
     @property
     def receive_t(self) -> type[ReceiveT]:
-        return inspect.getmodule(type(self)).Receive
+        return inspect.getmodule(type(self)).Receive  # type: ignore[no-any-return, union-attr]
 
     @property
     def send_t(self) -> type[SendT]:
-        return inspect.getmodule(type(self)).Send
+        return inspect.getmodule(type(self)).Send  # type: ignore[no-any-return, union-attr]
 
     @property
     def exit_t(self) -> type[ExitT]:
-        return inspect.getmodule(type(self)).Exit
+        return inspect.getmodule(type(self)).Exit  # type: ignore[no-any-return, union-attr]
 
     @property
     def enter_t(self) -> type[EnterT]:
-        return inspect.getmodule(type(self)).Enter
+        return inspect.getmodule(type(self)).Enter  # type: ignore[no-any-return, union-attr]
 
     @property
     def decorated_t(self) -> type[DecoratedT]:
-        return inspect.getmodule(type(self)).Decorated
+        return inspect.getmodule(type(self)).Decorated  # type: ignore[no-any-return, union-attr]
 
     @property
     def decorator_t(self) -> type[DecoratorT]:
-        return inspect.getmodule(type(self)).Decorator
+        return inspect.getmodule(type(self)).Decorator  # type: ignore[no-any-return, union-attr]
 
 
 @dataclasses.dataclass(frozen=True)
@@ -61,8 +61,8 @@ class Stop(BaseException): ...
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Param[**ParamT]:
-    args: ParamT.args = dataclasses.field(default=tuple)
-    kwargs: ParamT.kwargs = dataclasses.field(default_factory=dict)
+    args: ParamT.args = dataclasses.field(default=tuple)  # type: ignore[valid-type]
+    kwargs: ParamT.kwargs = dataclasses.field(default_factory=dict)  # type: ignore[valid-type]
 
 
 @dataclasses.dataclass(frozen=True)
@@ -110,7 +110,7 @@ class Send[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorated
         match value:
             case Param() as param_: return param_
             case Raise() as raise_: return raise_
-            case Return() as return_: return self.param_t(args=(return_.ret,), kwargs={})
+            case Return() as return_: return self.param_t(args=(return_.ret,), kwargs={})  # type: ignore[return-value]
             case Stop() as stop_: return stop_
 
 
@@ -138,7 +138,7 @@ class Enter[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorate
     def __call__(self, value: Raise | Return[RetT] | Stop, /) -> tuple[()]: ...
     def __call__(self, value: Param[ParamT] | Raise | Return[RetT] | Stop, /) -> tuple[ExitT, DecorateeT] | tuple[()]:
         match value:
-            case Param(): return self.exit_t(enter=self), self.decorated.decoratee,
+            case Param(): return self.exit_t(enter=self), self.decorated.decoratee,  # type: ignore[call-arg, attr-defined]
             case _: return ()
 
 
@@ -157,14 +157,14 @@ class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
     stack: tuple[EnterT | ExitT | ReceiveT | SendT, ...] = ()
 
     def __get__(self, instance: Instance, owner: type[object] | None) -> typing.Self:
-        return dataclasses.replace(self, decoratee=self.decoratee.__get__(instance, owner))
+        return dataclasses.replace(self, decoratee=self.decoratee.__get__(instance, owner))  # type: ignore[attr-defined]
 
     def __or__[**Param2T, Ret2T, Decoratee2T, Receive2T, Send2T, Exit2T, Enter2T, Decorated2T, Decorator2T](
         self,
         decorated: Decorated[Param2T, Ret2T, Decoratee2T, Receive2T, Send2T, Exit2T, Enter2T, Decorated2T, Decorator2T],
         /,
     ) -> Decorated[ParamT, Ret2T, Decoratee[ParamT, Ret2T], Receive2T, Send2T, Exit2T, Enter2T, Decorated2T, Decorator2T]:
-        return dataclasses.replace(
+        return dataclasses.replace(  # type: ignore[return-value]
             decorated,
             __doc__=f'{self.__doc__}\n\n{decorated.__doc__}',
             __module__=f'{self.__module__}, {decorated.__module__}',
@@ -175,15 +175,15 @@ class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
                 return_annotation=decorated.__signature__.return_annotation,
             ),
             stack=(
-                decorated.receive_t(decorated=decorated),
-                self.send_t(decorated=self),
-                *self.create_context(),
-                *self.stack,
+                decorated.receive_t(decorated=decorated),  # type: ignore[call-arg]
+                self.send_t(decorated=self),  # type: ignore[call-arg, arg-type]
+                *self.create_context(),  # type: ignore[arg-type]
+                *self.stack,  # type: ignore[arg-type]
             ),
         )
 
     def create_context(self) -> tuple[DecorateeT | ReceiveT | SendT | ExitT | EnterT | DecoratorT, ...]:
-        return self.enter_t(decorated=self),
+        return self.enter_t(decorated=self),  # type: ignore[call-arg]
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -192,12 +192,12 @@ class Decorator[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
     abc.ABC,
 ):
     def __call__(self, decoratee: DecorateeT, /) -> DecoratedT:
-        return self.decorated_t(
+        return self.decorated_t(  # type: ignore[call-arg]
             __doc__=str(decoratee.__doc__),
             __module__=str(decoratee.__module__),
-            __name__=str(decoratee.__name__),
-            __qualname__=str(decoratee.__qualname__),
-            __signature__=inspect.signature(decoratee),
+            __name__=str(decoratee.__name__),  # type: ignore[attr-defined]
+            __qualname__=str(decoratee.__qualname__),  # type: ignore[attr-defined]
+            __signature__=inspect.signature(decoratee),  # type: ignore[arg-type]
             decoratee=decoratee,
             decorator=self,
         )

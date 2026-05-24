@@ -160,13 +160,13 @@ class Decorated[**ParamT, RetT](
         _Decorator[ParamT, RetT],
     ],
 ):
-    async def __call__(self, *argv: str) -> RetT:
+    async def __call__(self, *argv: str) -> RetT:  # type: ignore[override]
         ret = None
         for call in super(decorator.Decorated, self).__call__(*argv):
             ret = call()
             if inspect.iscoroutine(ret):
                 ret = await ret
-        return ret
+        return ret  # type: ignore[return-value]
 
 
 @typing.final

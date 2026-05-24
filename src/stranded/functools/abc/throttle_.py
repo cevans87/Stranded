@@ -53,19 +53,19 @@ class Exit[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorated
     decorator.Exit[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
     abc.ABC,
 ):
-    def __call__(self, result: Raise | RetT) -> tuple[()]:
-        state = self.enter.decorated.state
+    def __call__(self, result: Raise | RetT) -> tuple[()]:  # type: ignore[override]
+        state = self.enter.decorated.state  # type: ignore[attr-defined]
         if isinstance(result, Raise) and state.num_running <= state.cap_running:
             state.cap_running //= 2
         elif (
             not isinstance(result, Raise)
-            and state.num_running == state.cap_running < self.enter.decorated.decorator.max_running
+            and state.num_running == state.cap_running < self.enter.decorated.decorator.max_running  # type: ignore[attr-defined]
         ):
             state.cap_running += 1
         state.num_running -= 1
 
         if 0 < (n := state.cap_running - state.num_running):
-            self.enter.decorated.condition.notify(n=n)
+            self.enter.decorated.condition.notify(n=n)  # type: ignore[attr-defined]
 
         return ()
 
@@ -96,7 +96,7 @@ class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
                     instance, dataclasses.replace(
                         self,
                         condition=type(self.condition)(),
-                        decoratee=self.decoratee.__get__(instance, owner),
+                        decoratee=self.decoratee.__get__(instance, owner),  # type: ignore[attr-defined]
                         state=State(),
                     )
                 )

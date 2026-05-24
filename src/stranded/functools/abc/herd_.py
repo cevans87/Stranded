@@ -74,11 +74,11 @@ class Enter[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorate
         self, *args: ParamT.args, **kwargs: ParamT.kwargs,
     ) -> tuple[ExitT, DecorateeT] | tuple[Future[RetT]]:
         key = self.create_key(*args, **kwargs)
-        future = self.decorated.future_by_key.get(key)
+        future = self.decorated.future_by_key.get(key)  # type: ignore[attr-defined]
         match future is None:
             case True:
-                future = self.decorated.future_by_key[key] = self.decorated.decorator.future_t()
-                return self.exit_t(enter=self, future=future, key=key), self.decorated.decoratee
+                future = self.decorated.future_by_key[key] = self.decorated.decorator.future_t()  # type: ignore[attr-defined]
+                return self.exit_t(enter=self, future=future, key=key), self.decorated.decoratee  # type: ignore[call-arg, attr-defined]
             case False:
                 return future,
         assert False, "Unreachable"
@@ -99,7 +99,7 @@ class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
             self.decorated_by_instance.setdefault(
                 instance, dataclasses.replace(
                     self,
-                    decoratee=self.decoratee.__get__(instance, owner),
+                    decoratee=self.decoratee.__get__(instance, owner),  # type: ignore[attr-defined]
                     future_by_key={},
                 )
             )
