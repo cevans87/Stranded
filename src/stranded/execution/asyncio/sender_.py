@@ -166,9 +166,9 @@ class Decorated[**ParamT, RetT](
     @abc.abstractmethod
     def connect(
         self,
-        receiver: receiver_.Decorated,
+        receiver: receiver_.Decorated[..., typing.Any],
         /,
-    ) -> operation_state_.Decorated: ...
+    ) -> operation_state_.Decorated[..., typing.Any]: ...
 
 
 @typing.final

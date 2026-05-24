@@ -139,16 +139,16 @@ class _VariadicKeywordParameter[T](_VariadicParameter[T], _KeywordParameter[T]):
 class _ReturnAnnotation[T](_Annotation[T]):
 
     @staticmethod
-    def of_annotation(annotation: type) -> _ReturnAnnotation:
+    def of_annotation(annotation: type) -> _ReturnAnnotation[typing.Any]:
         t: type[T]
 
         match annotation, typing.get_origin(annotation), typing.get_args(annotation):
             case t, None, ():
-                return _ReturnAnnotation(t=t)
+                return _ReturnAnnotation[typing.Any](t=t)
             case _, typing.Annotated, (t, *_, comment):
-                return _ReturnAnnotation(t=t, comment=comment)
+                return _ReturnAnnotation[typing.Any](t=t, comment=comment)
             case _, t, ts:
-                return _ReturnAnnotation(t=t[*ts])
+                return _ReturnAnnotation[typing.Any](t=t[*ts])
             case _:
                 raise RuntimeError(f'{annotation=}. Cannot create return annotation.')
 
@@ -161,17 +161,17 @@ class _ReturnAnnotation[T](_Annotation[T]):
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class _Signature:
-    return_annotation: _ReturnAnnotation
+    return_annotation: _ReturnAnnotation[typing.Any]
 
     # Parameters that are detected by position.
-    optional_positional_parameter_by_name: dict[str, _OptionalPositionalParameter]
-    required_positional_parameter_by_name: dict[str, _RequiredPositionalParameter]
-    variadic_positional_parameter: _VariadicPositionalParameter | None
+    optional_positional_parameter_by_name: dict[str, _OptionalPositionalParameter[typing.Any]]
+    required_positional_parameter_by_name: dict[str, _RequiredPositionalParameter[typing.Any]]
+    variadic_positional_parameter: _VariadicPositionalParameter[typing.Any] | None
 
     # Flags that are detected by two leading dashes.
-    optional_keyword_parameter_by_name: dict[str, _OptionalKeywordParameter]
-    required_keyword_parameter_by_name: dict[str, _RequiredKeywordParameter]
-    variadic_keyword_parameter: _VariadicKeywordParameter | None
+    optional_keyword_parameter_by_name: dict[str, _OptionalKeywordParameter[typing.Any]]
+    required_keyword_parameter_by_name: dict[str, _RequiredKeywordParameter[typing.Any]]
+    variadic_keyword_parameter: _VariadicKeywordParameter[typing.Any] | None
 
     ReturnAnnotation: typing.ClassVar = _ReturnAnnotation
 
@@ -184,7 +184,7 @@ class _Signature:
     VariadicKeywordParameter: typing.ClassVar = _VariadicKeywordParameter
 
     @property
-    def variadic_parameter_by_name(self) -> dict[str, _VariadicParameter]:
+    def variadic_parameter_by_name(self) -> dict[str, _VariadicParameter[typing.Any]]:
         return {
             parameter.name: parameter
             for parameter in (self.variadic_positional_parameter, self.variadic_keyword_parameter)
@@ -192,19 +192,19 @@ class _Signature:
         }
 
     @property
-    def keyword_parameter_by_name(self) -> dict[str, _KeywordParameter]:
+    def keyword_parameter_by_name(self) -> dict[str, _KeywordParameter[typing.Any]]:
         return self.optional_keyword_parameter_by_name | self.required_keyword_parameter_by_name
 
     @property
-    def positional_parameter_by_name(self) -> dict[str, _StackedParameter]:
+    def positional_parameter_by_name(self) -> dict[str, _StackedParameter[typing.Any]]:
         return self.optional_positional_parameter_by_name | self.required_positional_parameter_by_name
 
     @property
-    def parameter_by_name(self) -> dict[str, _Parameter]:
+    def parameter_by_name(self) -> dict[str, _Parameter[typing.Any]]:
         return self.variadic_parameter_by_name | self.keyword_parameter_by_name | self.positional_parameter_by_name
 
     @property
-    def annotations(self) -> tuple[_Annotation, ...]:
+    def annotations(self) -> tuple[_Annotation[typing.Any], ...]:
         return self.return_annotation, *self.parameter_by_name.values()
 
     def __call__(self, *argv: str) -> _BoundSignature:
@@ -285,12 +285,12 @@ class _Signature:
 
     @staticmethod
     def of_signature(signature: inspect.Signature, /) -> _Signature:
-        variadic_keyword_parameter: _VariadicKeywordParameter | None = None
-        variadic_positional_parameter: _VariadicPositionalParameter | None = None
-        optional_keyword_parameter_by_name: dict[str, _OptionalKeywordParameter] = {}
-        required_keyword_parameter_by_name: dict[str, _RequiredKeywordParameter] = {}
-        optional_positional_parameter_by_name: dict[str, _OptionalPositionalParameter] = {}
-        required_positional_parameter_by_name: dict[str, _RequiredPositionalParameter] = {}
+        variadic_keyword_parameter: _VariadicKeywordParameter[typing.Any] | None = None
+        variadic_positional_parameter: _VariadicPositionalParameter[typing.Any] | None = None
+        optional_keyword_parameter_by_name: dict[str, _OptionalKeywordParameter[typing.Any]] = {}
+        required_keyword_parameter_by_name: dict[str, _RequiredKeywordParameter[typing.Any]] = {}
+        optional_positional_parameter_by_name: dict[str, _OptionalPositionalParameter[typing.Any]] = {}
+        required_positional_parameter_by_name: dict[str, _RequiredPositionalParameter[typing.Any]] = {}
 
         for parameter in reversed(signature.parameters.values()):
             match parameter:
@@ -315,7 +315,7 @@ class _Signature:
                     variadic_positional_parameter = _VariadicPositionalParameter.of_parameter(parameter)
 
         return _Signature(
-            return_annotation=_ReturnAnnotation.of_annotation(signature.return_annotation),
+            return_annotation=_ReturnAnnotation[typing.Any].of_annotation(signature.return_annotation),
             optional_positional_parameter_by_name=optional_positional_parameter_by_name,
             required_positional_parameter_by_name=required_positional_parameter_by_name,
             optional_keyword_parameter_by_name=optional_keyword_parameter_by_name,
@@ -384,7 +384,7 @@ class _BoundSignature(_Signature):
     variadic_positional_values: list[object]
     variadic_keyword_value_by_name: dict[str, object]
 
-    def __call__(self, decorateds: typing.Iterable[Decorated]) -> typing.Iterable[typing.Callable]:
+    def __call__(self, decorateds: typing.Iterable[Decorated[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any]]) -> typing.Iterable[typing.Callable[..., typing.Any]]:
         for decorated in decorateds:
             decoratee_signature = inspect.signature(decorated.decoratee)
             yield lambda: decorated.decoratee(
@@ -452,10 +452,10 @@ class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
     decorator.Decorated[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
     abc.ABC,
 ):
-    children: tuple[Decorated, Decorated] | None = None
+    children: tuple[typing.Self, typing.Self] | None = None
 
     @property
-    def decorateds(self) -> tuple[Decorated, ...]:
+    def decorateds(self) -> tuple[typing.Self, ...]:
         match self.children:
             case None:
                 return self,
@@ -464,14 +464,14 @@ class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
             case _:
                 raise RuntimeError(f'{self.children=}. Expected {self.__annotations__['children']}')
 
-    def __call__(self, *argv: str) -> typing.Iterable[typing.Callable]:
+    def __call__(self, *argv: str) -> typing.Iterable[typing.Callable[..., typing.Any]]:
         yield from self.to_signature()(*argv)(self.decorateds)
 
 
-    def __or__[DecoratedT: Decorated](self, other: DecoratedT) -> DecoratedT:
+    def __or__[DecoratedT: Decorated[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any]](self, other: DecoratedT) -> DecoratedT:
         return dataclasses.replace(other, children=(self, other))
 
-    def __xor__[DecoratedT: Decorated](self, other: DecoratedT) -> DecoratedT:
+    def __xor__[DecoratedT: Decorated[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any]](self, other: DecoratedT) -> DecoratedT:
         # TODO make this mark flags in the two CLI's as mutually exclusive.
         ...
 
@@ -497,7 +497,7 @@ class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class ArgumentParser[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
-    decorator.Decorator[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorated, DecoratorT],
+    decorator.Decorator[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
     abc.ABC,
 ):
     LogLevel = typing.Annotated[
