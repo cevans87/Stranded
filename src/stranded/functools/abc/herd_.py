@@ -12,7 +12,6 @@ type GenerateKey = typing.Callable[..., Key]
 type Key = typing.Hashable
 
 
-DecoratorException = decorator.DecoratorException
 Raise = decorator.Raise
 Stop = decorator.Stop
 Param = decorator.Param

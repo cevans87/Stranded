@@ -10,9 +10,6 @@ type Instance = object
 type Name = typing.Annotated[str, annotated_types.Predicate(str.isidentifier)]  # noqa
 
 
-class DecoratorException(Exception): ...
-
-
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Base[DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](abc.ABC):
     @property

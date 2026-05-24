@@ -6,9 +6,10 @@ import sys
 import typing
 
 from ...abc import decorator
+from ...builtins import exception_
 
 
-class Exception(decorator.DecoratorException): ...  # noqa
+class Exception(exception_.Exception): ...  # noqa
 
 
 @typing.runtime_checkable
