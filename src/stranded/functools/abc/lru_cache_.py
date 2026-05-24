@@ -91,7 +91,7 @@ class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
             self.decorated_by_instance.setdefault(
                 instance, dataclasses.replace(
                     self,
-                    decoratee=self.decoratee.__get__(instance, owner),  # type: ignore[attr-defined]
+                    decoratee=self.decoratee.__get__(instance, owner),
                     future_by_key=collections.OrderedDict(),
                 )
             )

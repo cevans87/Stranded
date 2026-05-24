@@ -79,7 +79,7 @@ class Receive[**ParamT, RetT](
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Exit[**ParamT, RetT](  # type: ignore[misc]
+class Exit[**ParamT, RetT](
     decorator.Exit[
         ParamT,
         RetT,
@@ -107,7 +107,7 @@ class Exit[**ParamT, RetT](  # type: ignore[misc]
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Enter[**ParamT, RetT](  # type: ignore[misc]
+class Enter[**ParamT, RetT](
     decorator.Enter[
         ParamT,
         RetT,

@@ -51,20 +51,20 @@ class Exit[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorated
     bound_arguments: inspect.BoundArguments
 
     @abc.abstractmethod
-    def __call__(self, result: Raise | RetT) -> tuple[()]:  # type: ignore[override]
+    def __call__(self, result: Raise | RetT) -> tuple[()]:
         if isinstance(result, Raise):
-            self.enter.decorated.decorator.logger.log(  # type: ignore[attr-defined]
-                logging.getLevelNamesMapping()[self.enter.decorated.decorator.err_level],  # type: ignore[attr-defined]
+            self.enter.decorated.decorator.logger.log(
+                logging.getLevelNamesMapping()[self.enter.decorated.decorator.err_level],
                 '%s :: %s !! %s',
-                self.enter.decorated.__signature__,  # type: ignore[attr-defined]
+                self.enter.decorated.__signature__,
                 self.bound_arguments.arguments,
                 result.exc_val,
             )
         else:
-            self.enter.decorated.decorator.logger.log(  # type: ignore[attr-defined]
-                logging.getLevelNamesMapping()[self.enter.decorated.decorator.ok_level],  # type: ignore[attr-defined]
+            self.enter.decorated.decorator.logger.log(
+                logging.getLevelNamesMapping()[self.enter.decorated.decorator.ok_level],
                 '%s :: %s -> %s',
-                self.enter.decorated.__signature__,  # type: ignore[attr-defined]
+                self.enter.decorated.__signature__,
                 self.bound_arguments.arguments,
                 result,
             )
@@ -78,16 +78,16 @@ class Enter[** ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorat
     abc.ABC,
 ):
     @abc.abstractmethod
-    def __call__(self, *args: ParamT.args, **kwargs: ParamT.kwargs) -> tuple[ExitT, DecorateeT]:  # type: ignore[override]
-        bound_arguments = self.decorated.__signature__.bind(*args, **kwargs)  # type: ignore[attr-defined]
+    def __call__(self, *args: ParamT.args, **kwargs: ParamT.kwargs) -> tuple[ExitT, DecorateeT]:
+        bound_arguments = self.decorated.__signature__.bind(*args, **kwargs)
 
-        self.decorated.decorator.logger.log(  # type: ignore[attr-defined]
-            logging.getLevelNamesMapping()[self.decorated.decorator.call_level],  # type: ignore[attr-defined]
+        self.decorated.decorator.logger.log(
+            logging.getLevelNamesMapping()[self.decorated.decorator.call_level],
             '%s',
             bound_arguments,
         )
 
-        return self.decorated.decorator.exit_t(enter=self, bound_arguments=bound_arguments), self.decorated.decoratee,  # type: ignore[attr-defined]
+        return self.decorated.decorator.exit_t(enter=self, bound_arguments=bound_arguments), self.decorated.decoratee,
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -107,7 +107,7 @@ class Logger[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorat
     err_level: Level = 'ERROR'
     ok_level: Level = 'INFO'
 
-    Level: typing.ClassVar[type[Level]] = Level  # type: ignore[assignment, valid-type]
+    Level: typing.ClassVar[type[Level]] = Level
 
 
 Decorator = Logger

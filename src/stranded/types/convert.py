@@ -59,7 +59,7 @@ class Convert[T]:
         match self.t:
             case types.NoneType | None:
                 assert arg is None, f'{self} expected `None`, got `{arg}`.'
-                return arg  # type: ignore[return-value]
+                return arg
             case builtins.bool | builtins.int | builtins.float | builtins.str:
                 assert isinstance(arg, self.t), f'{self} expected `{self.t}`, got `{arg}`'
                 return arg
@@ -67,9 +67,9 @@ class Convert[T]:
                 assert isinstance(arg, str) and hasattr(t, arg), (
                     f'{self} expected `{typing.Literal[*t._member_names_]}`, got `{type(arg)}`'  # noqa
                 )
-                return getattr(t, arg)  # type: ignore[no-any-return]
+                return getattr(t, arg)
             case t:
-                return t(arg)  # type: ignore[call-arg]
+                return t(arg)
 
     def _using_type_alias(self, args: _Args, /) -> T:
         match typing.get_origin(self.t), typing.get_args(self.t):
@@ -77,65 +77,65 @@ class Convert[T]:
                 assert isinstance(args, dict), (
                     f'{self} expected `dict[{key_t}, {value_t}]`, got `{args}`'
                 )
-                return {  # type: ignore[return-value]
+                return {
                     Convert(t=key_t)._from_arg(key): Convert(t=value_t)._from_arg(value)
                     for key, value in args.items()
                 }
 
             case builtins.frozenset, (t,):
                 assert isinstance(args, (set, frozenset)), (
-                    f'{self} expected `{frozenset[t]}`, got `{args}`.'  # type: ignore[valid-type]
+                    f'{self} expected `{frozenset[t]}`, got `{args}`.'
                 )
-                return frozenset({Convert(t=t)._from_arg(arg) for arg in args})  # type: ignore[return-value]
+                return frozenset({Convert(t=t)._from_arg(arg) for arg in args})
 
             case builtins.list, (t,):
                 assert isinstance(args, list), (
-                    f'{self} expected `{list[t]}`, got `{args}`.'  # type: ignore[valid-type]
+                    f'{self} expected `{list[t]}`, got `{args}`.'
                 )
-                return list(Convert(t=t)._from_arg(arg) for arg in args)  # type: ignore[return-value]
+                return list(Convert(t=t)._from_arg(arg) for arg in args)
 
             case builtins.tuple, ():
-                assert args == tuple(), (  # type: ignore[comparison-overlap]
+                assert args == tuple(), (
                     f'{self} expected `{tuple[()]}`, got `{args}`.'
                 )
-                return args  # type: ignore[return-value]
+                return args
             case builtins.tuple, (t,):
                 assert isinstance(args, tuple) and len(args) == 1, (
-                    f'{self} expected `{tuple[t]}`, got `{args}`.'  # type: ignore[valid-type]
+                    f'{self} expected `{tuple[t]}`, got `{args}`.'
                 )
                 return tuple([Convert(t=t)._from_arg(args[0])])
             case builtins.tuple, (t, builtins.Ellipsis):
                 assert isinstance(args, tuple), (
-                    f'{self} expected `{tuple[t, ...]}`, got `{args}`.'  # type: ignore[valid-type]
+                    f'{self} expected `{tuple[t, ...]}`, got `{args}`.'
                 )
                 return tuple([Convert(t=t)._from_arg(value) for value in args])
             case builtins.tuple, (t, *ts):
                 assert isinstance(args, tuple) and len(args) > 0, (
-                    f'{self} expected `{tuple[t, *ts]}`, got `{args}`.'  # type: ignore[valid-type]
+                    f'{self} expected `{tuple[t, *ts]}`, got `{args}`.'
                 )
-                return Convert(t=t)._from_arg(args[0]), *Convert(t=tuple[*ts])._from_arg(args[1:])  # type: ignore[valid-type]
+                return Convert(t=t)._from_arg(args[0]), *Convert(t=tuple[*ts])._from_arg(args[1:])
 
             case builtins.set, (t,):
                 assert isinstance(args, (set, frozenset)), (
-                    f'{self} expected `{set[t]}`, got `{args}`.'  # type: ignore[valid-type]
+                    f'{self} expected `{set[t]}`, got `{args}`.'
                 )
-                return set({Convert(t=t)._from_arg(arg) for arg in args})  # type: ignore[return-value]
+                return set({Convert(t=t)._from_arg(arg) for arg in args})
 
             case(typing.Union | types.UnionType), ts:
                 assert type(args) in ts, (
                     f'{self} expected `{typing.Union[*ts]}`, got `{args}`.'
                 )
-                return args  # type: ignore[return-value]
+                return args
             case typing.Literal, vs:
                 assert args in vs, (
                     f'{self} expected `{typing.Literal[*vs]}`, got `{args}`.'  # noqa
                 )
-                return args  # type: ignore[return-value]
+                return args
 
             case t, (t_,):
-                return t(Convert(t=t_)._from_arg(args))  # type: ignore[misc, no-any-return]
+                return t(Convert(t=t_)._from_arg(args))
             case t, ts:
-                return t(*(Convert(t=t)._from_arg(arg) for t, arg in zip(ts, args)))  # type: ignore[arg-type, misc, no-any-return]
+                return t(*(Convert(t=t)._from_arg(arg) for t, arg in zip(ts, args)))
 
 
     def _from_arg(self, arg: _Args, /) -> T:
@@ -146,7 +146,7 @@ class Convert[T]:
 
         if self.t != str:
             try:
-                arg: Convert._Args = ast.literal_eval(arg)  # type: ignore[no-redef]
+                arg: Convert._Args = ast.literal_eval(arg)
             except (SyntaxError, ValueError,):
                 pass
 

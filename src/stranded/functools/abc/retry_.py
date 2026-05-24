@@ -44,9 +44,9 @@ class Exit[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorated
     decorator.Exit[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
     abc.ABC,
 ):
-    def __call__(self, value: Param[ParamT] | Raise | Return[RetT] | Stop) -> tuple[()] | tuple[EnterT, Param[ParamT]]:  # type: ignore[override]
-        if self.enter.n_retried < self.enter.decorated.decorator.n and isinstance(value, Raise):  # type: ignore[attr-defined]
-            return dataclasses.replace(self.enter, n_retried=self.enter.n_retried + 1), self.enter.param  # type: ignore[attr-defined, type-var]
+    def __call__(self, value: Param[ParamT] | Raise | Return[RetT] | Stop) -> tuple[()] | tuple[EnterT, Param[ParamT]]:
+        if self.enter.n_retried < self.enter.decorated.decorator.n and isinstance(value, Raise):
+            return dataclasses.replace(self.enter, n_retried=self.enter.n_retried + 1), self.enter.param
 
         return ()
 
@@ -59,11 +59,11 @@ class Enter[** ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorat
     n_retried: int = 0
     param: Param[ParamT] | None = None
 
-    def __call__(self, value: Param[ParamT] | Raise | Return[RetT] | Stop) -> tuple[ExitT, DecorateeT] | tuple[()]:  # type: ignore[override]
+    def __call__(self, value: Param[ParamT] | Raise | Return[RetT] | Stop) -> tuple[ExitT, DecorateeT] | tuple[()]:
         match value:
             case Param() as param_:
                 new_self = dataclasses.replace(self, param=param_)
-                return new_self.exit_t(enter=new_self), self.decorated.decoratee  # type: ignore[call-arg, attr-defined]
+                return new_self.exit_t(enter=new_self), self.decorated.decoratee
             case _: return ()
 
 
