@@ -10,31 +10,22 @@ type Instance = object
 type Name = typing.Annotated[str, annotated_types.Predicate(str.isidentifier)]  # noqa
 
 
-class Exception(Exception): ...  # noqa
-
-
-@dataclasses.dataclass(frozen=True)
-class Raise:
-    exc_type: type[BaseException]
-    exc_val: BaseException
-    exc_tb: types.TracebackType
-
-
-@typing.runtime_checkable
-class Decoratee[**ParamT, RetT](typing.Protocol):
-    def __call__(self, *args: ParamT.args, **kwargs: ParamT.kwargs) -> RetT: ...
-    def __get__(self, instance: Instance, owner) -> typing.Self: ...
+class DecoratorException(Exception): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Base[DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](abc.ABC):
     @property
-    def decoratee_t(self) -> type[DecorateeT]:
-        return inspect.getmodule(type(self)).Decoratee
+    def param_t(self) -> type[Param]:
+        return Param
 
     @property
-    def param_t(self) -> type[Param]:
-        return inspect.getmodule(type(self)).Param
+    def return_t(self) -> type[Return]:
+        return Return
+
+    @property
+    def decoratee_t(self) -> type[DecorateeT]:
+        return inspect.getmodule(type(self)).Decoratee
 
     @property
     def receive_t(self) -> type[ReceiveT]:
@@ -61,11 +52,32 @@ class Base[DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](a
         return inspect.getmodule(type(self)).Decorator
 
 
+@dataclasses.dataclass(frozen=True)
+class Raise:
+    exc_type: type[BaseException]
+    exc_val: BaseException
+    exc_tb: types.TracebackType
+
+
+@dataclasses.dataclass(frozen=True)
+class Stop(BaseException): ...
+
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Param[**ParamT]:
     args: ParamT.args = dataclasses.field(default=tuple)
     kwargs: ParamT.kwargs = dataclasses.field(default_factory=dict)
+
+
+@dataclasses.dataclass(frozen=True)
+class Return[RetT]:
+    ret: RetT
+
+
+@typing.runtime_checkable
+class Decoratee[**ParamT, RetT](typing.Protocol):
+    def __call__(self, *args: ParamT.args, **kwargs: ParamT.kwargs) -> RetT: ...
+    def __get__(self, instance: Instance, owner) -> typing.Self: ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -75,8 +87,16 @@ class Receive[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decora
 ):
     decorated: DecoratedT
 
-    def __call__(self, *args: ParamT.args, **kwargs: ParamT.kwargs) -> Param[ParamT]:
-        return self.param_t(args=args, kwargs=kwargs)
+    def __call__[SRetT, **SParamT](
+        self,
+        value: Param[ParamT] | Raise | Return[SRetT] | Stop,
+        /,
+    ) -> Param[ParamT] | Raise | Param[typing.Concatenate[SRetT, SParamT]] | Stop:
+        match value:
+            case Param() as param_: return param_
+            case Raise() as raise_: return raise_
+            case Return() as return_: return Param(args=(return_.ret,), kwargs={})  # noqa
+            case Stop() as stop_: return stop_
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -86,8 +106,16 @@ class Send[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorated
 ):
     decorated: DecoratedT
 
-    def __call__(self, result: Raise | RetT) -> Param[ParamT]:
-        return self.param_t(args=(result,), kwargs={})
+    def __call__[**RParamT](
+        self,
+        value: Param[ParamT] | Raise | Return[RetT] | Stop,
+        /,
+    ) -> Param[ParamT] | Raise | Param[typing.Concatenate[RetT, RParamT]] | Stop:
+        match value:
+            case Param() as param_: return param_
+            case Raise() as raise_: return raise_
+            case Return() as return_: return self.param_t(args=(return_.ret,), kwargs={})  # noqa
+            case Stop() as stop_: return stop_
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -97,7 +125,7 @@ class Exit[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorated
 ):
     enter: EnterT
 
-    def __call__(self, result: Raise | RetT) -> tuple[()]:
+    def __call__(self, value: Param[ParamT] | Raise | Return[RetT] | Stop) -> tuple[()]:
         return ()
 
 
@@ -108,8 +136,14 @@ class Enter[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorate
 ):
     decorated: DecoratedT
 
-    def __call__(self, *args: ParamT.args, **kwargs: ParamT.kwargs) -> tuple[ExitT, DecorateeT]:
-        return self.exit_t(enter=self), self.decorated.decoratee,
+    @typing.overload
+    def __call__(self, value: Param[ParamT], /) -> tuple[ExitT, DecorateeT]: ...
+    @typing.overload
+    def __call__(self, value: Raise | Return[RetT] | Stop, /) -> tuple[()]: ...
+    def __call__(self, value, /):
+        match value:
+            case Param(): return self.exit_t(enter=self), self.decorated.decoratee,
+            case _: return ()
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -124,7 +158,7 @@ class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
     __signature__: inspect.Signature
     decoratee: DecorateeT
     decorator: DecoratorT
-    stack: tuple[Decorated | Receive | Send, ...] = ()
+    stack: tuple[EnterT | ExitT | ReceiveT | SendT, ...] = ()
 
     def __get__(self, instance: Instance, owner) -> typing.Self:
         return dataclasses.replace(self, decoratee=self.decoratee.__get__(instance, owner))
@@ -137,17 +171,20 @@ class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
         return dataclasses.replace(
             decorated,
             __doc__=f'{self.__doc__}\n\n{decorated.__doc__}',
-            __module__ = f'{self.__module__}, {decorated.__module__}',
-            __name__ = f'{self.__name__}, {decorated.__name__}',
-            __qualname__ = f'{self.__qualname__}, {decorated.__qualname__}',
-            __signature__ = inspect.Signature().replace(
-                parameters = list(self.__signature__.parameters.values()),
-                return_annotation = decorated.__signature__.return_annotation,
+            __module__=f'{self.__module__}, {decorated.__module__}',
+            __name__=f'{self.__name__}, {decorated.__name__}',
+            __qualname__=f'{self.__qualname__}, {decorated.__qualname__}',
+            __signature__=inspect.Signature().replace(
+                parameters=list(self.__signature__.parameters.values()),
+                return_annotation=decorated.__signature__.return_annotation,
             ),
-            stack=(decorated.receive_t(decorated=decorated), self.send_t(decorated=self), self, *self.stack),
+            stack=(
+                decorated.receive_t(decorated=decorated),
+                self.send_t(decorated=self),
+                *self.create_context(),
+                *self.stack,
+            ),
         )
-
-
 
     def create_context(self) -> tuple[DecorateeT | ReceiveT | SendT | ExitT | EnterT | DecoratorT, ...]:
         return self.enter_t(decorated=self),

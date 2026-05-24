@@ -12,13 +12,18 @@ type GenerateKey = typing.Callable[..., Key]
 type Key = typing.Hashable
 
 
-class Exception(decorator.Exception): ...  # noqa
+DecoratorException = decorator.DecoratorException
+Raise = decorator.Raise
+Stop = decorator.Stop
+Param = decorator.Param
+Return = decorator.Return
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Future(abc.ABC):
+class Future[RetT](abc.ABC):
+
     @abc.abstractmethod
-    def set_result(self, value: typing.Any) -> None: ...
+    def set_value(self, value: Return[RetT] | Raise | Stop) -> None: ...
 
     @abc.abstractmethod
     def __call__(self, *args: typing.Any, **kwargs: typing.Any) -> typing.Any: ...

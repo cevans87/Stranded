@@ -110,12 +110,16 @@ class Exit[**ParamT, RetT](
         _Future[RetT],
     ],
 ):
-    def __call__(self, result: decorator.Raise | RetT) -> tuple[()]:
+    def __call__(self, value: decorator.Param | decorator.Raise | decorator.Return | decorator.Stop) -> tuple[()]:
         future_by_key = self.enter.decorated.future_by_key
         while self.enter.decorated.decorator.size <= len(future_by_key):
             future_by_key.popitem(last=False)
         future = concurrent.futures.Future()
-        future.set_result(result)
+        match value:
+            case decorator.Return(ret=ret): future.set_result(ret)
+            case decorator.Raise() as raise_: future.set_exception(raise_.exc_val)
+            case decorator.Stop() as stop_: future.set_exception(stop_)
+            case decorator.Param(): return ()
         future_by_key[self.key] = future
 
         return ()
@@ -149,17 +153,17 @@ class Enter[**ParamT, RetT](
 ):
     # TODO: Dedup this with the asyncio version.
     def __call__(
-        self, *args: ParamT.args, **kwargs: ParamT.kwargs,
-    ) -> tuple[_Exit[ParamT, RetT], _Decoratee[ParamT, RetT]] | tuple[typing.Callable[ParamT, RetT]]:
-        key = self.create_key(*args, **kwargs)
-        future = self.decorated.future_by_key.get(key)
-        match future is None:
-            case True:
-                return self.exit_t(enter=self, key=key), self.decorated.decoratee
-            case False:
+        self, value: decorator.Param | decorator.Raise | decorator.Return | decorator.Stop,
+    ) -> tuple[_Exit[ParamT, RetT], _Decoratee[ParamT, RetT]] | tuple[typing.Callable[ParamT, RetT]] | tuple[()]:
+        match value:
+            case decorator.Param():
+                key = self.create_key(*value.args, **value.kwargs)
+                future = self.decorated.future_by_key.get(key)
+                if future is None:
+                    return self.exit_t(enter=self, key=key), self.decorated.decoratee
                 self.decorated.future_by_key.move_to_end(key)
                 return (lambda *_args, **_kwargs: future.result()),
-        assert False, "Unreachable"
+            case _: return ()
 
 
 @typing.final

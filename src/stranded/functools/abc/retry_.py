@@ -8,7 +8,7 @@ import typing
 from ...abc import decorator
 
 
-class Exception(decorator.Exception): ...  # noqa
+class Exception(decorator.DecoratorException): ...  # noqa
 
 
 @typing.runtime_checkable
@@ -37,10 +37,9 @@ class Exit[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorated
     decorator.Exit[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
     abc.ABC,
 ):
-    @abc.abstractmethod
-    def __call__(self, result: decorator.Raise | RetT) -> () | tuple[EnterT]:
-        if self.enter.n_retried < self.enter.decorated.decorator.n and isinstance(result, decorator.Raise):
-            return dataclasses.replace(self.enter, n_retried=self.enter.n_retried + 1),
+    def __call__(self, value: decorator.Param | decorator.Raise | decorator.Return | decorator.Stop) -> tuple[()] | tuple[EnterT, decorator.Param]:
+        if self.enter.n_retried < self.enter.decorated.decorator.n and isinstance(value, decorator.Raise):
+            return dataclasses.replace(self.enter, n_retried=self.enter.n_retried + 1), self.enter.param
 
         return ()
 
@@ -49,7 +48,16 @@ class Exit[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorated
 class Enter[** ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
     decorator.Enter[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
     abc.ABC,
-): n_retried: int = 0
+):
+    n_retried: int = 0
+    param: decorator.Param | None = None
+
+    def __call__(self, value: decorator.Param | decorator.Raise | decorator.Return | decorator.Stop) -> tuple[ExitT, DecorateeT] | tuple[()]:
+        match value:
+            case decorator.Param() as param_:
+                new_self = dataclasses.replace(self, param=param_)
+                return new_self.exit_t(enter=new_self), self.decorated.decoratee
+            case _: return ()
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)

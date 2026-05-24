@@ -15,7 +15,11 @@ type GenerateKey = typing.Callable[..., Key]
 type Key = typing.Hashable
 
 
-class Exception(decorator.Exception): ...  # noqa
+DecoratorException = decorator.DecoratorException
+Raise = decorator.Raise
+Stop = decorator.Stop
+Param = decorator.Param
+Return = decorator.Return
 
 
 @typing.runtime_checkable
@@ -47,17 +51,19 @@ class Exit[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorated
     key: str
 
     @abc.abstractmethod
-    def __call__(self, result: decorator.Raise | RetT) -> ():
-        if not isinstance(result, decorator.Raise):
-            assert self.enter.decorated.decorator.deserialize(
-                value := self.enter.decorated.decorator.serialize(result)
-            ) == result, 'Return value must be deserializable from its serialized form.'
+    def __call__(self, value: Param[ParamT] | Raise | Return[RetT] | Stop) -> tuple[()]:
+        match value:
+            case Param() | Raise() | Stop(): pass
+            case Return():
+                assert self.enter.decorated.decorator.deserialize(
+                    ret := self.enter.decorated.decorator.serialize(value.ret)
+                ) == value.ret, 'Return value must be deserializable from its serialized form.'
 
-            with self.enter.decorated.lock:
-                self.enter.decorated.connection.execute(
-                    f'INSERT INTO `{self.enter.decorated.table_name}` (key, value) VALUES (?, ?)',  # noqa
-                    (self.key, value,)
-                )
+                with self.enter.decorated.lock:
+                    self.enter.decorated.connection.execute(
+                        f'INSERT INTO `{self.enter.decorated.table_name}` (key, ret) VALUES (?, ?)',  # noqa
+                        (self.key, ret,)
+                    )
 
         return ()
 
@@ -67,20 +73,29 @@ class Enter[** ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorat
     decorator.Enter[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
     abc.ABC,
 ):
+    @typing.overload
+    def __call__(self, value: Param[ParamT], /) -> tuple[ExitT, DecorateeT]: ...
+    @typing.overload
+    def __call__(self, value: Raise | Return[RetT] | Stop, /) -> tuple[Return[RetT]]: ...
     @abc.abstractmethod
-    def __call__(self, *args: ParamT.args, **kwargs: ParamT.kwargs) -> tuple[RetT] | tuple[ExitT, DecorateeT]:
-        (bound := inspect.signature(self.decorated.decoratee).bind(*args, **kwargs)).apply_defaults()
-        key = repr((self.decorated.instance, bound.args, tuple(sorted(bound.kwargs))))
+    def __call__(self, value: Param[ParamT] | Raise | Return[RetT] | Stop, /):
+        match value:
+            case Raise() | Return() | Stop(): return ()
+            case Param():
+                (bound := inspect.signature(self.decorated.decoratee).bind(*value.args, **value.kwargs)).apply_defaults()
+                key = repr((self.decorated.instance, bound.args, tuple(sorted(bound.kwargs))))
 
-        with self.decorated.lock:
-            value = self.decorated.connection.execute(
-                f'SELECT value FROM `{self.decorated.table_name}` WHERE key = ?',  # noqa
-                (key,),
-            ).fetchone()
-        if value:
-            return self.decorated.decorator.serialize(value[0])
+                with self.decorated.lock:
+                    ret = self.decorated.connection.execute(
+                        f'SELECT ret FROM `{self.decorated.table_name}` WHERE key = ?',  # noqa
+                        (key,),
+                    ).fetchone()
+                if ret:
+                    return Return(ret=self.decorated.decorator.serialize(ret[0])),
 
-        return self.exit_t(enter=self, key=key), self.decorated.decoratee,
+                return self.exit_t(enter=self, key=key), self.decorated.decoratee,
+
+        raise ValueError(f'Invalid {value=}')
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -113,7 +128,7 @@ class Db[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT,
         table_name = f'{decoratee.__module__}.{decoratee.__qualname__}.{self.version}'
         (connection := sqlite3.connect(self.path, check_same_thread=False, isolation_level=None)).execute(
             f'CREATE TABLE IF NOT EXISTS `{table_name}` '  # noqa
-            f'(key STRING PRIMARY KEY NOT NULL UNIQUE, value STRING NOT NULL)',  # noqa
+            f'(key STRING PRIMARY KEY NOT NULL UNIQUE, ret STRING NOT NULL)',  # noqa
         )
 
         return self.decorated_t(

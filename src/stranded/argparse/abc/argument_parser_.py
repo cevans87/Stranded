@@ -408,7 +408,7 @@ class _BoundSignature(_Signature):
             )
 
 
-class Exception(decorator.Exception): ...  # noqa
+class Exception(decorator.DecoratorException): ...  # noqa
 
 
 @typing.runtime_checkable

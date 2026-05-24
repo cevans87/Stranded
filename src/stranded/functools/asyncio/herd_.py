@@ -16,6 +16,13 @@ type _Decorator[**ParamT, RetT] = Herd[ParamT, RetT]
 type _Future[RetT] = Future[RetT]
 
 
+DecoratorException = decorator.DecoratorException
+Raise = decorator.Raise
+Stop = decorator.Stop
+Param = decorator.Param
+Return = decorator.Return
+
+
 @typing.runtime_checkable
 class Decoratee[**ParamT, RetT](
     decorator.Decoratee[ParamT, RetT],
@@ -30,12 +37,15 @@ class Future[RetT](herd_.Future):
     future: asyncio.Future[RetT] = dataclasses.field(default_factory=asyncio.Future)
 
     @typing.override
-    def set_result(self, value: decorator.Raise | RetT) -> None:
-        self.future.set_result(value)
+    def set_value(self, value: Return[RetT] | Raise | Stop) -> None:
+        match value:
+            case Return(ret=ret): self.future.set_result(ret)
+            case Raise() as raise_: self.future.set_exception(raise_.exc_val)
+            case Stop() as stop_: self.future.set_exception(stop_)
 
     @typing.override
-    def __call__(self, *args: typing.Any, **kwargs: typing.Any) -> asyncio.Future[RetT]:
-        return self.future
+    async def __call__(self, *args: typing.Any, **kwargs: typing.Any) -> RetT:
+        return await self.future
 
 
 @typing.final
@@ -126,9 +136,11 @@ class Exit[**ParamT, RetT](
     future: _Future[RetT] = dataclasses.field(default_factory=Future)
 
     @typing.override
-    async def __call__(self, result: decorator.Raise | RetT) -> tuple[()]:
+    async def __call__(self, value: Param | Raise | Return | Stop) -> tuple[()]:
         self.enter.decorated.future_by_key.pop(self.key, None)
-        self.future.set_result(result)
+        match value:
+            case Param(): pass
+            case Return() | Raise() | Stop(): self.future.set_value(value)
 
         return ()
 
@@ -161,9 +173,11 @@ class Enter[**ParamT, RetT](
 ):
     @typing.override
     async def __call__(
-        self, *args: ParamT.args, **kwargs: ParamT.kwargs,
-    ) -> tuple[_Exit[ParamT, RetT], _Decoratee[ParamT, RetT]] | tuple[_Future[RetT]]:
-        return self._dispatch(*args, **kwargs)
+        self, value: Param | Raise | Return | Stop,
+    ) -> tuple[_Exit[ParamT, RetT], _Decoratee[ParamT, RetT]] | tuple[_Future[RetT]] | tuple[()]:
+        match value:
+            case Param(): return self._dispatch(*value.args, **value.kwargs)
+            case _: return ()
 
 
 @typing.final
