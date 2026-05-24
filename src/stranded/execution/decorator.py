@@ -48,7 +48,7 @@ class Decorator[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
 
         if any_async:
             self_ = dataclasses.replace(self, **{k: _to_async(v) for k, v in promotable.items()})
-            decoratee = _to_async(decoratee)
+            decoratee = _to_async(decoratee)  # type: ignore[arg-type]
             target = 'asyncio'
         else:
             self_ = self

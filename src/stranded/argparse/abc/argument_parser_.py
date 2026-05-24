@@ -490,7 +490,7 @@ class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
         ])
 
     def to_signature(self) -> _Signature:
-        return _Signature.of_signature(inspect.signature(self.decoratee)) if self.children is None else (
+        return _Signature.of_signature(inspect.signature(self.decoratee)) if self.children is None else (  # type: ignore[arg-type]
             _Signature.of_signatures(self.children[0].to_signature(), self.children[1].to_signature())
         )
 
@@ -513,7 +513,7 @@ class ArgumentParser[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT,
             __module__=str(decoratee.__module__),
             __name__=str(decoratee.__name__),  # type: ignore[attr-defined]
             __qualname__=str(decoratee.__qualname__),  # type: ignore[attr-defined]
-            __signature__=inspect.signature(decoratee).replace(
+            __signature__=inspect.signature(decoratee).replace(  # type: ignore[arg-type]
                 parameters=(
                     inspect.Parameter('argv', inspect.Parameter.VAR_POSITIONAL),
                 ),
