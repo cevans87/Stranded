@@ -146,7 +146,7 @@ class _ReturnAnnotation[T](_Annotation[T]):
             case _, typing.Annotated, (t, *_, comment):
                 return _ReturnAnnotation[typing.Any](t=t, comment=comment)
             case _, t, ts:
-                return _ReturnAnnotation[typing.Any](t=t[*ts])
+                return _ReturnAnnotation[typing.Any](t=t[*ts])  # type: ignore[index]
             case _:
                 raise RuntimeError(f'{annotation=}. Cannot create return annotation.')
 
@@ -191,15 +191,15 @@ class _Signature:
 
     @property
     def keyword_parameter_by_name(self) -> dict[str, _KeywordParameter[typing.Any]]:
-        return self.optional_keyword_parameter_by_name | self.required_keyword_parameter_by_name  # type: ignore[no-any-return]
+        return self.optional_keyword_parameter_by_name | self.required_keyword_parameter_by_name  # type: ignore[no-any-return, operator]
 
     @property
     def positional_parameter_by_name(self) -> dict[str, _StackedParameter[typing.Any]]:
-        return self.optional_positional_parameter_by_name | self.required_positional_parameter_by_name  # type: ignore[no-any-return]
+        return self.optional_positional_parameter_by_name | self.required_positional_parameter_by_name  # type: ignore[no-any-return, operator]
 
     @property
     def parameter_by_name(self) -> dict[str, _Parameter[typing.Any]]:
-        return self.variadic_parameter_by_name | self.keyword_parameter_by_name | self.positional_parameter_by_name  # type: ignore[no-any-return]
+        return self.variadic_parameter_by_name | self.keyword_parameter_by_name | self.positional_parameter_by_name  # type: ignore[no-any-return, operator]
 
     @property
     def annotations(self) -> tuple[_Annotation[typing.Any], ...]:
@@ -290,7 +290,7 @@ class _Signature:
         optional_positional_parameter_by_name: dict[str, _OptionalPositionalParameter[typing.Any]] = {}
         required_positional_parameter_by_name: dict[str, _RequiredPositionalParameter[typing.Any]] = {}
 
-        for parameter in reversed(signature.parameters.values()):
+        for parameter in reversed(signature.parameters.values()):  # type: ignore[call-overload]
             match parameter:
                 case inspect.Parameter(name=name, kind=parameter.POSITIONAL_ONLY, default=parameter.empty):
                     required_positional_parameter_by_name[name] = _RequiredPositionalParameter.of_parameter(parameter)
@@ -393,7 +393,7 @@ class _BoundSignature(_Signature):
                 ),
                 *(
                     value for value in self.variadic_positional_values
-                    if self.variadic_positional_parameter.name in decoratee_signature.parameters
+                    if self.variadic_positional_parameter.name in decoratee_signature.parameters  # type: ignore[union-attr]
                 ),
                 **{
                     name: value for name, value in self.keyword_value_by_name.items()
@@ -402,7 +402,7 @@ class _BoundSignature(_Signature):
                 },
                 **{
                     name: value for name, value in self.variadic_keyword_value_by_name.items()
-                    if self.variadic_keyword_parameter.name in decoratee_signature.parameters
+                    if self.variadic_keyword_parameter.name in decoratee_signature.parameters  # type: ignore[union-attr]
                 },
             )
 
@@ -467,9 +467,9 @@ class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
 
 
     def __or__[DecoratedT: Decorated[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any]](self, other: DecoratedT) -> DecoratedT:  # type: ignore[override, misc]
-        return dataclasses.replace(other, children=(self, other))
+        return dataclasses.replace(other, children=(self, other))  # type: ignore[type-var]
 
-    def __xor__[DecoratedT: Decorated[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any]](self, other: DecoratedT) -> DecoratedT:  # type: ignore[misc]
+    def __xor__[DecoratedT: Decorated[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any]](self, other: DecoratedT) -> DecoratedT:  # type: ignore[empty-body, misc]
         # TODO make this mark flags in the two CLI's as mutually exclusive.
         ...
 

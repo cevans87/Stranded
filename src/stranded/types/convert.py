@@ -84,40 +84,40 @@ class Convert[T]:
 
             case builtins.frozenset, (t,):
                 assert isinstance(args, (set, frozenset)), (
-                    f'{self} expected `{frozenset[t]}`, got `{args}`.'
+                    f'{self} expected `{frozenset[t]}`, got `{args}`.'  # type: ignore[valid-type]
                 )
                 return frozenset({Convert(t=t)._from_arg(arg) for arg in args})  # type: ignore[return-value]
 
             case builtins.list, (t,):
                 assert isinstance(args, list), (
-                    f'{self} expected `{list[t]}`, got `{args}`.'
+                    f'{self} expected `{list[t]}`, got `{args}`.'  # type: ignore[valid-type]
                 )
                 return list(Convert(t=t)._from_arg(arg) for arg in args)  # type: ignore[return-value]
 
             case builtins.tuple, ():
-                assert args == tuple(), (
+                assert args == tuple(), (  # type: ignore[comparison-overlap]
                     f'{self} expected `{tuple[()]}`, got `{args}`.'
                 )
                 return args  # type: ignore[return-value]
             case builtins.tuple, (t,):
                 assert isinstance(args, tuple) and len(args) == 1, (
-                    f'{self} expected `{tuple[t]}`, got `{args}`.'
+                    f'{self} expected `{tuple[t]}`, got `{args}`.'  # type: ignore[valid-type]
                 )
                 return tuple([Convert(t=t)._from_arg(args[0])])
             case builtins.tuple, (t, builtins.Ellipsis):
                 assert isinstance(args, tuple), (
-                    f'{self} expected `{tuple[t, ...]}`, got `{args}`.'
+                    f'{self} expected `{tuple[t, ...]}`, got `{args}`.'  # type: ignore[valid-type]
                 )
                 return tuple([Convert(t=t)._from_arg(value) for value in args])
             case builtins.tuple, (t, *ts):
                 assert isinstance(args, tuple) and len(args) > 0, (
-                    f'{self} expected `{tuple[t, *ts]}`, got `{args}`.'
+                    f'{self} expected `{tuple[t, *ts]}`, got `{args}`.'  # type: ignore[valid-type]
                 )
-                return Convert(t=t)._from_arg(args[0]), *Convert(t=tuple[*ts])._from_arg(args[1:])
+                return Convert(t=t)._from_arg(args[0]), *Convert(t=tuple[*ts])._from_arg(args[1:])  # type: ignore[valid-type]
 
             case builtins.set, (t,):
                 assert isinstance(args, (set, frozenset)), (
-                    f'{self} expected `{set[t]}`, got `{args}`.'
+                    f'{self} expected `{set[t]}`, got `{args}`.'  # type: ignore[valid-type]
                 )
                 return set({Convert(t=t)._from_arg(arg) for arg in args})  # type: ignore[return-value]
 
@@ -146,7 +146,7 @@ class Convert[T]:
 
         if self.t != str:
             try:
-                arg: Convert._Args = ast.literal_eval(arg)
+                arg: Convert._Args = ast.literal_eval(arg)  # type: ignore[no-redef]
             except (SyntaxError, ValueError,):
                 pass
 
