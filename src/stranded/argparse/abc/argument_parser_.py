@@ -191,15 +191,15 @@ class _Signature:
 
     @property
     def keyword_parameter_by_name(self) -> dict[str, _KeywordParameter[typing.Any]]:
-        return self.optional_keyword_parameter_by_name | self.required_keyword_parameter_by_name
+        return self.optional_keyword_parameter_by_name | self.required_keyword_parameter_by_name  # type: ignore[no-any-return]
 
     @property
     def positional_parameter_by_name(self) -> dict[str, _StackedParameter[typing.Any]]:
-        return self.optional_positional_parameter_by_name | self.required_positional_parameter_by_name
+        return self.optional_positional_parameter_by_name | self.required_positional_parameter_by_name  # type: ignore[no-any-return]
 
     @property
     def parameter_by_name(self) -> dict[str, _Parameter[typing.Any]]:
-        return self.variadic_parameter_by_name | self.keyword_parameter_by_name | self.positional_parameter_by_name
+        return self.variadic_parameter_by_name | self.keyword_parameter_by_name | self.positional_parameter_by_name  # type: ignore[no-any-return]
 
     @property
     def annotations(self) -> tuple[_Annotation[typing.Any], ...]:

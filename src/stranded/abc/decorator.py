@@ -22,31 +22,31 @@ class Base[DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](a
 
     @property
     def decoratee_t(self) -> type[DecorateeT]:
-        return inspect.getmodule(type(self)).Decoratee
+        return inspect.getmodule(type(self)).Decoratee  # type: ignore[no-any-return]
 
     @property
     def receive_t(self) -> type[ReceiveT]:
-        return inspect.getmodule(type(self)).Receive
+        return inspect.getmodule(type(self)).Receive  # type: ignore[no-any-return]
 
     @property
     def send_t(self) -> type[SendT]:
-        return inspect.getmodule(type(self)).Send
+        return inspect.getmodule(type(self)).Send  # type: ignore[no-any-return]
 
     @property
     def exit_t(self) -> type[ExitT]:
-        return inspect.getmodule(type(self)).Exit
+        return inspect.getmodule(type(self)).Exit  # type: ignore[no-any-return]
 
     @property
     def enter_t(self) -> type[EnterT]:
-        return inspect.getmodule(type(self)).Enter
+        return inspect.getmodule(type(self)).Enter  # type: ignore[no-any-return]
 
     @property
     def decorated_t(self) -> type[DecoratedT]:
-        return inspect.getmodule(type(self)).Decorated
+        return inspect.getmodule(type(self)).Decorated  # type: ignore[no-any-return]
 
     @property
     def decorator_t(self) -> type[DecoratorT]:
-        return inspect.getmodule(type(self)).Decorator
+        return inspect.getmodule(type(self)).Decorator  # type: ignore[no-any-return]
 
 
 @dataclasses.dataclass(frozen=True)

@@ -67,7 +67,7 @@ class Convert[T]:
                 assert isinstance(arg, str) and hasattr(t, arg), (
                     f'{self} expected `{typing.Literal[*t._member_names_]}`, got `{type(arg)}`'  # noqa
                 )
-                return getattr(t, arg)
+                return getattr(t, arg)  # type: ignore[no-any-return]
             case t:
                 return t(arg)  # type: ignore[call-arg]
 
@@ -133,9 +133,9 @@ class Convert[T]:
                 return args  # type: ignore[return-value]
 
             case t, (t_,):
-                return t(Convert(t=t_)._from_arg(args))  # type: ignore[misc]
+                return t(Convert(t=t_)._from_arg(args))  # type: ignore[misc, no-any-return]
             case t, ts:
-                return t(*(Convert(t=t)._from_arg(arg) for t, arg in zip(ts, args)))  # type: ignore[arg-type, misc]
+                return t(*(Convert(t=t)._from_arg(arg) for t, arg in zip(ts, args)))  # type: ignore[arg-type, misc, no-any-return]
 
 
     def _from_arg(self, arg: _Args, /) -> T:
