@@ -6,17 +6,17 @@ from stranded import Decorator
 
 
 def test_or_combines_metadata() -> None:
-    @Decorator()
+    @Decorator()  # type: ignore[arg-type]
     def foo(v: int) -> int:
         """foo doc"""
         return v + 1
 
-    @Decorator()
+    @Decorator()  # type: ignore[arg-type]
     def bar(v: int) -> int:
         """bar doc"""
         return v * 2
 
-    combined = foo | bar
+    combined = foo | bar  # type: ignore[var-annotated]
 
     assert combined.__doc__ == f'{foo.__doc__}\n\n{bar.__doc__}'
     assert combined.__name__ == f'{foo.__name__}, {bar.__name__}'
@@ -27,37 +27,37 @@ def test_or_combines_metadata() -> None:
 def test_or_calls_each_decoratee() -> None:
     calls: list[tuple[str, int]] = []
 
-    @Decorator()
+    @Decorator()  # type: ignore[arg-type]
     def foo(v: int) -> int:
         calls.append(('foo', v))
         return v + 1
 
-    @Decorator()
+    @Decorator()  # type: ignore[arg-type]
     def bar(v: int) -> int:
         calls.append(('bar', v))
         return v * 10
 
-    @Decorator()
+    @Decorator()  # type: ignore[arg-type]
     def baz(v: int) -> int:
         calls.append(('baz', v))
         return v - 3
 
-    result = (foo | bar | baz)(7)
+    result = (foo | bar | baz)(7)  # type: ignore[var-annotated]
 
     assert calls == [('foo', 7), ('bar', 8), ('baz', 80)]
     assert result == 77
 
 
 def test_or_stack_grows() -> None:
-    @Decorator()
+    @Decorator()  # type: ignore[arg-type]
     def foo(v: int) -> int:
         return v
 
-    @Decorator()
+    @Decorator()  # type: ignore[arg-type]
     def bar(v: int) -> int:
         return v
 
-    @Decorator()
+    @Decorator()  # type: ignore[arg-type]
     def baz(v: int) -> int:
         return v
 

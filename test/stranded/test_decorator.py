@@ -8,7 +8,7 @@ from stranded import Decorator
 
 
 def test_base() -> None:
-    @Decorator()
+    @Decorator()  # type: ignore[arg-type]
     def foo() -> None:
         ...
 
@@ -20,7 +20,7 @@ async def test_async_method() -> None:
 
     class Foo:
 
-        @Decorator()
+        @Decorator()  # type: ignore[arg-type]
         async def bar(self, v: int) -> dict[str, object]:
             return locals()
 
@@ -31,7 +31,7 @@ def test_multi_method() -> None:
 
     class Foo:
 
-        @Decorator()
+        @Decorator()  # type: ignore[arg-type]
         def bar(self, v: int) -> dict[str, object]:
             return locals()
 
@@ -44,7 +44,7 @@ async def test_async_classmethod() -> None:
     class Foo:
 
         @classmethod
-        @Decorator()
+        @Decorator()  # type: ignore[arg-type]
         async def bar(cls, v: int) -> dict[str, object]:
             return locals()
 
@@ -56,7 +56,7 @@ def test_multi_classmethod() -> None:
     class Foo:
 
         @classmethod
-        @Decorator()
+        @Decorator()  # type: ignore[arg-type]
         def bar(cls, v: int) -> dict[str, object]:
             return locals()
 
@@ -70,7 +70,7 @@ async def test_async_staticmethod() -> None:
         v: typing.ClassVar[int]
 
         @staticmethod
-        @Decorator()
+        @Decorator()  # type: ignore[arg-type]
         async def bar(v: int) -> dict[str, object]:
             return locals()
 
@@ -82,7 +82,7 @@ def test_multi_staticmethod() -> None:
     class Foo:
 
         @staticmethod
-        @Decorator()
+        @Decorator()  # type: ignore[arg-type]
         def bar(v: int) -> dict[str, object]:
             return locals()
 

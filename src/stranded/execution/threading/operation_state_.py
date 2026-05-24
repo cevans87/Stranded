@@ -165,7 +165,7 @@ class Decorated[**ParamT, RetT](
     associated receiver)."""
 
     def start(self) -> None:
-        self.decoratee()
+        self.decoratee()  # type: ignore[call-arg]
 
 
 @typing.final
