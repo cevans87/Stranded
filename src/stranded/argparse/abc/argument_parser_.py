@@ -384,7 +384,7 @@ class _BoundSignature(_Signature):
     variadic_positional_values: list[object]
     variadic_keyword_value_by_name: dict[str, object]
 
-    def __call__(self, decorateds: typing.Iterable[Decorated[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any]]) -> typing.Iterable[typing.Callable[..., typing.Any]]:
+    def __call__(self, decorateds: typing.Iterable[Decorated[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any]]) -> typing.Iterable[typing.Callable[..., typing.Any]]:  # type: ignore[override]
         for decorated in decorateds:
             decoratee_signature = inspect.signature(decorated.decoratee)
             yield lambda: decorated.decoratee(
@@ -468,7 +468,7 @@ class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
         yield from self.to_signature()(*argv)(self.decorateds)
 
 
-    def __or__[DecoratedT: Decorated[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any]](self, other: DecoratedT) -> DecoratedT:
+    def __or__[DecoratedT: Decorated[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any]](self, other: DecoratedT) -> DecoratedT:  # type: ignore[override]
         return dataclasses.replace(other, children=(self, other))
 
     def __xor__[DecoratedT: Decorated[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any]](self, other: DecoratedT) -> DecoratedT:

@@ -15,7 +15,7 @@ Return = decorator.Return
 
 @typing.runtime_checkable
 class Decoratee[**ParamT, RetT](decorator.Decoratee[ParamT, RetT], typing.Protocol):
-    async def __call__(*args: ParamT.args, **kwargs: ParamT.kwargs) -> RetT: ...
+    async def __call__(*args: ParamT.args, **kwargs: ParamT.kwargs) -> RetT: ...  # type: ignore[override]
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -23,7 +23,7 @@ class Receive[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decora
     decorator.Receive[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
     abc.ABC,
 ):
-    async def __call__[SRetT, **SParamT](
+    async def __call__[SRetT, **SParamT](  # type: ignore[override]
         self,
         value: Param[ParamT] | Raise | Return[SRetT] | Stop,
         /,
@@ -36,7 +36,7 @@ class Send[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorated
     decorator.Send[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
     abc.ABC,
 ):
-    async def __call__[**RParamT](
+    async def __call__[**RParamT](  # type: ignore[override]
         self,
         value: Param[ParamT] | Raise | Return[RetT] | Stop,
         /,
@@ -49,7 +49,7 @@ class Exit[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorated
     decorator.Exit[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
     abc.ABC,
 ):
-    @typing.overload
+    @typing.overload  # type: ignore[override]
     async def __call__(self, value: Param[ParamT], /) -> tuple[ExitT, DecorateeT]: ...
     @typing.overload
     async def __call__(self, value: Raise | Return[RetT] | Stop, /) -> tuple[()]: ...
@@ -62,7 +62,7 @@ class Enter[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorate
     decorator.Enter[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
     abc.ABC,
 ):
-    @typing.overload
+    @typing.overload  # type: ignore[override]
     async def __call__(self, value: Param[ParamT], /) -> tuple[ExitT, DecorateeT]: ...
     @typing.overload
     async def __call__(self, value: Raise | Return[RetT] | Stop, /) -> tuple[()]: ...

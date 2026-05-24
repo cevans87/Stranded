@@ -72,7 +72,7 @@ class Enter[** ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorat
     decorator.Enter[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
     abc.ABC,
 ):
-    @typing.overload
+    @typing.overload  # type: ignore[override]
     def __call__(self, value: Param[ParamT], /) -> tuple[ExitT, DecorateeT]: ...
     @typing.overload
     def __call__(self, value: Raise | Return[RetT] | Stop, /) -> tuple[Return[RetT]]: ...

@@ -51,7 +51,7 @@ class Exit[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorated
     bound_arguments: inspect.BoundArguments
 
     @abc.abstractmethod
-    def __call__(self, result: Raise | RetT) -> tuple[()]:
+    def __call__(self, result: Raise | RetT) -> tuple[()]:  # type: ignore[override]
         if isinstance(result, Raise):
             self.enter.decorated.decorator.logger.log(
                 logging.getLevelNamesMapping()[self.enter.decorated.decorator.err_level],
@@ -78,7 +78,7 @@ class Enter[** ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorat
     abc.ABC,
 ):
     @abc.abstractmethod
-    def __call__(self, *args: ParamT.args, **kwargs: ParamT.kwargs) -> tuple[ExitT, DecorateeT]:
+    def __call__(self, *args: ParamT.args, **kwargs: ParamT.kwargs) -> tuple[ExitT, DecorateeT]:  # type: ignore[override]
         bound_arguments = self.decorated.__signature__.bind(*args, **kwargs)
 
         self.decorated.decorator.logger.log(
