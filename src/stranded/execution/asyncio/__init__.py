@@ -104,7 +104,6 @@ if _typing.TYPE_CHECKING:
     from .never_stop_token_ import NeverStopToken
     from .never_stop_token_ import never_stop_token
     from . import operation_state_
-    from .operation_state_ import OperationState
     from .operation_state_ import operation_state
     from . import prop_
     from .prop_ import Prop
@@ -128,7 +127,6 @@ if _typing.TYPE_CHECKING:
     from .scheduler_ import Scheduler
     from .scheduler_ import scheduler
     from . import sender_
-    from .sender_ import Sender
     from .sender_ import sender
     from . import set_error_
     from .set_error_ import SetError
@@ -312,7 +310,6 @@ def __getattr__(name: str) -> _typing.Any:
         case 'NeverStopToken': return _importlib.import_module('.never_stop_token_', __name__).NeverStopToken
         case 'never_stop_token': return _importlib.import_module('.never_stop_token_', __name__).never_stop_token
         case 'operation_state_': return _importlib.import_module('.operation_state_', __name__)
-        case 'OperationState': return _importlib.import_module('.operation_state_', __name__).OperationState
         case 'operation_state': return _importlib.import_module('.operation_state_', __name__).operation_state
         case 'prop_': return _importlib.import_module('.prop_', __name__)
         case 'Prop': return _importlib.import_module('.prop_', __name__).Prop
@@ -336,7 +333,6 @@ def __getattr__(name: str) -> _typing.Any:
         case 'Scheduler': return _importlib.import_module('.scheduler_', __name__).Scheduler
         case 'scheduler': return _importlib.import_module('.scheduler_', __name__).scheduler
         case 'sender_': return _importlib.import_module('.sender_', __name__)
-        case 'Sender': return _importlib.import_module('.sender_', __name__).Sender
         case 'sender': return _importlib.import_module('.sender_', __name__).sender
         case 'set_error_': return _importlib.import_module('.set_error_', __name__)
         case 'SetError': return _importlib.import_module('.set_error_', __name__).SetError
@@ -520,7 +516,6 @@ __all__ = (
     'NeverStopToken',
     'never_stop_token',
     'operation_state_',
-    'OperationState',
     'operation_state',
     'prop_',
     'Prop',
@@ -544,7 +539,6 @@ __all__ = (
     'Scheduler',
     'scheduler',
     'sender_',
-    'Sender',
     'sender',
     'set_error_',
     'SetError',

@@ -139,7 +139,7 @@ class Enter[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorate
     def __call__(self, value: Raise | Return[RetT] | Stop, /) -> tuple[()]: ...
     def __call__(self, value: Param[ParamT] | Raise | Return[RetT] | Stop, /) -> tuple[ExitT, DecorateeT] | tuple[()]:
         match value:
-            case Param(): return self.exit_t(enter=self), self.decorated.decoratee,  # type: ignore[call-arg]
+            case Param(): return self.exit_t(enter=self), self.decorated.decoratee,  # type: ignore[call-arg, attr-defined]
             case _: return ()
 
 
@@ -158,7 +158,7 @@ class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
     stack: tuple[EnterT | ExitT | ReceiveT | SendT, ...] = ()
 
     def __get__(self, instance: Instance, owner: type[object] | None) -> typing.Self:
-        return dataclasses.replace(self, decoratee=self.decoratee.__get__(instance, owner))
+        return dataclasses.replace(self, decoratee=self.decoratee.__get__(instance, owner))  # type: ignore[attr-defined]
 
     def __or__[**Param2T, Ret2T, Decoratee2T, Receive2T, Send2T, Exit2T, Enter2T, Decorated2T, Decorator2T](
         self,
@@ -196,8 +196,8 @@ class Decorator[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
         return self.decorated_t(  # type: ignore[call-arg]
             __doc__=str(decoratee.__doc__),
             __module__=str(decoratee.__module__),
-            __name__=str(decoratee.__name__),
-            __qualname__=str(decoratee.__qualname__),
+            __name__=str(decoratee.__name__),  # type: ignore[attr-defined]
+            __qualname__=str(decoratee.__qualname__),  # type: ignore[attr-defined]
             __signature__=inspect.signature(decoratee),
             decoratee=decoratee,
             decorator=self,

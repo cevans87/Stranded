@@ -54,13 +54,13 @@ class Exit[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorated
         match value:
             case Param() | Raise() | Stop(): pass
             case Return():
-                assert self.enter.decorated.decorator.deserialize(
-                    ret := self.enter.decorated.decorator.serialize(value.ret)
+                assert self.enter.decorated.decorator.deserialize(  # type: ignore[attr-defined]
+                    ret := self.enter.decorated.decorator.serialize(value.ret)  # type: ignore[attr-defined]
                 ) == value.ret, 'Return value must be deserializable from its serialized form.'
 
-                with self.enter.decorated.lock:
-                    self.enter.decorated.connection.execute(
-                        f'INSERT INTO `{self.enter.decorated.table_name}` (key, ret) VALUES (?, ?)',  # noqa
+                with self.enter.decorated.lock:  # type: ignore[attr-defined]
+                    self.enter.decorated.connection.execute(  # type: ignore[attr-defined]
+                        f'INSERT INTO `{self.enter.decorated.table_name}` (key, ret) VALUES (?, ?)',  # type: ignore[attr-defined]
                         (self.key, ret,)
                     )
 
@@ -81,18 +81,18 @@ class Enter[** ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorat
         match value:
             case Raise() | Return() | Stop(): return ()
             case Param():
-                (bound := inspect.signature(self.decorated.decoratee).bind(*value.args, **value.kwargs)).apply_defaults()
-                key = repr((self.decorated.instance, bound.args, tuple(sorted(bound.kwargs))))
+                (bound := inspect.signature(self.decorated.decoratee).bind(*value.args, **value.kwargs)).apply_defaults()  # type: ignore[attr-defined]
+                key = repr((self.decorated.instance, bound.args, tuple(sorted(bound.kwargs))))  # type: ignore[attr-defined]
 
-                with self.decorated.lock:
-                    ret = self.decorated.connection.execute(
-                        f'SELECT ret FROM `{self.decorated.table_name}` WHERE key = ?',  # noqa
+                with self.decorated.lock:  # type: ignore[attr-defined]
+                    ret = self.decorated.connection.execute(  # type: ignore[attr-defined]
+                        f'SELECT ret FROM `{self.decorated.table_name}` WHERE key = ?',  # type: ignore[attr-defined]
                         (key,),
                     ).fetchone()
                 if ret:
-                    return Return(ret=self.decorated.decorator.serialize(ret[0])),
+                    return Return(ret=self.decorated.decorator.serialize(ret[0])),  # type: ignore[attr-defined]
 
-                return self.exit_t(enter=self, key=key), self.decorated.decoratee,  # type: ignore[call-arg]
+                return self.exit_t(enter=self, key=key), self.decorated.decoratee,  # type: ignore[call-arg, attr-defined]
 
         raise ValueError(f'Invalid {value=}')
 
@@ -108,7 +108,7 @@ class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
     lock: threading.Lock = dataclasses.field(default_factory=threading.Lock)
 
     def __get__(self, instance: decorator.Instance, owner: type[object] | None) -> typing.Self:
-        return dataclasses.replace(self, decoratee=self.decoratee.__get__(instance, owner), instance=instance)
+        return dataclasses.replace(self, decoratee=self.decoratee.__get__(instance, owner), instance=instance)  # type: ignore[attr-defined]
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -124,7 +124,7 @@ class Db[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT,
     version: Version = '0.0.0'
 
     def __call__(self, decoratee: DecorateeT, /) -> DecoratedT:
-        table_name = f'{decoratee.__module__}.{decoratee.__qualname__}.{self.version}'
+        table_name = f'{decoratee.__module__}.{decoratee.__qualname__}.{self.version}'  # type: ignore[attr-defined]
         (connection := sqlite3.connect(self.path, check_same_thread=False, isolation_level=None)).execute(
             f'CREATE TABLE IF NOT EXISTS `{table_name}` '  # noqa
             f'(key STRING PRIMARY KEY NOT NULL UNIQUE, ret STRING NOT NULL)',  # noqa
@@ -133,8 +133,8 @@ class Db[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT,
         return self.decorated_t(  # type: ignore[call-arg]
             __doc__=str(decoratee.__doc__),
             __module__=str(decoratee.__module__),
-            __name__=str(decoratee.__name__),
-            __qualname__=str(decoratee.__qualname__),
+            __name__=str(decoratee.__name__),  # type: ignore[attr-defined]
+            __qualname__=str(decoratee.__qualname__),  # type: ignore[attr-defined]
             __signature__=inspect.signature(decoratee),
             connection=connection,
             decoratee=decoratee,
