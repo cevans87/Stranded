@@ -17,6 +17,6 @@ class Decorator[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
             'asyncio' if inspect.iscoroutinefunction(decoratee) else 'threading'
         )
 
-        return importlib.import_module(
+        return importlib.import_module(  # type: ignore[no-any-return]
             name='.'.join(name_parts),
         ).Decorator(**dataclasses.asdict(self))(decoratee)  # noqa

@@ -57,6 +57,6 @@ class Decorator[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
         name_parts = self_.__module__.split('.')
         name_parts.insert(-1, target)
 
-        return importlib.import_module(
+        return importlib.import_module(  # type: ignore[no-any-return]
             name='.'.join(name_parts),
         ).Decorator(**{f.name: getattr(self_, f.name) for f in dataclasses.fields(self_)})(decoratee)

@@ -94,7 +94,7 @@ class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
         match value:
             case Stop() as stop_: raise stop_
             case Raise() as raise_: raise raise_.exc_val
-            case Return() as return_: return return_.ret
+            case Return() as return_: return return_.ret  # type: ignore[no-any-return]
             case _: raise exception_.Exception(f'{type(self).__name__} call completed with invalid {value=!r}')
 
     def create_context(self) -> tuple[DecorateeT | ReceiveT | SendT | ExitT | EnterT | DecoratorT, ...]:
