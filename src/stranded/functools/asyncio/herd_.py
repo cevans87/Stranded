@@ -32,7 +32,7 @@ class Decoratee[**ParamT, RetT](
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Future[RetT](herd_.Future):
+class Future[RetT](herd_.Future[RetT]):
     future: asyncio.Future[RetT] = dataclasses.field(default_factory=asyncio.Future)
 
     @typing.override
@@ -135,7 +135,7 @@ class Exit[**ParamT, RetT](
     future: _Future[RetT] = dataclasses.field(default_factory=Future)
 
     @typing.override
-    async def __call__(self, value: Param | Raise | Return | Stop) -> tuple[()]:
+    async def __call__(self, value: Param[ParamT] | Raise | Return[RetT] | Stop) -> tuple[()]:
         self.enter.decorated.future_by_key.pop(self.key, None)
         match value:
             case Param(): pass
@@ -172,7 +172,7 @@ class Enter[**ParamT, RetT](
 ):
     @typing.override
     async def __call__(
-        self, value: Param | Raise | Return | Stop,
+        self, value: Param[ParamT] | Raise | Return[RetT] | Stop,
     ) -> tuple[_Exit[ParamT, RetT], _Decoratee[ParamT, RetT]] | tuple[_Future[RetT]] | tuple[()]:
         match value:
             case Param(): return self._dispatch(*value.args, **value.kwargs)

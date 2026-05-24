@@ -13,11 +13,11 @@ type Name = typing.Annotated[str, annotated_types.Predicate(str.isidentifier)]  
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Base[DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](abc.ABC):
     @property
-    def param_t(self) -> type[Param]:
+    def param_t(self) -> type[Param[...]]:
         return Param
 
     @property
-    def return_t(self) -> type[Return]:
+    def return_t(self) -> type[Return[typing.Any]]:
         return Return
 
     @property

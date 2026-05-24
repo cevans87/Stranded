@@ -72,7 +72,7 @@ class Enter[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorate
 
     def _dispatch(
         self, *args: ParamT.args, **kwargs: ParamT.kwargs,
-    ) -> tuple[ExitT, DecorateeT] | tuple[Future]:
+    ) -> tuple[ExitT, DecorateeT] | tuple[Future[RetT]]:
         key = self.create_key(*args, **kwargs)
         future = self.decorated.future_by_key.get(key)
         match future is None:
