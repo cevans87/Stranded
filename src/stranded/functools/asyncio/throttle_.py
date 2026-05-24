@@ -23,6 +23,12 @@ class Decoratee[**ParamT, RetT](
 ): ...
 
 
+Param = decorator.Param
+Raise = decorator.Raise
+Return = decorator.Return
+Stop = decorator.Stop
+
+
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Send[**ParamT, RetT](
@@ -105,7 +111,7 @@ class Exit[**ParamT, RetT](
         _Decorator[ParamT, RetT],
     ],
 ):
-    async def __call__(self, result: decorator.Raise | RetT) -> ():
+    async def __call__(self, result: Raise | RetT) -> tuple[()]:
         async with self.enter.decorated.condition:
             return super().__call__(result)
 

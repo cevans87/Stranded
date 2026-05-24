@@ -19,6 +19,12 @@ class Decoratee[**ParamT, RetT](
 ): ...
 
 
+Param = decorator.Param
+Raise = decorator.Raise
+Return = decorator.Return
+Stop = decorator.Stop
+
+
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Send[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
     decorator.Send[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
@@ -38,8 +44,8 @@ class Exit[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorated
     decorator.Exit[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
     abc.ABC,
 ):
-    def __call__(self, value: decorator.Param | decorator.Raise | decorator.Return | decorator.Stop) -> tuple[()] | tuple[EnterT, decorator.Param]:
-        if self.enter.n_retried < self.enter.decorated.decorator.n and isinstance(value, decorator.Raise):
+    def __call__(self, value: Param | Raise | Return | Stop) -> tuple[()] | tuple[EnterT, Param]:
+        if self.enter.n_retried < self.enter.decorated.decorator.n and isinstance(value, Raise):
             return dataclasses.replace(self.enter, n_retried=self.enter.n_retried + 1), self.enter.param
 
         return ()
@@ -51,11 +57,11 @@ class Enter[** ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorat
     abc.ABC,
 ):
     n_retried: int = 0
-    param: decorator.Param | None = None
+    param: Param | None = None
 
-    def __call__(self, value: decorator.Param | decorator.Raise | decorator.Return | decorator.Stop) -> tuple[ExitT, DecorateeT] | tuple[()]:
+    def __call__(self, value: Param | Raise | Return | Stop) -> tuple[ExitT, DecorateeT] | tuple[()]:
         match value:
-            case decorator.Param() as param_:
+            case Param() as param_:
                 new_self = dataclasses.replace(self, param=param_)
                 return new_self.exit_t(enter=new_self), self.decorated.decoratee
             case _: return ()
