@@ -113,7 +113,7 @@ class Exit[**ParamT, RetT](
 ):
     async def __call__(self, result: Raise | RetT) -> tuple[()]:  # type: ignore[override]
         async with self.enter.decorated.condition:
-            return super().__call__(result)  # type: ignore[arg-type]
+            return super().__call__(result)  # type: ignore[arg-type, return-value]
 
 
 @typing.final

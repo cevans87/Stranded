@@ -166,7 +166,7 @@ class Decorated[**ParamT, RetT](
             ret = call()
             if inspect.iscoroutine(ret):
                 ret = await ret
-        return ret
+        return ret  # type: ignore[return-value]
 
 
 @typing.final

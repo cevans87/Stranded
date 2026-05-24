@@ -111,7 +111,7 @@ class Send[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorated
         match value:
             case Param() as param_: return param_
             case Raise() as raise_: return raise_
-            case Return() as return_: return self.param_t(args=(return_.ret,), kwargs={})  # noqa
+            case Return() as return_: return self.param_t(args=(return_.ret,), kwargs={})  # type: ignore[return-value]
             case Stop() as stop_: return stop_
 
 
@@ -165,7 +165,7 @@ class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
         decorated: Decorated[Param2T, Ret2T, Decoratee2T, Receive2T, Send2T, Exit2T, Enter2T, Decorated2T, Decorator2T],
         /,
     ) -> Decorated[ParamT, Ret2T, Decoratee[ParamT, Ret2T], Receive2T, Send2T, Exit2T, Enter2T, Decorated2T, Decorator2T]:
-        return dataclasses.replace(
+        return dataclasses.replace(  # type: ignore[return-value]
             decorated,
             __doc__=f'{self.__doc__}\n\n{decorated.__doc__}',
             __module__=f'{self.__module__}, {decorated.__module__}',
