@@ -18,7 +18,6 @@ if _typing.TYPE_CHECKING:
     from . import sqlite3
     from . import threading
     from . import types
-    from . import typing
 
 
 def __getattr__(name: str) -> _typing.Any:
@@ -37,7 +36,6 @@ def __getattr__(name: str) -> _typing.Any:
         case 'sqlite3': return _importlib.import_module('.sqlite3', __name__)
         case 'threading': return _importlib.import_module('.threading', __name__)
         case 'types': return _importlib.import_module('.types', __name__)
-        case 'typing': return _importlib.import_module('.typing', __name__)
         case _: raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
@@ -56,5 +54,4 @@ __all__ = (
     'sqlite3',
     'threading',
     'types',
-    'typing',
 )
