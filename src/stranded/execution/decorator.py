@@ -38,7 +38,7 @@ def _to_async(obj: typing.Callable[..., typing.Any]) -> typing.Callable[..., typ
 class Decorator[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
     decorator.Decorator[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
 ):
-    def __call__[DecorateeT](self, decoratee: DecorateeT) -> DecorateeT:  # type: ignore[override]
+    def __call__[DecorateeT](self, decoratee: DecorateeT) -> DecorateeT:  # type: ignore[override, misc]
         promotable = {
             field.name: getattr(self, field.name)
             for field in dataclasses.fields(self)

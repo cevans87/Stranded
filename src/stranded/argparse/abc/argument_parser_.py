@@ -140,8 +140,6 @@ class _ReturnAnnotation[T](_Annotation[T]):
 
     @staticmethod
     def of_annotation(annotation: type) -> _ReturnAnnotation[typing.Any]:
-        t: type[T]
-
         match annotation, typing.get_origin(annotation), typing.get_args(annotation):
             case t, None, ():
                 return _ReturnAnnotation[typing.Any](t=t)
@@ -254,10 +252,10 @@ class _Signature:
 
                 case (arg,) if required_positional_parameter_by_name:
                     name, parameter = required_positional_parameter_by_name.popitem()
-                    positional_value_by_name[name] = parameter(arg)
+                    positional_value_by_name[name] = parameter(arg)  # type: ignore[misc]
                 case (arg,) if optional_positional_parameter_by_name:
                     name, parameter = optional_positional_parameter_by_name.popitem()
-                    positional_value_by_name[name] = parameter(arg)
+                    positional_value_by_name[name] = parameter(arg)  # type: ignore[misc]
                 case (arg,) if parameter := self.variadic_positional_parameter:
                     variadic_positional_values.append(parameter(arg))
 
@@ -468,10 +466,10 @@ class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
         yield from self.to_signature()(*argv)(self.decorateds)
 
 
-    def __or__[DecoratedT: Decorated[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any]](self, other: DecoratedT) -> DecoratedT:  # type: ignore[override]
+    def __or__[DecoratedT: Decorated[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any]](self, other: DecoratedT) -> DecoratedT:  # type: ignore[override, misc]
         return dataclasses.replace(other, children=(self, other))
 
-    def __xor__[DecoratedT: Decorated[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any]](self, other: DecoratedT) -> DecoratedT:
+    def __xor__[DecoratedT: Decorated[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any]](self, other: DecoratedT) -> DecoratedT:  # type: ignore[misc]
         # TODO make this mark flags in the two CLI's as mutually exclusive.
         ...
 

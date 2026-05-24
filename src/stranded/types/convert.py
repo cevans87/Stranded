@@ -133,9 +133,9 @@ class Convert[T]:
                 return args
 
             case t, (t_,):
-                return t(Convert(t=t_)._from_arg(args))
+                return t(Convert(t=t_)._from_arg(args))  # type: ignore[misc]
             case t, ts:
-                return t(*(Convert(t=t)._from_arg(arg) for t, arg in zip(ts, args)))  # type: ignore[arg-type]
+                return t(*(Convert(t=t)._from_arg(arg) for t, arg in zip(ts, args)))  # type: ignore[arg-type, misc]
 
 
     def _from_arg(self, arg: _Args, /) -> T:
