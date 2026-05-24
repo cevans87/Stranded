@@ -4,9 +4,9 @@ import sys
 import typing
 
 from ..abc import decorator
+from ..builtins import exception_
 
 
-DecoratorException = decorator.DecoratorException
 Raise = decorator.Raise
 Stop = decorator.Stop
 Param = decorator.Param
@@ -95,7 +95,7 @@ class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
             case Stop() as stop_: raise stop_
             case Raise() as raise_: raise raise_.exc_val
             case Return() as return_: return return_.ret
-            case _: raise DecoratorException(f'{type(self).__name__} call completed with invalid {value=!r}')
+            case _: raise exception_.Exception(f'{type(self).__name__} call completed with invalid {value=!r}')
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)

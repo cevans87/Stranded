@@ -8,6 +8,7 @@ import typing
 from stranded import types
 
 from stranded.abc import decorator
+from stranded.builtins import exception_
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -408,7 +409,7 @@ class _BoundSignature(_Signature):
             )
 
 
-class Exception(decorator.DecoratorException): ...  # noqa
+class Exception(exception_.Exception): ...  # noqa
 
 
 @typing.runtime_checkable

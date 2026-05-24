@@ -16,7 +16,6 @@ type _Decorator[**ParamT, RetT] = Herd[ParamT, RetT]
 type _Future[RetT] = Future[RetT]
 
 
-DecoratorException = decorator.DecoratorException
 Raise = decorator.Raise
 Stop = decorator.Stop
 Param = decorator.Param
