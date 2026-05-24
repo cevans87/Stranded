@@ -23,6 +23,12 @@ class Decoratee[**ParamT, RetT](
 ): ...
 
 
+Param = decorator.Param
+Raise = decorator.Raise
+Return = decorator.Return
+Stop = decorator.Stop
+
+
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Send[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
     decorator.Send[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
@@ -45,8 +51,8 @@ class Exit[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorated
     bound_arguments: inspect.BoundArguments
 
     @abc.abstractmethod
-    def __call__(self, result: decorator.Raise | RetT) -> ():
-        if isinstance(result, decorator.Raise):
+    def __call__(self, result: Raise | RetT) -> tuple[()]:
+        if isinstance(result, Raise):
             self.enter.decorated.decorator.logger.log(
                 logging.getLevelNamesMapping()[self.enter.decorated.decorator.err_level],
                 '%s :: %s !! %s',

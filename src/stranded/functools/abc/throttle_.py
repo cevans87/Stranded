@@ -28,6 +28,12 @@ class Decoratee[**ParamT, RetT](
 ): ...
 
 
+Param = decorator.Param
+Raise = decorator.Raise
+Return = decorator.Return
+Stop = decorator.Stop
+
+
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Send[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
     decorator.Send[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
@@ -47,12 +53,12 @@ class Exit[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorated
     decorator.Exit[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
     abc.ABC,
 ):
-    def __call__(self, result: decorator.Raise | RetT) -> ():
+    def __call__(self, result: Raise | RetT) -> tuple[()]:
         state = self.enter.decorated.state
-        if isinstance(result, decorator.Raise) and state.num_running <= state.cap_running:
+        if isinstance(result, Raise) and state.num_running <= state.cap_running:
             state.cap_running //= 2
         elif (
-            not isinstance(result, decorator.Raise)
+            not isinstance(result, Raise)
             and state.num_running == state.cap_running < self.enter.decorated.decorator.max_running
         ):
             state.cap_running += 1
