@@ -112,7 +112,7 @@ class Exit[**ParamT, RetT](
         _Decorator[ParamT, RetT],
     ],
 ):
-    def __call__(self, result: Raise | RetT) -> tuple[()]:
+    def __call__(self, result: Raise | RetT) -> tuple[()]:  # type: ignore[override]
         with self.enter.decorated.condition:
             return super().__call__(result)
 
@@ -143,7 +143,7 @@ class Enter[**ParamT, RetT](
         _Decorator[ParamT, RetT],
     ],
 ):
-    def __call__(self, *args: ParamT.args, **kwargs: ParamT.kwargs) -> tuple[_Exit[ParamT, RetT], _Decoratee[ParamT, RetT]]:
+    def __call__(self, *args: ParamT.args, **kwargs: ParamT.kwargs) -> tuple[_Exit[ParamT, RetT], _Decoratee[ParamT, RetT]]:  # type: ignore[override]
         # TODO: this is mostly duplicate with the asyncio version. Try to consolidate.
         state = self.decorated.state
         with self.decorated.condition:

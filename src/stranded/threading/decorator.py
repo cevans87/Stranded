@@ -23,7 +23,7 @@ class Receive[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decora
     decorator.Receive[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
     abc.ABC,
 ):
-    def __call__[SRetT, **SParamT](
+    def __call__[SRetT, **SParamT](  # type: ignore[override]
         self,
         value: Param[ParamT] | Raise | Return[SRetT] | Stop,
         /,
@@ -36,7 +36,7 @@ class Send[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorated
     decorator.Send[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
     abc.ABC,
 ):
-    def __call__[**RParamT](
+    def __call__[**RParamT](  # type: ignore[override]
         self,
         value: Param[ParamT] | Raise | Return[RetT] | Stop,
         /,
@@ -49,7 +49,7 @@ class Exit[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorated
     decorator.Exit[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
     abc.ABC,
 ):
-    @typing.overload
+    @typing.overload  # type: ignore[override]
     def __call__(self, value: Param[ParamT], /) -> tuple[ExitT, DecorateeT]: ...
     @typing.overload
     def __call__(self, value: Raise | Return[RetT] | Stop, /) -> tuple[()]: ...

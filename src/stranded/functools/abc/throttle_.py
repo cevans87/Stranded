@@ -53,7 +53,7 @@ class Exit[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorated
     decorator.Exit[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
     abc.ABC,
 ):
-    def __call__(self, result: Raise | RetT) -> tuple[()]:
+    def __call__(self, result: Raise | RetT) -> tuple[()]:  # type: ignore[override]
         state = self.enter.decorated.state
         if isinstance(result, Raise) and state.num_running <= state.cap_running:
             state.cap_running //= 2

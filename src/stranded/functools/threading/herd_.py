@@ -134,7 +134,7 @@ class Exit[**ParamT, RetT](
 ):
     future: _Future[RetT] = dataclasses.field(default_factory=Future)
 
-    def __call__(self, value: Param[ParamT] | Raise | Return[RetT] | Stop) -> tuple[()]:
+    def __call__(self, value: Param[ParamT] | Raise | Return[RetT] | Stop) -> tuple[()]:  # type: ignore[override]
         self.enter.decorated.future_by_key.pop(self.key, None)
         match value:
             case Param(): pass
@@ -170,7 +170,7 @@ class Enter[**ParamT, RetT](
     ],
 ):
     @typing.override
-    def __call__(
+    def __call__(  # type: ignore[override]
         self, value: Param[ParamT] | Raise | Return[RetT] | Stop,
     ) -> tuple[_Exit[ParamT, RetT], _Decoratee[ParamT, RetT]] | tuple[_Future[RetT]] | tuple[()]:
         match value:
