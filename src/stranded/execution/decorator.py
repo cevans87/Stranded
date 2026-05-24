@@ -38,7 +38,7 @@ def _to_async(obj: typing.Callable[..., typing.Any]) -> typing.Callable[..., typ
 class Decorator[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
     decorator.Decorator[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
 ):
-    def __call__[DecorateeT](self, decoratee: DecorateeT) -> DecorateeT:  # type: ignore[override, misc]
+    def __call__[DecorateeT](self, decoratee: DecorateeT) -> DecorateeT:
         promotable = {
             field.name: getattr(self, field.name)
             for field in dataclasses.fields(self)
@@ -48,7 +48,7 @@ class Decorator[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
 
         if any_async:
             self_ = dataclasses.replace(self, **{k: _to_async(v) for k, v in promotable.items()})
-            decoratee = _to_async(decoratee)  # type: ignore[arg-type, assignment]
+            decoratee = _to_async(decoratee)
             target = 'asyncio'
         else:
             self_ = self
@@ -57,6 +57,6 @@ class Decorator[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
         name_parts = self_.__module__.split('.')
         name_parts.insert(-1, target)
 
-        return importlib.import_module(  # type: ignore[no-any-return]
+        return importlib.import_module(
             name='.'.join(name_parts),
         ).Decorator(**{f.name: getattr(self_, f.name) for f in dataclasses.fields(self_)})(decoratee)

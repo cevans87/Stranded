@@ -23,12 +23,12 @@ class Receive[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decora
     decorator.Receive[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
     abc.ABC,
 ):
-    def __call__[SRetT, **SParamT](  # type: ignore[override]
+    def __call__[SRetT, **SParamT](
         self,
         value: Param[ParamT] | Raise | Return[SRetT] | Stop,
         /,
     ) -> Param[ParamT] | Raise | Param[typing.Concatenate[SRetT, SParamT]] | Stop:
-        return super().__call__(value)  # type: ignore[return-value]
+        return super().__call__(value)
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -36,12 +36,12 @@ class Send[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorated
     decorator.Send[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
     abc.ABC,
 ):
-    def __call__[**RParamT](  # type: ignore[override]
+    def __call__[**RParamT](
         self,
         value: Param[ParamT] | Raise | Return[RetT] | Stop,
         /,
     ) -> Param[ParamT] | Raise | Param[typing.Concatenate[RetT, RParamT]] | Stop:
-        return super().__call__(value)  # type: ignore[return-value]
+        return super().__call__(value)
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -49,7 +49,7 @@ class Exit[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorated
     decorator.Exit[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
     abc.ABC,
 ):
-    @typing.overload  # type: ignore[override]
+    @typing.overload
     def __call__(self, value: Param[ParamT], /) -> tuple[ExitT, DecorateeT]: ...
     @typing.overload
     def __call__(self, value: Raise | Return[RetT] | Stop, /) -> tuple[()]: ...
@@ -81,8 +81,8 @@ class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
         while stack:
             match popped := stack.pop():
                 case Param() | Raise() | Return() | Stop(): value = popped
-                case Enter() | Exit(): stack.extend(popped(value))  # type: ignore[arg-type]
-                case Send() | Receive(): value = popped(value)  # type: ignore[arg-type, assignment]
+                case Enter() | Exit(): stack.extend(popped(value))
+                case Send() | Receive(): value = popped(value)
                 case Decoratee() if isinstance(value, Param):
                     try:
                         value = Return(ret=popped(*value.args, **value.kwargs))
@@ -94,7 +94,7 @@ class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
         match value:
             case Stop() as stop_: raise stop_
             case Raise() as raise_: raise raise_.exc_val
-            case Return() as return_: return return_.ret  # type: ignore[no-any-return]
+            case Return() as return_: return return_.ret
             case _: raise exception_.Exception(f'{type(self).__name__} call completed with invalid {value=!r}')
 
     def create_context(self) -> tuple[DecorateeT | ReceiveT | SendT | ExitT | EnterT | DecoratorT, ...]:

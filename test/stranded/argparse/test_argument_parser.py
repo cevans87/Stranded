@@ -235,7 +235,7 @@ def test_call_parses_args() -> None:
     def foo(a: int) -> None: calls.append({'a': a})
 
     @ArgumentParser()
-    def bar(*args: str) -> None: calls.append({'args': args})  # type: ignore[dict-item]
+    def bar(*args: str) -> None: calls.append({'args': args})
 
     (foo | bar)(*'1 2 --b 3.0 --c 4.0'.split())
 
@@ -253,7 +253,7 @@ def test_call_parses_kwargs() -> None:
     def foo(a: int) -> None: calls.append({'a': a})
 
     @ArgumentParser()
-    def bar(**kwargs: int) -> None: calls.append({'kwargs': kwargs})  # type: ignore[dict-item]
+    def bar(**kwargs: int) -> None: calls.append({'kwargs': kwargs})
 
     (foo | bar)(*'1 --b 2 --c 3'.split())
 
@@ -271,10 +271,10 @@ def test_call_parses_args_and_kwargs() -> None:
     def foo(a: int) -> None: calls.append({'a': a})
 
     @ArgumentParser()
-    def bar(*args: str) -> None: calls.append({'args': args})  # type: ignore[dict-item]
+    def bar(*args: str) -> None: calls.append({'args': args})
 
     @ArgumentParser()
-    def baz(**kwargs: float) -> None: calls.append({'kwargs': kwargs})  # type: ignore[dict-item]
+    def baz(**kwargs: float) -> None: calls.append({'kwargs': kwargs})
 
     (foo | bar | baz)(*'1 2 --b 3.0 --c 4.0'.split())
 
@@ -299,10 +299,10 @@ def test_args_passed_to_subcommand() -> None:
                 baz(*args)
 
     @ArgumentParser()
-    def bar(*args: str) -> None: calls.append({'args': args})  # type: ignore[dict-item]
+    def bar(*args: str) -> None: calls.append({'args': args})
 
     @ArgumentParser()
-    def baz(**kwargs: float) -> None: calls.append({'kwargs': kwargs})  # type: ignore[dict-item]
+    def baz(**kwargs: float) -> None: calls.append({'kwargs': kwargs})
 
     foo(*'bar --a 3.0 --b 4.0'.split())
 
@@ -326,7 +326,7 @@ def test_help_goes_to_subcommand() -> None:
     calls = []
 
     @ArgumentParser()
-    def help_flag(subcommand: typing.Literal['bar', 'baz'] = ..., /, *, help: bool = False) -> None:  # type: ignore[assignment]
+    def help_flag(subcommand: typing.Literal['bar', 'baz'] = ..., /, *, help: bool = False) -> None:
         calls.append({'subcommand': subcommand, 'help': help})
         if help:
             match subcommand:
@@ -342,7 +342,7 @@ def test_help_goes_to_subcommand() -> None:
             assert False, 'In a normal Cli, this should be `sys.exit(0)`.'
 
     @ArgumentParser()
-    def foo(subcommand: typing.Literal['bar', 'baz'] = ..., /, *args: str) -> None:  # type: ignore[assignment]
+    def foo(subcommand: typing.Literal['bar', 'baz'] = ..., /, *args: str) -> None:
         calls.append({'subcommand': subcommand})
         match subcommand:
             case  builtins.Ellipsis:
@@ -353,10 +353,10 @@ def test_help_goes_to_subcommand() -> None:
                 (help_flag | baz)(*args)
 
     @ArgumentParser()
-    def bar(*args: str) -> None: calls.append({'args': args})  # type: ignore[dict-item]
+    def bar(*args: str) -> None: calls.append({'args': args})
 
     @ArgumentParser()
-    def baz(**kwargs: float) -> None: calls.append({'kwargs': kwargs})  # type: ignore[dict-item]
+    def baz(**kwargs: float) -> None: calls.append({'kwargs': kwargs})
 
     with pytest.raises(AssertionError):
         (help_flag | foo)(*'-help'.split())

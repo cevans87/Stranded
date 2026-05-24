@@ -163,7 +163,7 @@ class Decorated[**ParamT, RetT](
     """Concrete async op state. `start()` awaits the decoratee thunk."""
 
     async def start(self) -> None:
-        await self.decoratee()  # type: ignore[call-arg]
+        await self.decoratee()
 
 
 @typing.final

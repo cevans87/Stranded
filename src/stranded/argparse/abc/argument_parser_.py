@@ -146,7 +146,7 @@ class _ReturnAnnotation[T](_Annotation[T]):
             case _, typing.Annotated, (t, *_, comment):
                 return _ReturnAnnotation[typing.Any](t=t, comment=comment)
             case _, t, ts:
-                return _ReturnAnnotation[typing.Any](t=t[*ts])  # type: ignore[index]
+                return _ReturnAnnotation[typing.Any](t=t[*ts])
             case _:
                 raise RuntimeError(f'{annotation=}. Cannot create return annotation.')
 
@@ -191,15 +191,15 @@ class _Signature:
 
     @property
     def keyword_parameter_by_name(self) -> dict[str, _KeywordParameter[typing.Any]]:
-        return self.optional_keyword_parameter_by_name | self.required_keyword_parameter_by_name  # type: ignore[no-any-return, operator]
+        return self.optional_keyword_parameter_by_name | self.required_keyword_parameter_by_name
 
     @property
     def positional_parameter_by_name(self) -> dict[str, _StackedParameter[typing.Any]]:
-        return self.optional_positional_parameter_by_name | self.required_positional_parameter_by_name  # type: ignore[no-any-return, operator]
+        return self.optional_positional_parameter_by_name | self.required_positional_parameter_by_name
 
     @property
     def parameter_by_name(self) -> dict[str, _Parameter[typing.Any]]:
-        return self.variadic_parameter_by_name | self.keyword_parameter_by_name | self.positional_parameter_by_name  # type: ignore[no-any-return, operator]
+        return self.variadic_parameter_by_name | self.keyword_parameter_by_name | self.positional_parameter_by_name
 
     @property
     def annotations(self) -> tuple[_Annotation[typing.Any], ...]:
@@ -226,11 +226,11 @@ class _Signature:
 
                 case ('', '', name) if parameter := required_keyword_parameter_by_name.pop(name, None):
                     keyword_value_by_name[name] = parameter(arg_stack.pop())
-                case ('', '', name) if parameter := optional_keyword_parameter_by_name.pop(name, None):  # type: ignore[assignment]
+                case ('', '', name) if parameter := optional_keyword_parameter_by_name.pop(name, None):
                     keyword_value_by_name[name] = parameter(arg_stack.pop())
-                case ('', '', name) if parameter := self.variadic_keyword_parameter:  # type: ignore[assignment]
+                case ('', '', name) if parameter := self.variadic_keyword_parameter:
                     variadic_keyword_value_by_name[name] = parameter(arg_stack.pop())
-                case ('', '', _) if parameter := self.variadic_positional_parameter:  # type: ignore[assignment]
+                case ('', '', _) if parameter := self.variadic_positional_parameter:
                     variadic_positional_values += [arg, parameter(arg_stack.pop())]
 
                 # Special cases of keyword arguments where type is bool.
@@ -240,7 +240,7 @@ class _Signature:
                 ):
                     keyword_value_by_name[name] = True
                 case ('', name) if (
-                    (parameter := optional_keyword_parameter_by_name.pop(name, None))  # type: ignore[assignment]
+                    (parameter := optional_keyword_parameter_by_name.pop(name, None))
                     and (parameter.t == bool)
                     and (parameter.default == False)
                 ):
@@ -251,12 +251,12 @@ class _Signature:
                     variadic_positional_values.append(True)
 
                 case (arg,) if required_positional_parameter_by_name:
-                    name, parameter = required_positional_parameter_by_name.popitem()  # type: ignore[assignment]
-                    positional_value_by_name[name] = parameter(arg)  # type: ignore[misc]
+                    name, parameter = required_positional_parameter_by_name.popitem()
+                    positional_value_by_name[name] = parameter(arg)
                 case (arg,) if optional_positional_parameter_by_name:
-                    name, parameter = optional_positional_parameter_by_name.popitem()  # type: ignore[assignment]
-                    positional_value_by_name[name] = parameter(arg)  # type: ignore[misc]
-                case (arg,) if parameter := self.variadic_positional_parameter:  # type: ignore[assignment]
+                    name, parameter = optional_positional_parameter_by_name.popitem()
+                    positional_value_by_name[name] = parameter(arg)
+                case (arg,) if parameter := self.variadic_positional_parameter:
                     variadic_positional_values.append(parameter(arg))
 
                 case _:
@@ -290,7 +290,7 @@ class _Signature:
         optional_positional_parameter_by_name: dict[str, _OptionalPositionalParameter[typing.Any]] = {}
         required_positional_parameter_by_name: dict[str, _RequiredPositionalParameter[typing.Any]] = {}
 
-        for parameter in reversed(signature.parameters.values()):  # type: ignore[call-overload]
+        for parameter in reversed(signature.parameters.values()):
             match parameter:
                 case inspect.Parameter(name=name, kind=parameter.POSITIONAL_ONLY, default=parameter.empty):
                     required_positional_parameter_by_name[name] = _RequiredPositionalParameter.of_parameter(parameter)
@@ -382,7 +382,7 @@ class _BoundSignature(_Signature):
     variadic_positional_values: list[object]
     variadic_keyword_value_by_name: dict[str, object]
 
-    def __call__(self, decorateds: typing.Iterable[Decorated[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any]]) -> typing.Iterable[typing.Callable[..., typing.Any]]:  # type: ignore[override]
+    def __call__(self, decorateds: typing.Iterable[Decorated[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any]]) -> typing.Iterable[typing.Callable[..., typing.Any]]:
         for decorated in decorateds:
             decoratee_signature = inspect.signature(decorated.decoratee)
             yield lambda: decorated.decoratee(
@@ -393,7 +393,7 @@ class _BoundSignature(_Signature):
                 ),
                 *(
                     value for value in self.variadic_positional_values
-                    if self.variadic_positional_parameter.name in decoratee_signature.parameters  # type: ignore[union-attr]
+                    if self.variadic_positional_parameter.name in decoratee_signature.parameters
                 ),
                 **{
                     name: value for name, value in self.keyword_value_by_name.items()
@@ -402,7 +402,7 @@ class _BoundSignature(_Signature):
                 },
                 **{
                     name: value for name, value in self.variadic_keyword_value_by_name.items()
-                    if self.variadic_keyword_parameter.name in decoratee_signature.parameters  # type: ignore[union-attr]
+                    if self.variadic_keyword_parameter.name in decoratee_signature.parameters
                 },
             )
 
@@ -466,10 +466,10 @@ class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
         yield from self.to_signature()(*argv)(self.decorateds)
 
 
-    def __or__[DecoratedT: Decorated[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any]](self, other: DecoratedT) -> DecoratedT:  # type: ignore[override, misc]
-        return dataclasses.replace(other, children=(self, other))  # type: ignore[type-var]
+    def __or__[DecoratedT: Decorated[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any]](self, other: DecoratedT) -> DecoratedT:
+        return dataclasses.replace(other, children=(self, other))
 
-    def __xor__[DecoratedT: Decorated[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any]](self, other: DecoratedT) -> DecoratedT:  # type: ignore[empty-body, misc]
+    def __xor__[DecoratedT: Decorated[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any]](self, other: DecoratedT) -> DecoratedT:
         # TODO make this mark flags in the two CLI's as mutually exclusive.
         ...
 
@@ -488,7 +488,7 @@ class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
         ])
 
     def to_signature(self) -> _Signature:
-        return _Signature.of_signature(inspect.signature(self.decoratee)) if self.children is None else (  # type: ignore[arg-type]
+        return _Signature.of_signature(inspect.signature(self.decoratee)) if self.children is None else (
             _Signature.of_signatures(self.children[0].to_signature(), self.children[1].to_signature())
         )
 
@@ -506,12 +506,12 @@ class ArgumentParser[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT,
     Signature: typing.ClassVar = _Signature
 
     def __call__(self, decoratee: DecorateeT, /) -> DecoratedT:
-        return self.decorated_t(  # type: ignore[call-arg]
+        return self.decorated_t(
             __doc__=str(decoratee.__doc__),
             __module__=str(decoratee.__module__),
-            __name__=str(decoratee.__name__),  # type: ignore[attr-defined]
-            __qualname__=str(decoratee.__qualname__),  # type: ignore[attr-defined]
-            __signature__=inspect.signature(decoratee).replace(  # type: ignore[arg-type]
+            __name__=str(decoratee.__name__),
+            __qualname__=str(decoratee.__qualname__),
+            __signature__=inspect.signature(decoratee).replace(
                 parameters=(
                     inspect.Parameter('argv', inspect.Parameter.VAR_POSITIONAL),
                 ),
