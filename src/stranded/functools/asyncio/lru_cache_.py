@@ -133,7 +133,7 @@ class Exit[**ParamT, RetT](
     ],
 ):
     @typing.override
-    async def __call__(self, value: Param | Raise | Return | Stop) -> tuple[()]:
+    async def __call__(self, value: Param[ParamT] | Raise | Return[RetT] | Stop) -> tuple[()]:
         match value:
             case Param(): pass
             case Return() | Raise() | Stop(): self.future.set_value(value)
@@ -170,7 +170,7 @@ class Enter[**ParamT, RetT](
     # TODO: Dedup this with the threading version.
     @typing.override
     async def __call__(
-        self, value: Param | Raise | Return | Stop,
+        self, value: Param[ParamT] | Raise | Return[RetT] | Stop,
     ) -> tuple[_Exit[ParamT, RetT], _Decoratee[ParamT, RetT]] | tuple[_Future[RetT]] | tuple[()]:
         match value:
             case Param():
