@@ -1,11 +1,15 @@
 import dataclasses
+import typing
 
 from . import decorator
 from .abc import get_delegation_scheduler_
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class GetDelegationScheduler(decorator.Decorator, get_delegation_scheduler_.Decorator): ...
+class GetDelegationScheduler(
+    decorator.Decorator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
+    get_delegation_scheduler_.Decorator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
+): ...
 
 
 Decorator = GetDelegationScheduler

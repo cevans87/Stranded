@@ -1,11 +1,15 @@
 import dataclasses
+import typing
 
 from . import decorator
 from .abc import get_forward_progress_guarantee_
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class GetForwardProgressGuarantee(decorator.Decorator, get_forward_progress_guarantee_.Decorator): ...
+class GetForwardProgressGuarantee(
+    decorator.Decorator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
+    get_forward_progress_guarantee_.Decorator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
+): ...
 
 
 Decorator = GetForwardProgressGuarantee

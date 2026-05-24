@@ -1,12 +1,15 @@
 import dataclasses
 import importlib
 import inspect
+import typing
 
 from .abc import decorator
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorator(decorator.Decorator):
+class Decorator[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
+    decorator.Decorator[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
+):
 
     def __call__[DecorateeT](self, decoratee: DecorateeT) -> DecorateeT:
         (name_parts := self.__module__.split('.')).insert(

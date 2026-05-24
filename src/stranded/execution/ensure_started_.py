@@ -1,11 +1,15 @@
 import dataclasses
+import typing
 
 from . import decorator
 from .abc import ensure_started_
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class EnsureStarted(decorator.Decorator, ensure_started_.Decorator): ...
+class EnsureStarted(
+    decorator.Decorator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
+    ensure_started_.Decorator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
+): ...
 
 
 Decorator = EnsureStarted

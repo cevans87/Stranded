@@ -1,11 +1,15 @@
 import dataclasses
+import typing
 
 from . import decorator
 from .abc import read_env_
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class ReadEnv(decorator.Decorator, read_env_.Decorator): ...
+class ReadEnv(
+    decorator.Decorator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
+    read_env_.Decorator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
+): ...
 
 
 Decorator = ReadEnv

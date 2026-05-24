@@ -1,11 +1,12 @@
 import dataclasses
+import typing
 
 from .abc import lru_cache_
 from .. import decorator
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class LruCache(decorator.Decorator, lru_cache_.Decorator):
+class LruCache(decorator.Decorator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any], lru_cache_.Decorator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any]):
     @property
     def future_t(self) -> type:
         raise NotImplementedError(

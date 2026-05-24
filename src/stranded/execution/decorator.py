@@ -35,7 +35,9 @@ def _to_async(obj: typing.Callable[..., typing.Any]) -> typing.Callable[..., typ
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorator(decorator.Decorator):
+class Decorator[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
+    decorator.Decorator[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
+):
     def __call__[DecorateeT](self, decoratee: DecorateeT) -> DecorateeT:
         promotable = {
             field.name: getattr(self, field.name)
