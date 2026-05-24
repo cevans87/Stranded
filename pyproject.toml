@@ -30,7 +30,7 @@ requires-python = '>=3.12'
 version = '0.0.1'
 
 [project.optional-dependencies]
-test = ['pytest', 'pytest-asyncio', 'pytest-cov']
+test = ['mypy', 'pytest', 'pytest-asyncio', 'pytest-cov', 'pytest-mypy']
 
 [project.urls]
 Homepage = 'https://github.com/cevans87/Stranded'
@@ -40,3 +40,33 @@ Repository = 'https://github.com/cevans87/Stranded.git'
 [tool.setuptools.packages.find]
 include = ['*']
 where = ['src']
+
+[tool.pytest.ini_options]
+addopts = [
+    '--cov=stranded',
+    '--cov-branch',
+    '--cov-report=term-missing',
+    '--mypy',
+]
+testpaths = ['test', 'src']
+
+[tool.coverage.run]
+branch = true
+source = ['stranded']
+
+[tool.coverage.report]
+exclude_also = [
+    'if typing\\.TYPE_CHECKING:',
+    '\\.\\.\\.\\s*$',
+    'raise NotImplementedError',
+    '@(abc\\.)?abstractmethod',
+]
+show_missing = true
+skip_covered = false
+
+[tool.mypy]
+strict = true
+files = ['src', 'test']
+mypy_path = 'src'
+explicit_package_bases = true
+namespace_packages = true
