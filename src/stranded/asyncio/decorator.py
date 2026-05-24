@@ -28,7 +28,7 @@ class Receive[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decora
         value: Param[ParamT] | Raise | Return[SRetT] | Stop,
         /,
     ) -> Param[ParamT] | Raise | Param[typing.Concatenate[SRetT, SParamT]] | Stop:
-        return super().__call__(value)
+        return super().__call__(value)  # type: ignore[return-value]
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -41,7 +41,7 @@ class Send[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorated
         value: Param[ParamT] | Raise | Return[RetT] | Stop,
         /,
     ) -> Param[ParamT] | Raise | Param[typing.Concatenate[RetT, RParamT]] | Stop:
-        return super().__call__(value)
+        return super().__call__(value)  # type: ignore[return-value]
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)

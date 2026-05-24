@@ -174,7 +174,7 @@ class Enter[**ParamT, RetT](
         self, value: Param[ParamT] | Raise | Return[RetT] | Stop,
     ) -> tuple[_Exit[ParamT, RetT], _Decoratee[ParamT, RetT]] | tuple[_Future[RetT]] | tuple[()]:
         match value:
-            case Param(): return self._dispatch(*value.args, **value.kwargs)
+            case Param(): return self._dispatch(*value.args, **value.kwargs)  # type: ignore[return-value]
             case _: return ()
 
 

@@ -59,7 +59,7 @@ class Convert[T]:
         match self.t:
             case types.NoneType | None:
                 assert arg is None, f'{self} expected `None`, got `{arg}`.'
-                return arg
+                return arg  # type: ignore[return-value]
             case builtins.bool | builtins.int | builtins.float | builtins.str:
                 assert isinstance(arg, self.t), f'{self} expected `{self.t}`, got `{arg}`'
                 return arg
@@ -77,7 +77,7 @@ class Convert[T]:
                 assert isinstance(args, dict), (
                     f'{self} expected `dict[{key_t}, {value_t}]`, got `{args}`'
                 )
-                return {
+                return {  # type: ignore[return-value]
                     Convert(t=key_t)._from_arg(key): Convert(t=value_t)._from_arg(value)
                     for key, value in args.items()
                 }
@@ -86,19 +86,19 @@ class Convert[T]:
                 assert isinstance(args, (set, frozenset)), (
                     f'{self} expected `{frozenset[t]}`, got `{args}`.'
                 )
-                return frozenset({Convert(t=t)._from_arg(arg) for arg in args})
+                return frozenset({Convert(t=t)._from_arg(arg) for arg in args})  # type: ignore[return-value]
 
             case builtins.list, (t,):
                 assert isinstance(args, list), (
                     f'{self} expected `{list[t]}`, got `{args}`.'
                 )
-                return list(Convert(t=t)._from_arg(arg) for arg in args)
+                return list(Convert(t=t)._from_arg(arg) for arg in args)  # type: ignore[return-value]
 
             case builtins.tuple, ():
                 assert args == tuple(), (
                     f'{self} expected `{tuple[()]}`, got `{args}`.'
                 )
-                return args
+                return args  # type: ignore[return-value]
             case builtins.tuple, (t,):
                 assert isinstance(args, tuple) and len(args) == 1, (
                     f'{self} expected `{tuple[t]}`, got `{args}`.'
@@ -119,18 +119,18 @@ class Convert[T]:
                 assert isinstance(args, (set, frozenset)), (
                     f'{self} expected `{set[t]}`, got `{args}`.'
                 )
-                return set({Convert(t=t)._from_arg(arg) for arg in args})
+                return set({Convert(t=t)._from_arg(arg) for arg in args})  # type: ignore[return-value]
 
             case(typing.Union | types.UnionType), ts:
                 assert type(args) in ts, (
                     f'{self} expected `{typing.Union[*ts]}`, got `{args}`.'
                 )
-                return args
+                return args  # type: ignore[return-value]
             case typing.Literal, vs:
                 assert args in vs, (
                     f'{self} expected `{typing.Literal[*vs]}`, got `{args}`.'  # noqa
                 )
-                return args
+                return args  # type: ignore[return-value]
 
             case t, (t_,):
                 return t(Convert(t=t_)._from_arg(args))  # type: ignore[misc]
