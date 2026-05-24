@@ -1,11 +1,15 @@
 import dataclasses
+import typing
 
 from . import decorator
 from .abc import with_awaitable_senders_
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class WithAwaitableSenders(decorator.Decorator, with_awaitable_senders_.Decorator): ...
+class WithAwaitableSenders(
+    decorator.Decorator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
+    with_awaitable_senders_.Decorator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
+): ...
 
 
 Decorator = WithAwaitableSenders

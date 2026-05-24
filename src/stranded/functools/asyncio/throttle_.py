@@ -142,7 +142,7 @@ class Enter[**ParamT, RetT](
         _Decorator[ParamT, RetT],
     ],
 ):
-    async def __call__(self, *args: ParamT.args, **kwargs: ParamT.kwargs) -> tuple[_Exit, _Decoratee]:
+    async def __call__(self, *args: ParamT.args, **kwargs: ParamT.kwargs) -> tuple[_Exit[ParamT, RetT], _Decoratee[ParamT, RetT]]:
         # TODO: this is mostly duplicate with the threading version. Try to consolidate.
         state = self.decorated.state
         async with self.decorated.condition:

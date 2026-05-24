@@ -1,11 +1,15 @@
 import dataclasses
+import typing
 
 from . import decorator
 from .abc import upon_stopped_
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class UponStopped(decorator.Decorator, upon_stopped_.Decorator): ...
+class UponStopped(
+    decorator.Decorator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
+    upon_stopped_.Decorator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
+): ...
 
 
 Decorator = UponStopped

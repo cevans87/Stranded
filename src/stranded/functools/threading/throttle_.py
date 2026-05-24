@@ -143,7 +143,7 @@ class Enter[**ParamT, RetT](
         _Decorator[ParamT, RetT],
     ],
 ):
-    def __call__(self, *args: ParamT.args, **kwargs: ParamT.kwargs) -> tuple[_Exit, _Decoratee]:
+    def __call__(self, *args: ParamT.args, **kwargs: ParamT.kwargs) -> tuple[_Exit[ParamT, RetT], _Decoratee[ParamT, RetT]]:
         # TODO: this is mostly duplicate with the asyncio version. Try to consolidate.
         state = self.decorated.state
         with self.decorated.condition:

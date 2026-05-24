@@ -53,7 +53,7 @@ class Convert[T]:
     """
     t: type[T]
 
-    type _Args = bool | float | int | str | list | dict | set | None
+    type _Args = bool | float | int | str | list[typing.Any] | dict[typing.Any, typing.Any] | set[typing.Any] | None
     type _Args2[*Ts] = bool | float | int | str | list[*Ts] | dict[*Ts] | set[*Ts] | None
 
     def _using_type(self, arg: _Args, /) -> T:

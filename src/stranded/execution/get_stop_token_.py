@@ -1,11 +1,15 @@
 import dataclasses
+import typing
 
 from . import decorator
 from .abc import get_stop_token_
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class GetStopToken(decorator.Decorator, get_stop_token_.Decorator): ...
+class GetStopToken(
+    decorator.Decorator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
+    get_stop_token_.Decorator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
+): ...
 
 
 Decorator = GetStopToken

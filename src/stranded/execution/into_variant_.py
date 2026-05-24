@@ -1,11 +1,15 @@
 import dataclasses
+import typing
 
 from . import decorator
 from .abc import into_variant_
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class IntoVariant(decorator.Decorator, into_variant_.Decorator): ...
+class IntoVariant(
+    decorator.Decorator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
+    into_variant_.Decorator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
+): ...
 
 
 Decorator = IntoVariant

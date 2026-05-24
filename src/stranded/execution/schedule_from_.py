@@ -1,11 +1,15 @@
 import dataclasses
+import typing
 
 from . import decorator
 from .abc import schedule_from_
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class ScheduleFrom(decorator.Decorator, schedule_from_.Decorator): ...
+class ScheduleFrom(
+    decorator.Decorator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
+    schedule_from_.Decorator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
+): ...
 
 
 Decorator = ScheduleFrom
