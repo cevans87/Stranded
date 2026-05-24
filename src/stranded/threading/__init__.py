@@ -8,11 +8,7 @@ if _typing.TYPE_CHECKING:
     from .decorator import Decorator
 
 
-@_typing.overload
-def __getattr__(name: _typing.Literal['decorator']) -> type[decorator]: ...
-@_typing.overload
-def __getattr__(name: _typing.Literal['Decorator']) -> type[Decorator]: ...
-def __getattr__(name):
+def __getattr__(name: str) -> _typing.Any:
     match name:
         case 'decorator': return _importlib.import_module('.decorator', __name__)
         case 'Decorator': return _importlib.import_module('.decorator', __name__).Decorator

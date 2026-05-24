@@ -8,11 +8,7 @@ if _typing.TYPE_CHECKING:
     from .exception_ import Exception
 
 
-@_typing.overload
-def __getattr__(name: _typing.Literal['exception_']) -> type[exception_]: ...
-@_typing.overload
-def __getattr__(name: _typing.Literal['Exception']) -> type[Exception]: ...
-def __getattr__(name):
+def __getattr__(name: str) -> _typing.Any:
     match name:
         case 'exception_': return _importlib.import_module('.exception_', __name__)
         case 'Exception': return _importlib.import_module('.exception_', __name__).Exception

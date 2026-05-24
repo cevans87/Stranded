@@ -8,11 +8,7 @@ if _typing.TYPE_CHECKING:
     from .argument_parser_ import ArgumentParser
 
 
-@_typing.overload
-def __getattr__(name: _typing.Literal['argument_parser_']) -> type[argument_parser_]: ...
-@_typing.overload
-def __getattr__(name: _typing.Literal['ArgumentParser']) -> type[ArgumentParser]: ...
-def __getattr__(name):
+def __getattr__(name: str) -> _typing.Any:
     match name:
         case 'argument_parser_': return _importlib.import_module('.argument_parser_', __name__)
         case 'ArgumentParser': return _importlib.import_module('.argument_parser_', __name__).ArgumentParser

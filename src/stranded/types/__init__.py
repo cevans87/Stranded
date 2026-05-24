@@ -8,11 +8,7 @@ if _typing.TYPE_CHECKING:
     from .convert import Convert
 
 
-@_typing.overload
-def __getattr__(name: _typing.Literal['convert']) -> type[convert]: ...
-@_typing.overload
-def __getattr__(name: _typing.Literal['Convert']) -> type[Convert]: ...
-def __getattr__(name):
+def __getattr__(name: str) -> _typing.Any:
     match name:
         case 'convert': return _importlib.import_module('.convert', __name__)
         case 'Convert': return _importlib.import_module('.convert', __name__).Convert

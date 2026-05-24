@@ -8,11 +8,7 @@ if _typing.TYPE_CHECKING:
     from .logger_ import Logger
 
 
-@_typing.overload
-def __getattr__(name: _typing.Literal['logger_']) -> type[logger_]: ...
-@_typing.overload
-def __getattr__(name: _typing.Literal['Logger']) -> type[Logger]: ...
-def __getattr__(name):
+def __getattr__(name: str) -> _typing.Any:
     match name:
         case 'logger_': return _importlib.import_module('.logger_', __name__)
         case 'Logger': return _importlib.import_module('.logger_', __name__).Logger
