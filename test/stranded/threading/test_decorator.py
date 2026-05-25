@@ -1,8 +1,11 @@
 from __future__ import absolute_import
 
+import typing
+
 import pytest
 
 from stranded import Decorator
+from stranded.threading.composer import Composer
 
 
 def test_or_combines_metadata() -> None:
@@ -16,7 +19,7 @@ def test_or_combines_metadata() -> None:
         """bar doc"""
         return v * 2
 
-    combined = foo | bar  # type: ignore[operator]
+    combined: typing.Any = Composer()(foo, bar)  # type: ignore[arg-type]
 
     assert combined.__doc__ == f'{foo.__doc__}\n\n{bar.__doc__}'
     assert combined.__name__ == f'{foo.__name__}, {bar.__name__}'
@@ -42,7 +45,7 @@ def test_or_calls_each_decoratee() -> None:
         calls.append(('baz', v))
         return v - 3
 
-    result = (foo | bar | baz)(7)  # type: ignore[operator]
+    result: typing.Any = Composer()(foo, bar, baz).call_sync(7)  # type: ignore[arg-type, attr-defined]
 
     assert calls == [('foo', 7), ('bar', 8), ('baz', 80)]
     assert result == 77
@@ -61,9 +64,39 @@ def test_or_stack_grows() -> None:
     def baz(v: int) -> int:
         return v
 
-    assert foo.stack == ()  # type: ignore[attr-defined]
-    assert (foo | bar).stack != ()  # type: ignore[operator]
-    assert len((foo | bar | baz).stack) > len((foo | bar).stack)  # type: ignore[operator]
+    composer = Composer()
+    assert composer(foo).stack != ()  # type: ignore[arg-type]
+    assert len(composer(foo, bar).stack) > len(composer(foo).stack)  # type: ignore[arg-type]
+    assert len(composer(foo, bar, baz).stack) > len(composer(foo, bar).stack)  # type: ignore[arg-type]
+
+
+def test_composed_or_extends_with_decorated() -> None:
+    @Decorator()
+    def foo(v: int) -> int: return v + 1
+
+    @Decorator()
+    def bar(v: int) -> int: return v * 10
+
+    @Decorator()
+    def baz(v: int) -> int: return v - 3
+
+    composed: typing.Any = Composer()(foo, bar) | baz  # type: ignore[arg-type, operator]
+    assert composed.call_sync(7) == 77
+
+
+def test_composed_or_extends_with_composed() -> None:
+    @Decorator()
+    def foo(v: int) -> int: return v + 1
+
+    @Decorator()
+    def bar(v: int) -> int: return v * 10
+
+    @Decorator()
+    def baz(v: int) -> int: return v - 3
+
+    composer = Composer()
+    composed: typing.Any = composer(foo, bar) | composer(baz)  # type: ignore[arg-type]
+    assert composed.call_sync(7) == 77
 
 
 if __name__ == '__main__':

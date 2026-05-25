@@ -1,9 +1,12 @@
 from __future__ import absolute_import
 
+import typing
+
 import pytest
 
 from stranded import Decorator
 from stranded.abc import decorator as abc_decorator
+from stranded.asyncio.composer import Composer
 
 
 @pytest.mark.asyncio
@@ -18,7 +21,7 @@ async def test_or_combines_metadata() -> None:
         """bar doc"""
         return v * 2
 
-    combined = foo | bar  # type: ignore[operator]
+    combined: typing.Any = Composer()(foo, bar)  # type: ignore[arg-type]
 
     assert combined.__doc__ == f'{foo.__doc__}\n\n{bar.__doc__}'
     assert combined.__name__ == f'{foo.__name__}, {bar.__name__}'
@@ -45,7 +48,7 @@ async def test_or_calls_each_decoratee() -> None:
         calls.append(('baz', v))
         return v - 3
 
-    result = await (foo | bar | baz)(7)  # type: ignore[operator]
+    result: typing.Any = await Composer()(foo, bar, baz).call_async(7)  # type: ignore[arg-type, attr-defined]
 
     assert calls == [('foo', 7), ('bar', 8), ('baz', 80)]
     assert result == 77
@@ -65,9 +68,41 @@ async def test_or_stack_grows() -> None:
     async def baz(v: int) -> int:
         return v
 
-    assert foo.stack == ()  # type: ignore[attr-defined]
-    assert (foo | bar).stack != ()  # type: ignore[operator]
-    assert len((foo | bar | baz).stack) > len((foo | bar).stack)  # type: ignore[operator]
+    composer = Composer()
+    assert composer(foo).stack != ()  # type: ignore[arg-type]
+    assert len(composer(foo, bar).stack) > len(composer(foo).stack)  # type: ignore[arg-type]
+    assert len(composer(foo, bar, baz).stack) > len(composer(foo, bar).stack)  # type: ignore[arg-type]
+
+
+@pytest.mark.asyncio
+async def test_composed_or_extends_with_decorated() -> None:
+    @Decorator()
+    async def foo(v: int) -> int: return v + 1
+
+    @Decorator()
+    async def bar(v: int) -> int: return v * 10
+
+    @Decorator()
+    async def baz(v: int) -> int: return v - 3
+
+    composed: typing.Any = Composer()(foo, bar) | baz  # type: ignore[arg-type, operator]
+    assert await composed.call_async(7) == 77
+
+
+@pytest.mark.asyncio
+async def test_composed_or_extends_with_composed() -> None:
+    @Decorator()
+    async def foo(v: int) -> int: return v + 1
+
+    @Decorator()
+    async def bar(v: int) -> int: return v * 10
+
+    @Decorator()
+    async def baz(v: int) -> int: return v - 3
+
+    composer = Composer()
+    composed: typing.Any = composer(foo, bar) | composer(baz)  # type: ignore[arg-type]
+    assert await composed.call_async(7) == 77
 
 
 @pytest.mark.asyncio
@@ -95,7 +130,7 @@ async def test_raise_skips_downstream_decoratee() -> None:
         return v
 
     with pytest.raises(ValueError, match='boom'):
-        await (boom | inner)()  # type: ignore[operator]
+        await Composer()(boom, inner).call_async()  # type: ignore[arg-type, attr-defined]
 
     assert inner_called is False
 
@@ -136,7 +171,7 @@ async def test_stop_skips_downstream_decoratee() -> None:
         return v
 
     with pytest.raises(abc_decorator.Stop):
-        await (cancelled | inner)()  # type: ignore[operator]
+        await Composer()(cancelled, inner).call_async()  # type: ignore[arg-type, attr-defined]
 
     assert inner_called is False
 
