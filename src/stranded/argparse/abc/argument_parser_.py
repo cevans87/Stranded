@@ -466,7 +466,7 @@ class Decorated[**ParamT, RetT](
         yield from self.to_signature()(*argv)(self.decorateds)
 
 
-    def __or__[Decorated2T: Decorated[..., typing.Any]](self, other: Decorated2T) -> Decorated2T:  # type: ignore[override]
+    def __or__[Decorated2T: Decorated[..., typing.Any]](self, other: Decorated2T) -> Decorated2T:
         return dataclasses.replace(other, children=(self, other))
 
     def __xor__[Decorated2T: Decorated[..., typing.Any]](self, other: Decorated2T) -> Decorated2T:  # type: ignore[empty-body]

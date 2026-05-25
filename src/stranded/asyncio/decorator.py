@@ -3,6 +3,7 @@ import dataclasses
 import sys
 import typing
 
+from . import composer
 from ..abc import decorator
 from ..builtins import exception_
 
@@ -66,13 +67,12 @@ class Enter[**ParamT, RetT](decorator.Enter[ParamT, RetT], abc.ABC):
 class Decorated[**ParamT, RetT](decorator.Decorated[ParamT, RetT], abc.ABC):
     async def __call__(self, *args: ParamT.args, **kwargs: ParamT.kwargs) -> RetT:
         value: Param[ParamT] | Raise | Return[RetT] | Stop = Param(args=args, kwargs=kwargs)
-        stack = [*self.create_context(), *self.stack]
+        stack: list[typing.Any] = [self.decorator.enter_t(decorated=self)]
         while stack:
             match popped := stack.pop():
                 case Param() | Raise() | Return() | Stop(): value = popped
                 case Enter() | Exit(): stack.extend(await popped(value))
-                case Send() | Receive(): value = await popped(value)  # type: ignore[assignment]
-                case Decoratee() if isinstance(value, Param):
+                case decorator.Decoratee() if isinstance(value, Param):
                     try:
                         value = Return(ret=await popped(*value.args, **value.kwargs))
                     except Stop as stopped:
@@ -90,8 +90,7 @@ class Decorated[**ParamT, RetT](decorator.Decorated[ParamT, RetT], abc.ABC):
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorator[**ParamT, RetT](decorator.Decorator[ParamT, RetT]):
     decoratee_t: typing.ClassVar = Decoratee
-    receive_t: typing.ClassVar = Receive
-    send_t: typing.ClassVar = Send
     exit_t: typing.ClassVar = Exit
     enter_t: typing.ClassVar = Enter
     decorated_t: typing.ClassVar = Decorated
+    composer_t: typing.ClassVar = composer.Composer
