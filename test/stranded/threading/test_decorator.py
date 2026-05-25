@@ -6,17 +6,17 @@ from stranded import Decorator
 
 
 def test_or_combines_metadata() -> None:
-    @Decorator()  # type: ignore[arg-type]
+    @Decorator()
     def foo(v: int) -> int:
         """foo doc"""
         return v + 1
 
-    @Decorator()  # type: ignore[arg-type]
+    @Decorator()
     def bar(v: int) -> int:
         """bar doc"""
         return v * 2
 
-    combined = foo | bar  # type: ignore[var-annotated]
+    combined = foo | bar  # type: ignore[operator]
 
     assert combined.__doc__ == f'{foo.__doc__}\n\n{bar.__doc__}'
     assert combined.__name__ == f'{foo.__name__}, {bar.__name__}'
@@ -27,43 +27,43 @@ def test_or_combines_metadata() -> None:
 def test_or_calls_each_decoratee() -> None:
     calls: list[tuple[str, int]] = []
 
-    @Decorator()  # type: ignore[arg-type]
+    @Decorator()
     def foo(v: int) -> int:
         calls.append(('foo', v))
         return v + 1
 
-    @Decorator()  # type: ignore[arg-type]
+    @Decorator()
     def bar(v: int) -> int:
         calls.append(('bar', v))
         return v * 10
 
-    @Decorator()  # type: ignore[arg-type]
+    @Decorator()
     def baz(v: int) -> int:
         calls.append(('baz', v))
         return v - 3
 
-    result = (foo | bar | baz)(7)  # type: ignore[var-annotated]
+    result = (foo | bar | baz)(7)  # type: ignore[operator]
 
     assert calls == [('foo', 7), ('bar', 8), ('baz', 80)]
     assert result == 77
 
 
 def test_or_stack_grows() -> None:
-    @Decorator()  # type: ignore[arg-type]
+    @Decorator()
     def foo(v: int) -> int:
         return v
 
-    @Decorator()  # type: ignore[arg-type]
+    @Decorator()
     def bar(v: int) -> int:
         return v
 
-    @Decorator()  # type: ignore[arg-type]
+    @Decorator()
     def baz(v: int) -> int:
         return v
 
-    assert foo.stack == ()
-    assert (foo | bar).stack != ()
-    assert len((foo | bar | baz).stack) > len((foo | bar).stack)
+    assert foo.stack == ()  # type: ignore[attr-defined]
+    assert (foo | bar).stack != ()  # type: ignore[operator]
+    assert len((foo | bar | baz).stack) > len((foo | bar).stack)  # type: ignore[operator]
 
 
 if __name__ == '__main__':

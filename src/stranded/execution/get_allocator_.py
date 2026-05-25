@@ -7,8 +7,8 @@ from .abc import get_allocator_
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class GetAllocator(
-    decorator.Decorator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
-    get_allocator_.GetAllocator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
+    decorator.Decorator[..., typing.Any],
+    get_allocator_.GetAllocator[..., typing.Any],
 ): ...
 
 

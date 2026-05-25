@@ -39,22 +39,22 @@ class Decoratee[**ParamT, RetT](
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Send[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT, FutureT](
-    decorator.Send[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
+class Send[**ParamT, RetT, FutureT](
+    decorator.Send[ParamT, RetT],
     abc.ABC,
 ): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Receive[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT, FutureT](
-    decorator.Receive[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
+class Receive[**ParamT, RetT, FutureT](
+    decorator.Receive[ParamT, RetT],
     abc.ABC,
 ): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Exit[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT, FutureT](
-    decorator.Exit[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
+class Exit[**ParamT, RetT, FutureT](
+    decorator.Exit[ParamT, RetT],
     abc.ABC,
 ):
     future: FutureT
@@ -62,8 +62,8 @@ class Exit[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorated
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Enter[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
-    decorator.Enter[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
+class Enter[**ParamT, RetT](
+    decorator.Enter[ParamT, RetT],
     abc.ABC,
 ):
     @staticmethod
@@ -72,21 +72,21 @@ class Enter[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorate
 
     def _dispatch(
         self, *args: ParamT.args, **kwargs: ParamT.kwargs,
-    ) -> tuple[ExitT, DecorateeT] | tuple[Future[RetT]]:
+    ) -> tuple[Exit[ParamT, RetT, Future[RetT]], Decoratee[ParamT, RetT]] | tuple[Future[RetT]]:
         key = self.create_key(*args, **kwargs)
         future = self.decorated.future_by_key.get(key)  # type: ignore[attr-defined]
         match future is None:
             case True:
                 future = self.decorated.future_by_key[key] = self.decorated.decorator.future_t()  # type: ignore[attr-defined]
-                return self.exit_t(enter=self, future=future, key=key), self.decorated.decoratee  # type: ignore[call-arg, attr-defined]
+                return self.exit_t(enter=self, future=future, key=key), self.decorated.decoratee  # type: ignore[call-arg, return-value]
             case False:
                 return future,
         assert False, "Unreachable"
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT, FutureT](
-    decorator.Decorated[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
+class Decorated[**ParamT, RetT, FutureT](
+    decorator.Decorated[ParamT, RetT],
     abc.ABC,
 ):
     decorated_by_instance: weakref.WeakKeyDictionary[
@@ -99,7 +99,7 @@ class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
             self.decorated_by_instance.setdefault(
                 instance, dataclasses.replace(
                     self,
-                    decoratee=self.decoratee.__get__(instance, owner),  # type: ignore[attr-defined]
+                    decoratee=self.decoratee.__get__(instance, owner),
                     future_by_key={},
                 )
             )
@@ -107,8 +107,8 @@ class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Herd[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
-    decorator.Decorator[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
+class Herd[**ParamT, RetT](
+    decorator.Decorator[ParamT, RetT],
     abc.ABC,
 ):
     @property

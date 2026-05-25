@@ -26,57 +26,57 @@ Stop = decorator.Stop
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Send[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
-    decorator.Send[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
+class Send[**ParamT, RetT](
+    decorator.Send[ParamT, RetT],
     abc.ABC,
 ): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Receive[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
-    decorator.Receive[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
+class Receive[**ParamT, RetT](
+    decorator.Receive[ParamT, RetT],
     abc.ABC,
 ): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Exit[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
-    decorator.Exit[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
+class Exit[**ParamT, RetT](
+    decorator.Exit[ParamT, RetT],
     abc.ABC,
 ):
-    def __call__(self, value: Param[ParamT] | Raise | Return[RetT] | Stop) -> tuple[()] | tuple[EnterT, Param[ParamT]]:  # type: ignore[override]
+    def __call__(self, value: Param[ParamT] | Raise | Return[RetT] | Stop) -> tuple[()] | tuple[Enter[ParamT, RetT], Param[ParamT]]:  # type: ignore[override]
         if self.enter.n_retried < self.enter.decorated.decorator.n and isinstance(value, Raise):  # type: ignore[attr-defined]
-            return dataclasses.replace(self.enter, n_retried=self.enter.n_retried + 1), self.enter.param  # type: ignore[attr-defined, type-var]
+            return dataclasses.replace(self.enter, n_retried=self.enter.n_retried + 1), self.enter.param  # type: ignore[attr-defined, call-arg, return-value]
 
         return ()
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Enter[** ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
-    decorator.Enter[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
+class Enter[**ParamT, RetT](
+    decorator.Enter[ParamT, RetT],
     abc.ABC,
 ):
     n_retried: int = 0
     param: Param[ParamT] | None = None
 
-    def __call__(self, value: Param[ParamT] | Raise | Return[RetT] | Stop) -> tuple[ExitT, DecorateeT] | tuple[()]:  # type: ignore[override]
+    def __call__(self, value: Param[ParamT] | Raise | Return[RetT] | Stop) -> tuple[Exit[ParamT, RetT], Decoratee[ParamT, RetT]] | tuple[()]:  # type: ignore[override]
         match value:
             case Param() as param_:
                 new_self = dataclasses.replace(self, param=param_)
-                return new_self.exit_t(enter=new_self), self.decorated.decoratee  # type: ignore[call-arg, attr-defined]
+                return new_self.exit_t(enter=new_self), self.decorated.decoratee  # type: ignore[return-value]
             case _: return ()
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
-    decorator.Decorated[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
+class Decorated[**ParamT, RetT](
+    decorator.Decorated[ParamT, RetT],
     abc.ABC,
 ): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Retry[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
-    decorator.Decorator[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
+class Retry[**ParamT, RetT](
+    decorator.Decorator[ParamT, RetT],
     abc.ABC,
 ): n: int = sys.maxsize
 

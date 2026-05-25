@@ -6,7 +6,7 @@ from .. import decorator
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class LruCache(decorator.Decorator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any], lru_cache_.LruCache[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any]):
+class LruCache(decorator.Decorator[..., typing.Any], lru_cache_.LruCache[..., typing.Any]):
     @property
     def future_t(self) -> type:
         raise NotImplementedError(

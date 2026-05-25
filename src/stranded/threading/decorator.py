@@ -19,10 +19,7 @@ class Decoratee[**ParamT, RetT](decorator.Decoratee[ParamT, RetT], typing.Protoc
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Receive[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
-    decorator.Receive[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
-    abc.ABC,
-):
+class Receive[**ParamT, RetT](decorator.Receive[ParamT, RetT], abc.ABC):
     def __call__[SRetT, **SParamT](  # type: ignore[override]
         self,
         value: Param[ParamT] | Raise | Return[SRetT] | Stop,
@@ -32,10 +29,7 @@ class Receive[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decora
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Send[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
-    decorator.Send[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
-    abc.ABC,
-):
+class Send[**ParamT, RetT](decorator.Send[ParamT, RetT], abc.ABC):
     def __call__[**RParamT](  # type: ignore[override]
         self,
         value: Param[ParamT] | Raise | Return[RetT] | Stop,
@@ -45,38 +39,33 @@ class Send[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorated
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Exit[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
-    decorator.Exit[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
-    abc.ABC,
-):
+class Exit[**ParamT, RetT](decorator.Exit[ParamT, RetT], abc.ABC):
     @typing.overload  # type: ignore[override]
-    def __call__(self, value: Param[ParamT], /) -> tuple[ExitT, DecorateeT]: ...
+    def __call__(self, value: Param[ParamT], /) -> tuple[decorator.Exit[ParamT, RetT], decorator.Decoratee[ParamT, RetT]]: ...
     @typing.overload
     def __call__(self, value: Raise | Return[RetT] | Stop, /) -> tuple[()]: ...
-    def __call__(self, value: Param[ParamT] | Raise | Return[RetT] | Stop, /) -> tuple[ExitT, DecorateeT] | tuple[()]:
+    def __call__(
+        self, value: Param[ParamT] | Raise | Return[RetT] | Stop, /,
+    ) -> tuple[decorator.Exit[ParamT, RetT], decorator.Decoratee[ParamT, RetT]] | tuple[()]:
         return super().__call__(value)
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Enter[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
-    decorator.Enter[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
-    abc.ABC,
-):
+class Enter[**ParamT, RetT](decorator.Enter[ParamT, RetT], abc.ABC):
     @typing.overload
-    def __call__(self, value: Param[ParamT], /) -> tuple[ExitT, DecorateeT]: ...
+    def __call__(self, value: Param[ParamT], /) -> tuple[decorator.Exit[ParamT, RetT], decorator.Decoratee[ParamT, RetT]]: ...
     @typing.overload
     def __call__(self, value: Raise | Return[RetT] | Stop, /) -> tuple[()]: ...
-    def __call__(self, value: Param[ParamT] | Raise | Return[RetT] | Stop, /) -> tuple[ExitT, DecorateeT] | tuple[()]:
+    def __call__(
+        self, value: Param[ParamT] | Raise | Return[RetT] | Stop, /,
+    ) -> tuple[decorator.Exit[ParamT, RetT], decorator.Decoratee[ParamT, RetT]] | tuple[()]:
         return super().__call__(value)
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
-    decorator.Decorated[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
-    abc.ABC,
-):
+class Decorated[**ParamT, RetT](decorator.Decorated[ParamT, RetT], abc.ABC):
     def __call__(self, *args: ParamT.args, **kwargs: ParamT.kwargs) -> RetT:
-        value: Param[ParamT] | Raise | Return[RetT] | Stop | DecorateeT = Param(args=args, kwargs=kwargs)
+        value: Param[ParamT] | Raise | Return[RetT] | Stop | decorator.Decoratee[ParamT, RetT] = Param(args=args, kwargs=kwargs)
         stack = [*self.create_context(), *self.stack]
         while stack:
             match popped := stack.pop():
@@ -97,12 +86,12 @@ class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
             case Return() as return_: return return_.ret  # type: ignore[no-any-return]
             case _: raise exception_.Exception(f'{type(self).__name__} call completed with invalid {value=!r}')
 
-    def create_context(self) -> tuple[DecorateeT | ReceiveT | SendT | ExitT | EnterT | DecoratorT, ...]:
+    def create_context(self) -> tuple[
+        decorator.Decoratee[ParamT, RetT] | decorator.Receive[ParamT, RetT] | decorator.Send[ParamT, RetT]
+        | decorator.Exit[ParamT, RetT] | decorator.Enter[ParamT, RetT] | decorator.Decorator[ParamT, RetT], ...,
+    ]:
         return super().create_context()
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorator[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
-    decorator.Decorator[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
-    abc.ABC,
-): ...
+class Decorator[**ParamT, RetT](decorator.Decorator[ParamT, RetT], abc.ABC): ...

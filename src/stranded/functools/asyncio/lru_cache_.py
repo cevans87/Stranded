@@ -6,16 +6,6 @@ from ..abc import lru_cache_
 from ...asyncio import decorator
 
 
-type _Decoratee[**ParamT, RetT] = Decoratee[ParamT, RetT]
-type _Receive[**ParamT, RetT] = Receive[ParamT, RetT]
-type _Send[**ParamT, RetT] = Send[ParamT, RetT]
-type _Exit[**ParamT, RetT] = Exit[ParamT, RetT]
-type _Enter[**ParamT, RetT] = Enter[ParamT, RetT]
-type _Decorated[**ParamT, RetT] = Decorated[ParamT, RetT]
-type _Decorator[**ParamT, RetT] = LruCache[ParamT, RetT]
-type _Future[RetT] = Future[RetT]
-
-
 Raise = decorator.Raise
 Stop = decorator.Stop
 Param = decorator.Param
@@ -50,87 +40,24 @@ class Future[RetT](lru_cache_.Future[RetT]):
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Send[**ParamT, RetT](
-    decorator.Send[
-        ParamT,
-        RetT,
-        _Decoratee[ParamT, RetT],
-        _Receive[ParamT, RetT],
-        _Send[ParamT, RetT],
-        _Exit[ParamT, RetT],
-        _Enter[ParamT, RetT],
-        _Decorated[ParamT, RetT],
-        _Decorator[ParamT, RetT],
-    ],
-    lru_cache_.Send[
-        ParamT,
-        RetT,
-        _Decoratee[ParamT, RetT],
-        _Receive[ParamT, RetT],
-        _Send[ParamT, RetT],
-        _Exit[ParamT, RetT],
-        _Enter[ParamT, RetT],
-        _Decorated[ParamT, RetT],
-        _Decorator[ParamT, RetT],
-        _Future[RetT],
-    ],
+    decorator.Send[ParamT, RetT],
+    lru_cache_.Send[ParamT, RetT, Future[RetT]],
 ): ...
 
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Receive[**ParamT, RetT](
-    decorator.Receive[
-        ParamT,
-        RetT,
-        _Decoratee[ParamT, RetT],
-        _Receive[ParamT, RetT],
-        _Send[ParamT, RetT],
-        _Exit[ParamT, RetT],
-        _Enter[ParamT, RetT],
-        _Decorated[ParamT, RetT],
-        _Decorator[ParamT, RetT],
-    ],
-    lru_cache_.Receive[
-        ParamT,
-        RetT,
-        _Decoratee[ParamT, RetT],
-        _Receive[ParamT, RetT],
-        _Send[ParamT, RetT],
-        _Exit[ParamT, RetT],
-        _Enter[ParamT, RetT],
-        _Decorated[ParamT, RetT],
-        _Decorator[ParamT, RetT],
-        _Future[RetT],
-    ],
+    decorator.Receive[ParamT, RetT],
+    lru_cache_.Receive[ParamT, RetT, Future[RetT]],
 ): ...
 
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**ParamT, RetT](
-    decorator.Exit[
-        ParamT,
-        RetT,
-        _Decoratee[ParamT, RetT],
-        _Receive[ParamT, RetT],
-        _Send[ParamT, RetT],
-        _Exit[ParamT, RetT],
-        _Enter[ParamT, RetT],
-        _Decorated[ParamT, RetT],
-        _Decorator[ParamT, RetT],
-    ],
-    lru_cache_.Exit[
-        ParamT,
-        RetT,
-        _Decoratee[ParamT, RetT],
-        _Receive[ParamT, RetT],
-        _Send[ParamT, RetT],
-        _Exit[ParamT, RetT],
-        _Enter[ParamT, RetT],
-        _Decorated[ParamT, RetT],
-        _Decorator[ParamT, RetT],
-        _Future[RetT],
-    ],
+    decorator.Exit[ParamT, RetT],
+    lru_cache_.Exit[ParamT, RetT, Future[RetT]],
 ):
     @typing.override
     async def __call__(self, value: Param[ParamT] | Raise | Return[RetT] | Stop) -> tuple[()]:  # type: ignore[override]
@@ -144,44 +71,24 @@ class Exit[**ParamT, RetT](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[**ParamT, RetT](
-    decorator.Enter[
-        ParamT,
-        RetT,
-        _Decoratee[ParamT, RetT],
-        _Receive[ParamT, RetT],
-        _Send[ParamT, RetT],
-        _Exit[ParamT, RetT],
-        _Enter[ParamT, RetT],
-        _Decorated[ParamT, RetT],
-        _Decorator[ParamT, RetT],
-    ],
-    lru_cache_.Enter[
-        ParamT,
-        RetT,
-        _Decoratee[ParamT, RetT],
-        _Receive[ParamT, RetT],
-        _Send[ParamT, RetT],
-        _Exit[ParamT, RetT],
-        _Enter[ParamT, RetT],
-        _Decorated[ParamT, RetT],
-        _Decorator[ParamT, RetT],
-    ],
+    decorator.Enter[ParamT, RetT],
+    lru_cache_.Enter[ParamT, RetT],
 ):
     # TODO: Dedup this with the threading version.
     @typing.override
     async def __call__(  # type: ignore[override]
         self, value: Param[ParamT] | Raise | Return[RetT] | Stop,
-    ) -> tuple[_Exit[ParamT, RetT], _Decoratee[ParamT, RetT]] | tuple[_Future[RetT]] | tuple[()]:
+    ) -> tuple[Exit[ParamT, RetT], Decoratee[ParamT, RetT]] | tuple[Future[RetT]] | tuple[()]:
         match value:
             case Param():
                 key = self.create_key(*value.args, **value.kwargs)
-                future = self.decorated.future_by_key.get(key)
+                future = self.decorated.future_by_key.get(key)  # type: ignore[attr-defined]
                 if future is None:
-                    while self.decorated.decorator.size <= len(self.decorated.future_by_key):
-                        self.decorated.future_by_key.popitem(last=False)
-                    future = self.decorated.future_by_key[key] = self.decorated.decorator.future_t()
-                    return self.exit_t(enter=self, future=future, key=key), self.decorated.decoratee
-                self.decorated.future_by_key.move_to_end(key)
+                    while self.decorated.decorator.size <= len(self.decorated.future_by_key):  # type: ignore[attr-defined]
+                        self.decorated.future_by_key.popitem(last=False)  # type: ignore[attr-defined]
+                    future = self.decorated.future_by_key[key] = self.decorated.decorator.future_t()  # type: ignore[attr-defined]
+                    return self.exit_t(enter=self, future=future, key=key), self.decorated.decoratee  # type: ignore[call-arg, return-value]
+                self.decorated.future_by_key.move_to_end(key)  # type: ignore[attr-defined]
                 return future,
             case _: return ()
 
@@ -189,61 +96,20 @@ class Enter[**ParamT, RetT](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorated[**ParamT, RetT](
-    decorator.Decorated[
-        ParamT,
-        RetT,
-        _Decoratee[ParamT, RetT],
-        _Receive[ParamT, RetT],
-        _Send[ParamT, RetT],
-        _Exit[ParamT, RetT],
-        _Enter[ParamT, RetT],
-        _Decorated[ParamT, RetT],
-        _Decorator[ParamT, RetT],
-    ],
-    lru_cache_.Decorated[
-        ParamT,
-        RetT,
-        _Decoratee[ParamT, RetT],
-        _Receive[ParamT, RetT],
-        _Send[ParamT, RetT],
-        _Exit[ParamT, RetT],
-        _Enter[ParamT, RetT],
-        _Decorated[ParamT, RetT],
-        _Decorator[ParamT, RetT],
-        _Future[RetT],
-    ],
+    decorator.Decorated[ParamT, RetT],
+    lru_cache_.Decorated[ParamT, RetT, Future[RetT]],
 ): ...
 
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class LruCache[**ParamT, RetT](
-    decorator.Decorator[
-        ParamT,
-        RetT,
-        _Decoratee[ParamT, RetT],
-        _Receive[ParamT, RetT],
-        _Send[ParamT, RetT],
-        _Exit[ParamT, RetT],
-        _Enter[ParamT, RetT],
-        _Decorated[ParamT, RetT],
-        _Decorator[ParamT, RetT],
-    ],
-    lru_cache_.Decorator[
-        ParamT,
-        RetT,
-        _Decoratee[ParamT, RetT],
-        _Receive[ParamT, RetT],
-        _Send[ParamT, RetT],
-        _Exit[ParamT, RetT],
-        _Enter[ParamT, RetT],
-        _Decorated[ParamT, RetT],
-        _Decorator[ParamT, RetT],
-    ],
+    decorator.Decorator[ParamT, RetT],
+    lru_cache_.Decorator[ParamT, RetT],
 ):
     @property
     @typing.override
-    def future_t(self) -> type[_Future[RetT]]:
+    def future_t(self) -> type[Future[RetT]]:
         return Future
 
 

@@ -6,9 +6,9 @@ from .abc import db_
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Db(
-    decorator.Decorator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
-    db_.Db[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
+class Db(  # type: ignore[misc]
+    decorator.Decorator[..., typing.Any],
+    db_.Db[..., typing.Any],
 ): ...
 
 

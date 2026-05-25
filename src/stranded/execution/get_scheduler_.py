@@ -7,8 +7,8 @@ from .abc import get_scheduler_
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class GetScheduler(
-    decorator.Decorator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
-    get_scheduler_.GetScheduler[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
+    decorator.Decorator[..., typing.Any],
+    get_scheduler_.GetScheduler[..., typing.Any],
 ): ...
 
 

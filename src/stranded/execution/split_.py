@@ -7,8 +7,8 @@ from .abc import split_
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Split(
-    decorator.Decorator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
-    split_.Split[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
+    decorator.Decorator[..., typing.Any],
+    split_.Split[..., typing.Any],
 ): ...
 
 
