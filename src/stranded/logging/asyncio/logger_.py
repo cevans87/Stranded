@@ -57,7 +57,11 @@ class Decorated[**ParamT, RetT](
 class Logger[**ParamT, RetT](
     decorator.Decorator[ParamT, RetT],
     logger_.Decorator[ParamT, RetT],
-): ...
-
-
+):
+    decoratee_t: typing.ClassVar = Decoratee
+    receive_t: typing.ClassVar = Receive
+    send_t: typing.ClassVar = Send
+    exit_t: typing.ClassVar = Exit  # type: ignore[assignment]
+    enter_t: typing.ClassVar = Enter
+    decorated_t: typing.ClassVar = Decorated
 Decorator = Logger

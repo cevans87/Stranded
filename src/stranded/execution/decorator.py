@@ -38,6 +38,15 @@ def _to_async(obj: typing.Callable[..., typing.Any]) -> typing.Callable[..., typ
 class Decorator[**ParamT, RetT](
     decorator.Decorator[ParamT, RetT],
 ):
+    # Stub bindings for the agnostic execution dispatcher — never instantiated,
+    # since __call__ delegates to the asyncio/threading concrete Decorator.
+    decoratee_t: typing.ClassVar = decorator.Decoratee
+    receive_t: typing.ClassVar = decorator.Receive
+    send_t: typing.ClassVar = decorator.Send
+    exit_t: typing.ClassVar = decorator.Exit
+    enter_t: typing.ClassVar = decorator.Enter
+    decorated_t: typing.ClassVar = decorator.Decorated
+
     def __call__[DecorateeT](self, decoratee: DecorateeT) -> DecorateeT:  # type: ignore[override]
         promotable = {
             field.name: getattr(self, field.name)

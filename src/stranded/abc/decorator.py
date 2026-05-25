@@ -9,45 +9,6 @@ import typing
 type Instance = object
 
 
-@dataclasses.dataclass(frozen=True, kw_only=True)
-class Base[**ParamT, RetT](abc.ABC):
-    @property
-    def param_t(self) -> type[Param[ParamT]]:
-        return Param
-
-    @property
-    def return_t(self) -> type[Return[RetT]]:
-        return Return
-
-    @property
-    def decoratee_t(self) -> type[Decoratee[ParamT, RetT]]:
-        return inspect.getmodule(type(self)).Decoratee  # type: ignore[no-any-return, union-attr]
-
-    @property
-    def receive_t(self) -> type[Receive[ParamT, RetT]]:
-        return inspect.getmodule(type(self)).Receive  # type: ignore[no-any-return, union-attr]
-
-    @property
-    def send_t(self) -> type[Send[ParamT, RetT]]:
-        return inspect.getmodule(type(self)).Send  # type: ignore[no-any-return, union-attr]
-
-    @property
-    def exit_t(self) -> type[Exit[ParamT, RetT]]:
-        return inspect.getmodule(type(self)).Exit  # type: ignore[no-any-return, union-attr]
-
-    @property
-    def enter_t(self) -> type[Enter[ParamT, RetT]]:
-        return inspect.getmodule(type(self)).Enter  # type: ignore[no-any-return, union-attr]
-
-    @property
-    def decorated_t(self) -> type[Decorated[ParamT, RetT]]:
-        return inspect.getmodule(type(self)).Decorated  # type: ignore[no-any-return, union-attr]
-
-    @property
-    def decorator_t(self) -> type[Decorator[ParamT, RetT]]:
-        return inspect.getmodule(type(self)).Decorator  # type: ignore[no-any-return, union-attr]
-
-
 @dataclasses.dataclass(frozen=True)
 class Raise:
     exc_type: type[BaseException]
@@ -77,8 +38,23 @@ class Decoratee[**ParamT, RetT](typing.Protocol):
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Receive[**ParamT, RetT](Base[ParamT, RetT], abc.ABC):
+class Receive[**ParamT, RetT](abc.ABC):
     decorated: Decorated[ParamT, RetT]
+
+    @property
+    def decorator(self) -> Decorator[typing.Any, typing.Any]: return self.decorated.decorator
+    @property
+    def decoratee_t(self) -> type[Decoratee[typing.Any, typing.Any]]: return self.decorator.decoratee_t
+    @property
+    def receive_t(self) -> type[Receive[typing.Any, typing.Any]]: return self.decorator.receive_t
+    @property
+    def send_t(self) -> type[Send[typing.Any, typing.Any]]: return self.decorator.send_t
+    @property
+    def exit_t(self) -> type[Exit[typing.Any, typing.Any]]: return self.decorator.exit_t
+    @property
+    def enter_t(self) -> type[Enter[typing.Any, typing.Any]]: return self.decorator.enter_t
+    @property
+    def decorated_t(self) -> type[Decorated[typing.Any, typing.Any]]: return self.decorator.decorated_t
 
     def __call__[SRetT, **SParamT](
         self,
@@ -93,8 +69,23 @@ class Receive[**ParamT, RetT](Base[ParamT, RetT], abc.ABC):
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Send[**ParamT, RetT](Base[ParamT, RetT], abc.ABC):
+class Send[**ParamT, RetT](abc.ABC):
     decorated: Decorated[ParamT, RetT]
+
+    @property
+    def decorator(self) -> Decorator[typing.Any, typing.Any]: return self.decorated.decorator
+    @property
+    def decoratee_t(self) -> type[Decoratee[typing.Any, typing.Any]]: return self.decorator.decoratee_t
+    @property
+    def receive_t(self) -> type[Receive[typing.Any, typing.Any]]: return self.decorator.receive_t
+    @property
+    def send_t(self) -> type[Send[typing.Any, typing.Any]]: return self.decorator.send_t
+    @property
+    def exit_t(self) -> type[Exit[typing.Any, typing.Any]]: return self.decorator.exit_t
+    @property
+    def enter_t(self) -> type[Enter[typing.Any, typing.Any]]: return self.decorator.enter_t
+    @property
+    def decorated_t(self) -> type[Decorated[typing.Any, typing.Any]]: return self.decorator.decorated_t
 
     def __call__[**RParamT](
         self,
@@ -104,21 +95,51 @@ class Send[**ParamT, RetT](Base[ParamT, RetT], abc.ABC):
         match value:
             case Param() as param_: return param_
             case Raise() as raise_: return raise_
-            case Return() as return_: return self.param_t(args=(return_.ret,), kwargs={})
+            case Return() as return_: return Param(args=(return_.ret,), kwargs={})
             case Stop() as stop_: return stop_
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Exit[**ParamT, RetT](Base[ParamT, RetT], abc.ABC):
+class Exit[**ParamT, RetT](abc.ABC):
     enter: Enter[ParamT, RetT]
+
+    @property
+    def decorator(self) -> Decorator[typing.Any, typing.Any]: return self.enter.decorator
+    @property
+    def decoratee_t(self) -> type[Decoratee[typing.Any, typing.Any]]: return self.decorator.decoratee_t
+    @property
+    def receive_t(self) -> type[Receive[typing.Any, typing.Any]]: return self.decorator.receive_t
+    @property
+    def send_t(self) -> type[Send[typing.Any, typing.Any]]: return self.decorator.send_t
+    @property
+    def exit_t(self) -> type[Exit[typing.Any, typing.Any]]: return self.decorator.exit_t
+    @property
+    def enter_t(self) -> type[Enter[typing.Any, typing.Any]]: return self.decorator.enter_t
+    @property
+    def decorated_t(self) -> type[Decorated[typing.Any, typing.Any]]: return self.decorator.decorated_t
 
     def __call__(self, value: Param[ParamT] | Raise | Return[RetT] | Stop) -> tuple[()]:
         return ()
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Enter[**ParamT, RetT](Base[ParamT, RetT], abc.ABC):
+class Enter[**ParamT, RetT](abc.ABC):
     decorated: Decorated[ParamT, RetT]
+
+    @property
+    def decorator(self) -> Decorator[typing.Any, typing.Any]: return self.decorated.decorator
+    @property
+    def decoratee_t(self) -> type[Decoratee[typing.Any, typing.Any]]: return self.decorator.decoratee_t
+    @property
+    def receive_t(self) -> type[Receive[typing.Any, typing.Any]]: return self.decorator.receive_t
+    @property
+    def send_t(self) -> type[Send[typing.Any, typing.Any]]: return self.decorator.send_t
+    @property
+    def exit_t(self) -> type[Exit[typing.Any, typing.Any]]: return self.decorator.exit_t
+    @property
+    def enter_t(self) -> type[Enter[typing.Any, typing.Any]]: return self.decorator.enter_t
+    @property
+    def decorated_t(self) -> type[Decorated[typing.Any, typing.Any]]: return self.decorator.decorated_t
 
     @typing.overload
     def __call__(self, value: Param[ParamT], /) -> tuple[Exit[ParamT, RetT], Decoratee[ParamT, RetT]]: ...
@@ -133,7 +154,7 @@ class Enter[**ParamT, RetT](Base[ParamT, RetT], abc.ABC):
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorated[**ParamT, RetT](Base[ParamT, RetT], abc.ABC):
+class Decorated[**ParamT, RetT](abc.ABC):
     __doc__: str
     __module__: str
     __name__: str
@@ -144,6 +165,19 @@ class Decorated[**ParamT, RetT](Base[ParamT, RetT], abc.ABC):
     stack: tuple[
         Enter[ParamT, RetT] | Exit[ParamT, RetT] | Receive[ParamT, RetT] | Send[ParamT, RetT], ...
     ] = ()
+
+    @property
+    def decoratee_t(self) -> type[Decoratee[typing.Any, typing.Any]]: return self.decorator.decoratee_t
+    @property
+    def receive_t(self) -> type[Receive[typing.Any, typing.Any]]: return self.decorator.receive_t
+    @property
+    def send_t(self) -> type[Send[typing.Any, typing.Any]]: return self.decorator.send_t
+    @property
+    def exit_t(self) -> type[Exit[typing.Any, typing.Any]]: return self.decorator.exit_t
+    @property
+    def enter_t(self) -> type[Enter[typing.Any, typing.Any]]: return self.decorator.enter_t
+    @property
+    def decorated_t(self) -> type[Decorated[typing.Any, typing.Any]]: return self.decorator.decorated_t
 
     def __get__(self, instance: Instance, owner: type[object] | None) -> typing.Self:
         return dataclasses.replace(self, decoratee=self.decoratee.__get__(instance, owner))
@@ -165,7 +199,7 @@ class Decorated[**ParamT, RetT](Base[ParamT, RetT], abc.ABC):
             ),
             stack=(
                 decorated.receive_t(decorated=decorated),
-                self.send_t(decorated=self),  # type: ignore[arg-type]
+                self.send_t(decorated=self),
                 *self.create_context(),  # type: ignore[arg-type]
                 *self.stack,  # type: ignore[arg-type]
             ),
@@ -175,11 +209,31 @@ class Decorated[**ParamT, RetT](Base[ParamT, RetT], abc.ABC):
         Decoratee[ParamT, RetT] | Receive[ParamT, RetT] | Send[ParamT, RetT]
         | Exit[ParamT, RetT] | Enter[ParamT, RetT] | Decorator[ParamT, RetT], ...,
     ]:
-        return self.enter_t(decorated=self),
+        return self.decorator.enter_t(decorated=self),
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorator[**ParamT, RetT](Base[ParamT, RetT], abc.ABC):
+class Decorator[**ParamT, RetT](abc.ABC):
+
+    @property
+    @abc.abstractmethod
+    def decoratee_t(self) -> type[Decoratee[typing.Any, typing.Any]]: ...
+    @property
+    @abc.abstractmethod
+    def receive_t(self) -> type[Receive[typing.Any, typing.Any]]: ...
+    @property
+    @abc.abstractmethod
+    def send_t(self) -> type[Send[typing.Any, typing.Any]]: ...
+    @property
+    @abc.abstractmethod
+    def exit_t(self) -> type[Exit[typing.Any, typing.Any]]: ...
+    @property
+    @abc.abstractmethod
+    def enter_t(self) -> type[Enter[typing.Any, typing.Any]]: ...
+    @property
+    @abc.abstractmethod
+    def decorated_t(self) -> type[Decorated[typing.Any, typing.Any]]: ...
+
     def __call__(self, decoratee: Decoratee[ParamT, RetT], /) -> Decorated[ParamT, RetT]:
         return self.decorated_t(
             __doc__=str(decoratee.__doc__),

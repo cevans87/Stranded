@@ -85,7 +85,7 @@ class Enter[**ParamT, RetT](
                     while self.decorated.decorator.size <= len(self.decorated.future_by_key):  # type: ignore[attr-defined]
                         self.decorated.future_by_key.popitem(last=False)  # type: ignore[attr-defined]
                     future = self.decorated.future_by_key[key] = self.decorated.decorator.future_t()  # type: ignore[attr-defined]
-                    return self.exit_t(enter=self, future=future, key=key), self.decorated.decoratee  # type: ignore[call-arg, return-value]
+                    return self.decorated.decorator.exit_t(enter=self, future=future, key=key), self.decorated.decoratee  # type: ignore[call-arg, return-value]
                 self.decorated.future_by_key.move_to_end(key)  # type: ignore[attr-defined]
                 return future,
             case _: return ()
@@ -105,6 +105,13 @@ class LruCache[**ParamT, RetT](
     decorator.Decorator[ParamT, RetT],
     lru_cache_.Decorator[ParamT, RetT],
 ):
+    decoratee_t: typing.ClassVar = Decoratee
+    receive_t: typing.ClassVar = Receive
+    send_t: typing.ClassVar = Send
+    exit_t: typing.ClassVar = Exit  # type: ignore[assignment]
+    enter_t: typing.ClassVar = Enter
+    decorated_t: typing.ClassVar = Decorated
+
     @property
     @typing.override
     def future_t(self) -> type[Future[RetT]]:

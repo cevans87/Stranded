@@ -58,8 +58,12 @@ class Decorated[**ParamT, RetT](
 class BulkChunked[**ParamT, RetT](
     decorator.Decorator[ParamT, RetT],
     bulk_chunked_.Decorator[ParamT, RetT],
-): ...
-
-
+):
+    decoratee_t: typing.ClassVar = Decoratee
+    receive_t: typing.ClassVar = Receive
+    send_t: typing.ClassVar = Send
+    exit_t: typing.ClassVar = Exit
+    enter_t: typing.ClassVar = Enter
+    decorated_t: typing.ClassVar = Decorated
 Decorator = BulkChunked
 bulk_chunked: BulkChunked[..., typing.Any] = BulkChunked()

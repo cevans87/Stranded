@@ -85,8 +85,12 @@ class Decorated[**ParamT, RetT](
 class Throttle[**ParamT, RetT](
     decorator.Decorator[ParamT, RetT],
     throttle_.Decorator[ParamT, RetT],
-): ...
-
-
+):
+    decoratee_t: typing.ClassVar = Decoratee
+    receive_t: typing.ClassVar = Receive
+    send_t: typing.ClassVar = Send
+    exit_t: typing.ClassVar = Exit
+    enter_t: typing.ClassVar = Enter
+    decorated_t: typing.ClassVar = Decorated
 Decorator = Throttle
 throttle: Throttle[..., typing.Any] = Throttle()

@@ -58,8 +58,12 @@ class Decorated[**ParamT, RetT](
 class WithAwaitableSenders[**ParamT, RetT](
     decorator.Decorator[ParamT, RetT],
     with_awaitable_senders_.Decorator[ParamT, RetT],
-): ...
-
-
+):
+    decoratee_t: typing.ClassVar = Decoratee
+    receive_t: typing.ClassVar = Receive
+    send_t: typing.ClassVar = Send
+    exit_t: typing.ClassVar = Exit
+    enter_t: typing.ClassVar = Enter
+    decorated_t: typing.ClassVar = Decorated
 Decorator = WithAwaitableSenders
 with_awaitable_senders: WithAwaitableSenders[..., typing.Any] = WithAwaitableSenders()
