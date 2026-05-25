@@ -8,7 +8,7 @@ import typing
 
 import pytest
 
-from stranded.argparse import ArgumentParser
+from stranded.argparse.argument_parser_ import ArgumentParser
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler(sys.stdout))
@@ -26,7 +26,7 @@ def test_union_preserves_order() -> None:
     @ArgumentParser()
     def baz(c: typing.Annotated[int, "A c to set"]) -> dict[str, int]: return locals()
 
-    assert (foo | bar | baz).decorateds == (foo, bar, baz)
+    assert (foo | bar | baz).decorateds == (foo, bar, baz)  # type: ignore[operator]
 
 
 def test_creates_signature() -> None:
@@ -39,7 +39,7 @@ def test_creates_signature() -> None:
     def bar(b: int) -> dict[str, int]:
         return locals()
 
-    baz = foo | bar
+    baz = foo | bar  # type: ignore[operator]
 
     for argument_parser in (foo, bar, baz):
         assert inspect.signature(argument_parser).parameters == {
@@ -73,7 +73,7 @@ def test_merged_merges_signatures() -> None:
         **kwargs: int,
     ) -> dict[str, int]: return locals()
 
-    assert (foo | bar).to_signature() == ArgumentParser.Signature(
+    assert (foo | bar).to_signature() == ArgumentParser.Signature(  # type: ignore[operator]
         required_positional_parameter_by_name={
             'a': ArgumentParser.Signature.RequiredPositionalParameter(name='a', t=int),
             'f': ArgumentParser.Signature.RequiredPositionalParameter(name='f', t=int),
@@ -116,28 +116,28 @@ def test_merged_requires_matching_annotations() -> None:
     def qux(*, a: int) -> dict[str, object]:
         return locals()
 
-    _ = (foo | foo).to_signature()
-    _ = (bar | bar).to_signature()
-    _ = (baz | baz).to_signature()
-    _ = (qux | qux).to_signature()
+    _ = (foo | foo).to_signature()  # type: ignore[operator]
+    _ = (bar | bar).to_signature()  # type: ignore[operator]
+    _ = (baz | baz).to_signature()  # type: ignore[operator]
+    _ = (qux | qux).to_signature()  # type: ignore[operator]
 
     with pytest.raises(AssertionError):
-        _ = (foo | bar).to_signature()
+        _ = (foo | bar).to_signature()  # type: ignore[operator]
 
     with pytest.raises(AssertionError):
-        _ = (foo | baz).to_signature()
+        _ = (foo | baz).to_signature()  # type: ignore[operator]
 
     with pytest.raises(AssertionError):
-        _ = (foo | qux).to_signature()
+        _ = (foo | qux).to_signature()  # type: ignore[operator]
 
     with pytest.raises(AssertionError):
-        _ = (bar | baz).to_signature()
+        _ = (bar | baz).to_signature()  # type: ignore[operator]
 
     with pytest.raises(AssertionError):
-        _ = (bar | qux).to_signature()
+        _ = (bar | qux).to_signature()  # type: ignore[operator]
 
     with pytest.raises(AssertionError):
-        _ = (baz | qux).to_signature()
+        _ = (baz | qux).to_signature()  # type: ignore[operator]
 
 
 def test_signature_to_short_str() -> None:
@@ -164,7 +164,7 @@ def test_signature_to_short_str() -> None:
         j: int = 4,
     ) -> dict[str, int]: return locals()
 
-    assert (foo | bar).to_signature().to_short_str() == (
+    assert (foo | bar).to_signature().to_short_str() == (  # type: ignore[operator]
         '<a> <f> <g> [<b(0)>] --d <d> --i <i> [--c <c(1)>] [--e <e(2)>] [--h <h(3)>] [--j <j(4)>]'
     )
 
@@ -193,7 +193,8 @@ def test_signature_to_long_str() -> None:
         j: typing.Annotated[int, 'Sets j.'] = 4,
     ) -> typing.Annotated[dict[str, int], 'Returns bar.']: return locals()
 
-    assert textwrap.dedent((foo | bar).to_signature().to_long_str()).strip() == textwrap.dedent('''
+    foo_bar = foo | bar  # type: ignore[operator]
+    assert textwrap.dedent(foo_bar.to_signature().to_long_str()).strip() == textwrap.dedent('''
         <a>                             # <class 'int'>  # Sets a.
         <f>                             # <class 'int'>  # Sets f.
         <g>                             # <class 'int'>  # Sets g.
@@ -213,7 +214,7 @@ def test_call_parses_int() -> None:
     @ArgumentParser()
     def foo(a: int) -> dict[str, int]: return locals()
 
-    assert foo(*'1'.split()) == {'a': 1}
+    assert foo(*'1'.split()) == {'a': 1}  # type: ignore[arg-type]
 
 
 def test_call_calls_merged_argument_parsers() -> None:
@@ -224,7 +225,7 @@ def test_call_calls_merged_argument_parsers() -> None:
     @ArgumentParser()
     def bar(b: int) -> dict[str, int]: return locals()
 
-    assert (foo | bar)(*'1 2'.split()) == {'b': 2}
+    assert (foo | bar)(*'1 2'.split()) == {'b': 2}  # type: ignore[operator]
 
 
 def test_call_parses_args() -> None:
@@ -237,7 +238,7 @@ def test_call_parses_args() -> None:
     @ArgumentParser()
     def bar(*args: str) -> None: calls.append({'args': args})  # type: ignore[dict-item]
 
-    (foo | bar)(*'1 2 --b 3.0 --c 4.0'.split())
+    (foo | bar)(*'1 2 --b 3.0 --c 4.0'.split())  # type: ignore[operator]
 
     assert calls == [
         {'a': 1},
@@ -255,7 +256,7 @@ def test_call_parses_kwargs() -> None:
     @ArgumentParser()
     def bar(**kwargs: int) -> None: calls.append({'kwargs': kwargs})  # type: ignore[dict-item]
 
-    (foo | bar)(*'1 --b 2 --c 3'.split())
+    (foo | bar)(*'1 --b 2 --c 3'.split())  # type: ignore[operator]
 
     assert calls == [
         {'a': 1},
@@ -276,7 +277,7 @@ def test_call_parses_args_and_kwargs() -> None:
     @ArgumentParser()
     def baz(**kwargs: float) -> None: calls.append({'kwargs': kwargs})  # type: ignore[dict-item]
 
-    (foo | bar | baz)(*'1 2 --b 3.0 --c 4.0'.split())
+    (foo | bar | baz)(*'1 2 --b 3.0 --c 4.0'.split())  # type: ignore[operator]
 
     assert calls == [
         {'a': 1},
@@ -304,7 +305,7 @@ def test_args_passed_to_subcommand() -> None:
     @ArgumentParser()
     def baz(**kwargs: float) -> None: calls.append({'kwargs': kwargs})  # type: ignore[dict-item]
 
-    foo(*'bar --a 3.0 --b 4.0'.split())
+    foo(*'bar --a 3.0 --b 4.0'.split())  # type: ignore[arg-type]
 
     assert calls == [
         {'subcommand': 'bar'},
@@ -313,7 +314,7 @@ def test_args_passed_to_subcommand() -> None:
 
     calls = []
 
-    foo(*'baz --a 3.0 --b 4.0'.split())
+    foo(*'baz --a 3.0 --b 4.0'.split())  # type: ignore[arg-type]
 
     assert calls == [
         {'subcommand': 'baz'},
@@ -333,12 +334,12 @@ def test_help_goes_to_subcommand() -> None:
                 case builtins.Ellipsis:
                     subcommand = foo
                 case 'bar':
-                    subcommand = bar
+                    subcommand = bar  # type: ignore[assignment]
                 case 'baz':
-                    subcommand = baz
+                    subcommand = baz  # type: ignore[assignment]
                 case _:
                     assert False, f'Invalid {subcommand=}'
-            print((help_flag | subcommand).to_long_str())
+            print((help_flag | subcommand).to_long_str())  # type: ignore[operator]
             assert False, 'In a normal Cli, this should be `sys.exit(0)`.'
 
     @ArgumentParser()
@@ -348,9 +349,9 @@ def test_help_goes_to_subcommand() -> None:
             case  builtins.Ellipsis:
                 print((help_flag | foo).to_short_str())
             case 'bar':
-                (help_flag | bar)(*args)
+                (help_flag | bar)(*args)  # type: ignore[operator]
             case 'baz':
-                (help_flag | baz)(*args)
+                (help_flag | baz)(*args)  # type: ignore[operator]
 
     @ArgumentParser()
     def bar(*args: str) -> None: calls.append({'args': args})  # type: ignore[dict-item]
@@ -359,7 +360,7 @@ def test_help_goes_to_subcommand() -> None:
     def baz(**kwargs: float) -> None: calls.append({'kwargs': kwargs})  # type: ignore[dict-item]
 
     with pytest.raises(AssertionError):
-        (help_flag | foo)(*'-help'.split())
+        (help_flag | foo)(*'-help'.split())  # type: ignore[operator]
 
     assert calls == [
         {'subcommand': ..., 'help': True},
@@ -368,7 +369,7 @@ def test_help_goes_to_subcommand() -> None:
     calls = []
 
     with pytest.raises(AssertionError):
-        (help_flag | foo)(*'bar -help'.split())
+        (help_flag | foo)(*'bar -help'.split())  # type: ignore[operator]
 
     assert calls == [
         {'subcommand': 'bar', 'help': True},
@@ -377,7 +378,7 @@ def test_help_goes_to_subcommand() -> None:
     calls = []
 
     with pytest.raises(AssertionError):
-        (help_flag | foo)(*'baz -help'.split())
+        (help_flag | foo)(*'baz -help'.split())  # type: ignore[operator]
 
     assert calls == [
         {'subcommand': 'baz', 'help': True},
@@ -395,7 +396,7 @@ async def test_asyncio_runs_threading() -> None:
     @ArgumentParser()
     async def bar(b: int) -> None: calls.append({'b': b})
 
-    await (foo | bar)(*'1 2'.split())
+    await (foo | bar)(*'1 2'.split())  # type: ignore[operator]
 
     assert calls == [
         {'a': 1},
@@ -413,7 +414,7 @@ def test_threading_runs_asyncio() -> None:
     @ArgumentParser()
     def bar(b: int) -> None: calls.append({'b': b})
 
-    (foo | bar)(*'1 2'.split())
+    (foo | bar)(*'1 2'.split())  # type: ignore[operator]
 
     assert calls == [
         {'a': 1},
@@ -427,7 +428,7 @@ def test_dict_is_parsed() -> None:
     @ArgumentParser()
     def foo(a: dict[int, str]) -> None: calls.append({'a': a})
 
-    foo(*shlex.split(r'''"{1: 'foo'}"'''))
+    foo(*shlex.split(r'''"{1: 'foo'}"'''))  # type: ignore[arg-type]
 
     assert calls == [{'a': {1: 'foo'}}]
 

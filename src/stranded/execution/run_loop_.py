@@ -7,8 +7,8 @@ from .abc import run_loop_
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class RunLoop(
-    decorator.Decorator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
-    run_loop_.RunLoop[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
+    decorator.Decorator[..., typing.Any],
+    run_loop_.RunLoop[..., typing.Any],
 ): ...
 
 

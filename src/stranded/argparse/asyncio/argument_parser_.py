@@ -5,15 +5,6 @@ import typing
 from ...asyncio import decorator
 from ..abc import argument_parser_
 
-type _Decoratee[**ParamT, RetT] = Decoratee[ParamT, RetT]
-type _Receive[**ParamT, RetT] = Receive[ParamT, RetT]
-type _Send[**ParamT, RetT] = Send[ParamT, RetT]
-type _Exit[**ParamT, RetT] = Exit[ParamT, RetT]
-type _Enter[**ParamT, RetT] = Enter[ParamT, RetT]
-type _Decorated[**ParamT, RetT] = Decorated[ParamT, RetT]
-type _Decorator[**ParamT, RetT] = ArgumentParser[ParamT, RetT]
-
-
 @typing.runtime_checkable
 class Decoratee[**ParamT, RetT](
     decorator.Decoratee[ParamT, RetT],
@@ -25,140 +16,40 @@ class Decoratee[**ParamT, RetT](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Send[**ParamT, RetT](
-    decorator.Send[
-        ParamT,
-        RetT,
-        _Decoratee[ParamT, RetT],
-        _Receive[ParamT, RetT],
-        _Send[ParamT, RetT],
-        _Exit[ParamT, RetT],
-        _Enter[ParamT, RetT],
-        _Decorated[ParamT, RetT],
-        _Decorator[ParamT, RetT],
-    ],
-    argument_parser_.Send[
-        ParamT,
-        RetT,
-        _Decoratee[ParamT, RetT],
-        _Receive[ParamT, RetT],
-        _Send[ParamT, RetT],
-        _Exit[ParamT, RetT],
-        _Enter[ParamT, RetT],
-        _Decorated[ParamT, RetT],
-        _Decorator[ParamT, RetT],
-    ],
+    decorator.Send[ParamT, RetT],
+    argument_parser_.Send[ParamT, RetT],
 ): ...
 
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Receive[**ParamT, RetT](
-    decorator.Receive[
-        ParamT,
-        RetT,
-        _Decoratee[ParamT, RetT],
-        _Receive[ParamT, RetT],
-        _Send[ParamT, RetT],
-        _Exit[ParamT, RetT],
-        _Enter[ParamT, RetT],
-        _Decorated[ParamT, RetT],
-        _Decorator[ParamT, RetT],
-    ],
-    argument_parser_.Receive[
-        ParamT,
-        RetT,
-        _Decoratee[ParamT, RetT],
-        _Receive[ParamT, RetT],
-        _Send[ParamT, RetT],
-        _Exit[ParamT, RetT],
-        _Enter[ParamT, RetT],
-        _Decorated[ParamT, RetT],
-        _Decorator[ParamT, RetT],
-    ],
+    decorator.Receive[ParamT, RetT],
+    argument_parser_.Receive[ParamT, RetT],
 ): ...
 
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**ParamT, RetT](
-    decorator.Exit[
-        ParamT,
-        RetT,
-        _Decoratee[ParamT, RetT],
-        _Receive[ParamT, RetT],
-        _Send[ParamT, RetT],
-        _Exit[ParamT, RetT],
-        _Enter[ParamT, RetT],
-        _Decorated[ParamT, RetT],
-        _Decorator[ParamT, RetT],
-    ],
-    argument_parser_.Exit[
-        ParamT,
-        RetT,
-        _Decoratee[ParamT, RetT],
-        _Receive[ParamT, RetT],
-        _Send[ParamT, RetT],
-        _Exit[ParamT, RetT],
-        _Enter[ParamT, RetT],
-        _Decorated[ParamT, RetT],
-        _Decorator[ParamT, RetT],
-    ],
+    decorator.Exit[ParamT, RetT],
+    argument_parser_.Exit[ParamT, RetT],
 ): ...
 
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[**ParamT, RetT](
-    decorator.Enter[
-        ParamT,
-        RetT,
-        _Decoratee[ParamT, RetT],
-        _Receive[ParamT, RetT],
-        _Send[ParamT, RetT],
-        _Exit[ParamT, RetT],
-        _Enter[ParamT, RetT],
-        _Decorated[ParamT, RetT],
-        _Decorator[ParamT, RetT],
-    ],
-    argument_parser_.Enter[
-        ParamT,
-        RetT,
-        _Decoratee[ParamT, RetT],
-        _Receive[ParamT, RetT],
-        _Send[ParamT, RetT],
-        _Exit[ParamT, RetT],
-        _Enter[ParamT, RetT],
-        _Decorated[ParamT, RetT],
-        _Decorator[ParamT, RetT],
-    ],
+    decorator.Enter[ParamT, RetT],
+    argument_parser_.Enter[ParamT, RetT],
 ): ...
 
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorated[**ParamT, RetT](
-    decorator.Decorated[
-        ParamT,
-        RetT,
-        _Decoratee[ParamT, RetT],
-        _Receive[ParamT, RetT],
-        _Send[ParamT, RetT],
-        _Exit[ParamT, RetT],
-        _Enter[ParamT, RetT],
-        _Decorated[ParamT, RetT],
-        _Decorator[ParamT, RetT],
-    ],
-    argument_parser_.Decorated[
-        ParamT,
-        RetT,
-        _Decoratee[ParamT, RetT],
-        _Receive[ParamT, RetT],
-        _Send[ParamT, RetT],
-        _Exit[ParamT, RetT],
-        _Enter[ParamT, RetT],
-        _Decorated[ParamT, RetT],
-        _Decorator[ParamT, RetT],
-    ],
+    decorator.Decorated[ParamT, RetT],
+    argument_parser_.Decorated[ParamT, RetT],
 ):
     async def __call__(self, *argv: str) -> RetT:  # type: ignore[override]
         ret = None
@@ -172,28 +63,8 @@ class Decorated[**ParamT, RetT](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class ArgumentParser[**ParamT, RetT](
-    decorator.Decorator[
-        ParamT,
-        RetT,
-        _Decoratee[ParamT, RetT],
-        _Receive[ParamT, RetT],
-        _Send[ParamT, RetT],
-        _Exit[ParamT, RetT],
-        _Enter[ParamT, RetT],
-        _Decorated[ParamT, RetT],
-        _Decorator[ParamT, RetT],
-    ],
-    argument_parser_.Decorator[
-        ParamT,
-        RetT,
-        _Decoratee[ParamT, RetT],
-        _Receive[ParamT, RetT],
-        _Send[ParamT, RetT],
-        _Exit[ParamT, RetT],
-        _Enter[ParamT, RetT],
-        _Decorated[ParamT, RetT],
-        _Decorator[ParamT, RetT],
-    ],
+    decorator.Decorator[ParamT, RetT],
+    argument_parser_.Decorator[ParamT, RetT],
 ): ...
 
 

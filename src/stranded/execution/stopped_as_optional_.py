@@ -7,8 +7,8 @@ from .abc import stopped_as_optional_
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class StoppedAsOptional(
-    decorator.Decorator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
-    stopped_as_optional_.StoppedAsOptional[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
+    decorator.Decorator[..., typing.Any],
+    stopped_as_optional_.StoppedAsOptional[..., typing.Any],
 ): ...
 
 

@@ -6,7 +6,7 @@ from .. import decorator
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Herd(decorator.Decorator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any], herd_.Herd[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any]):
+class Herd(decorator.Decorator[..., typing.Any], herd_.Herd[..., typing.Any]):
     @property
     def future_t(self) -> type:
         raise NotImplementedError(

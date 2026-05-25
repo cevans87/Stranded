@@ -7,8 +7,8 @@ from .abc import get_completion_signatures_
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class GetCompletionSignatures(
-    decorator.Decorator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
-    get_completion_signatures_.GetCompletionSignatures[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
+    decorator.Decorator[..., typing.Any],
+    get_completion_signatures_.GetCompletionSignatures[..., typing.Any],
 ): ...
 
 

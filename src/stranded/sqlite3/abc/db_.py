@@ -29,22 +29,22 @@ class Decoratee[**ParamT, RetT](
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Send[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
-    decorator.Send[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
+class Send[**ParamT, RetT](
+    decorator.Send[ParamT, RetT],
     abc.ABC,
 ): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Receive[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
-    decorator.Receive[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
+class Receive[**ParamT, RetT](
+    decorator.Receive[ParamT, RetT],
     abc.ABC,
 ): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Exit[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
-    decorator.Exit[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
+class Exit[**ParamT, RetT](
+    decorator.Exit[ParamT, RetT],
     abc.ABC,
 ):
     key: str
@@ -68,20 +68,20 @@ class Exit[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorated
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Enter[** ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
-    decorator.Enter[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
+class Enter[**ParamT, RetT](
+    decorator.Enter[ParamT, RetT],
     abc.ABC,
 ):
     @typing.overload  # type: ignore[override]
-    def __call__(self, value: Param[ParamT], /) -> tuple[ExitT, DecorateeT]: ...
+    def __call__(self, value: Param[ParamT], /) -> tuple[Exit[ParamT, RetT], Decoratee[ParamT, RetT]]: ...
     @typing.overload
     def __call__(self, value: Raise | Return[RetT] | Stop, /) -> tuple[Return[RetT]]: ...
     @abc.abstractmethod
-    def __call__(self, value: Param[ParamT] | Raise | Return[RetT] | Stop, /) -> tuple[ExitT, DecorateeT] | tuple[Return[RetT]] | tuple[()]:
+    def __call__(self, value: Param[ParamT] | Raise | Return[RetT] | Stop, /) -> tuple[Exit[ParamT, RetT], Decoratee[ParamT, RetT]] | tuple[Return[RetT]] | tuple[()]:
         match value:
             case Raise() | Return() | Stop(): return ()
             case Param():
-                (bound := inspect.signature(self.decorated.decoratee).bind(*value.args, **value.kwargs)).apply_defaults()  # type: ignore[attr-defined]
+                (bound := inspect.signature(self.decorated.decoratee).bind(*value.args, **value.kwargs)).apply_defaults()
                 key = repr((self.decorated.instance, bound.args, tuple(sorted(bound.kwargs))))  # type: ignore[attr-defined]
 
                 with self.decorated.lock:  # type: ignore[attr-defined]
@@ -92,14 +92,14 @@ class Enter[** ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorat
                 if ret:
                     return Return(ret=self.decorated.decorator.serialize(ret[0])),  # type: ignore[attr-defined]
 
-                return self.exit_t(enter=self, key=key), self.decorated.decoratee,  # type: ignore[call-arg, attr-defined]
+                return self.exit_t(enter=self, key=key), self.decorated.decoratee,  # type: ignore[call-arg, return-value]
 
         raise ValueError(f'Invalid {value=}')
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
-    decorator.Decorated[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
+class Decorated[**ParamT, RetT](
+    decorator.Decorated[ParamT, RetT],
     abc.ABC,
 ):
     connection: sqlite3.Connection
@@ -108,12 +108,12 @@ class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
     lock: threading.Lock = dataclasses.field(default_factory=threading.Lock)
 
     def __get__(self, instance: decorator.Instance, owner: type[object] | None) -> typing.Self:
-        return dataclasses.replace(self, decoratee=self.decoratee.__get__(instance, owner), instance=instance)  # type: ignore[attr-defined]
+        return dataclasses.replace(self, decoratee=self.decoratee.__get__(instance, owner), instance=instance)
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Db[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
-    decorator.Decorator[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
+class Db[**ParamT, RetT](
+    decorator.Decorator[ParamT, RetT],
     abc.ABC,
 ):
     type Version = str
@@ -123,19 +123,19 @@ class Db[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT,
     serialize: typing.Callable[[RetT], str] = repr
     version: Version = '0.0.0'
 
-    def __call__(self, decoratee: DecorateeT, /) -> DecoratedT:
+    def __call__(self, decoratee: Decoratee[ParamT, RetT], /) -> Decorated[ParamT, RetT]:
         table_name = f'{decoratee.__module__}.{decoratee.__qualname__}.{self.version}'  # type: ignore[attr-defined]
         (connection := sqlite3.connect(self.path, check_same_thread=False, isolation_level=None)).execute(
             f'CREATE TABLE IF NOT EXISTS `{table_name}` '  # noqa
             f'(key STRING PRIMARY KEY NOT NULL UNIQUE, ret STRING NOT NULL)',  # noqa
         )
 
-        return self.decorated_t(  # type: ignore[call-arg]
+        return self.decorated_t(  # type: ignore[call-arg, return-value]
             __doc__=str(decoratee.__doc__),
             __module__=str(decoratee.__module__),
             __name__=str(decoratee.__name__),  # type: ignore[attr-defined]
             __qualname__=str(decoratee.__qualname__),  # type: ignore[attr-defined]
-            __signature__=inspect.signature(decoratee),  # type: ignore[arg-type]
+            __signature__=inspect.signature(decoratee),
             connection=connection,
             decoratee=decoratee,
             decorator=self,

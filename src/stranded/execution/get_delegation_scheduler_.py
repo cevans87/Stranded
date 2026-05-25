@@ -7,8 +7,8 @@ from .abc import get_delegation_scheduler_
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class GetDelegationScheduler(
-    decorator.Decorator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
-    get_delegation_scheduler_.GetDelegationScheduler[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
+    decorator.Decorator[..., typing.Any],
+    get_delegation_scheduler_.GetDelegationScheduler[..., typing.Any],
 ): ...
 
 

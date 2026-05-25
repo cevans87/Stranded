@@ -6,13 +6,6 @@ from ...threading import decorator
 from ..abc import throttle_
 
 
-type _Decoratee[**ParamT, RetT] = Decoratee[ParamT, RetT]
-type _Receive[**ParamT, RetT] = Receive[ParamT, RetT]
-type _Send[**ParamT, RetT] = Send[ParamT, RetT]
-type _Exit[**ParamT, RetT] = Exit[ParamT, RetT]
-type _Enter[**ParamT, RetT] = Enter[ParamT, RetT]
-type _Decorated[**ParamT, RetT] = Decorated[ParamT, RetT]
-type _Decorator[**ParamT, RetT] = Throttle[ParamT, RetT]
 type _Condition = threading.Condition
 
 
@@ -33,157 +26,56 @@ Stop = decorator.Stop
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Send[**ParamT, RetT](
-    decorator.Send[
-        ParamT,
-        RetT,
-        _Decoratee[ParamT, RetT],
-        _Receive[ParamT, RetT],
-        _Send[ParamT, RetT],
-        _Exit[ParamT, RetT],
-        _Enter[ParamT, RetT],
-        _Decorated[ParamT, RetT],
-        _Decorator[ParamT, RetT],
-    ],
-    throttle_.Send[
-        ParamT,
-        RetT,
-        _Decoratee[ParamT, RetT],
-        _Receive[ParamT, RetT],
-        _Send[ParamT, RetT],
-        _Exit[ParamT, RetT],
-        _Enter[ParamT, RetT],
-        _Decorated[ParamT, RetT],
-        _Decorator[ParamT, RetT],
-    ],
+    decorator.Send[ParamT, RetT],
+    throttle_.Send[ParamT, RetT],
 ): ...
 
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Receive[**ParamT, RetT](
-    decorator.Receive[
-        ParamT,
-        RetT,
-        _Decoratee[ParamT, RetT],
-        _Receive[ParamT, RetT],
-        _Send[ParamT, RetT],
-        _Exit[ParamT, RetT],
-        _Enter[ParamT, RetT],
-        _Decorated[ParamT, RetT],
-        _Decorator[ParamT, RetT],
-    ],
-    throttle_.Receive[
-        ParamT,
-        RetT,
-        _Decoratee[ParamT, RetT],
-        _Receive[ParamT, RetT],
-        _Send[ParamT, RetT],
-        _Exit[ParamT, RetT],
-        _Enter[ParamT, RetT],
-        _Decorated[ParamT, RetT],
-        _Decorator[ParamT, RetT],
-    ],
+    decorator.Receive[ParamT, RetT],
+    throttle_.Receive[ParamT, RetT],
 ): ...
 
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**ParamT, RetT](
-    decorator.Exit[
-        ParamT,
-        RetT,
-        _Decoratee[ParamT, RetT],
-        _Receive[ParamT, RetT],
-        _Send[ParamT, RetT],
-        _Exit[ParamT, RetT],
-        _Enter[ParamT, RetT],
-        _Decorated[ParamT, RetT],
-        _Decorator[ParamT, RetT],
-    ],
-    throttle_.Exit[
-        ParamT,
-        RetT,
-        _Decoratee[ParamT, RetT],
-        _Receive[ParamT, RetT],
-        _Send[ParamT, RetT],
-        _Exit[ParamT, RetT],
-        _Enter[ParamT, RetT],
-        _Decorated[ParamT, RetT],
-        _Decorator[ParamT, RetT],
-    ],
+    decorator.Exit[ParamT, RetT],
+    throttle_.Exit[ParamT, RetT],
 ):
     def __call__(self, result: Raise | RetT) -> tuple[()]:  # type: ignore[override]
-        with self.enter.decorated.condition:
+        with self.enter.decorated.condition:  # type: ignore[attr-defined]
             return super().__call__(result)  # type: ignore[arg-type]
 
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[**ParamT, RetT](
-    decorator.Enter[
-        ParamT,
-        RetT,
-        _Decoratee[ParamT, RetT],
-        _Receive[ParamT, RetT],
-        _Send[ParamT, RetT],
-        _Exit[ParamT, RetT],
-        _Enter[ParamT, RetT],
-        _Decorated[ParamT, RetT],
-        _Decorator[ParamT, RetT],
-    ],
-    throttle_.Enter[
-        ParamT,
-        RetT,
-        _Decoratee[ParamT, RetT],
-        _Receive[ParamT, RetT],
-        _Send[ParamT, RetT],
-        _Exit[ParamT, RetT],
-        _Enter[ParamT, RetT],
-        _Decorated[ParamT, RetT],
-        _Decorator[ParamT, RetT],
-    ],
+    decorator.Enter[ParamT, RetT],
+    throttle_.Enter[ParamT, RetT],
 ):
-    def __call__(self, *args: ParamT.args, **kwargs: ParamT.kwargs) -> tuple[_Exit[ParamT, RetT], _Decoratee[ParamT, RetT]]:  # type: ignore[override]
+    def __call__(self, *args: ParamT.args, **kwargs: ParamT.kwargs) -> tuple[Exit[ParamT, RetT], Decoratee[ParamT, RetT]]:  # type: ignore[override]
         # TODO: this is mostly duplicate with the asyncio version. Try to consolidate.
-        state = self.decorated.state
-        with self.decorated.condition:
-            if state.num_waiting >= self.decorated.decorator.max_waiting:
-                raise Exception(f'Exceeded {self.decorated.decorator.max_waiting=}.')
+        state = self.decorated.state  # type: ignore[attr-defined]
+        with self.decorated.condition:  # type: ignore[attr-defined]
+            if state.num_waiting >= self.decorated.decorator.max_waiting:  # type: ignore[attr-defined]
+                raise Exception(f'Exceeded {self.decorated.decorator.max_waiting=}.')  # type: ignore[attr-defined]
             elif 0 < state.num_waiting or state.cap_running <= state.num_running:
                 state.num_waiting += 1
-                self.decorated.condition.wait_for(lambda: state.num_running < state.cap_running)
+                self.decorated.condition.wait_for(lambda: state.num_running < state.cap_running)  # type: ignore[attr-defined]
                 state.num_waiting -= 1
-            self.decorated.state.num_running += 1
+            self.decorated.state.num_running += 1  # type: ignore[attr-defined]
 
-        return self.decorated.decorator.exit_t(enter=self), self.decorated.decoratee,
+        return self.decorated.decorator.exit_t(enter=self), self.decorated.decoratee,  # type: ignore[return-value]
 
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorated[**ParamT, RetT](
-    decorator.Decorated[
-        ParamT,
-        RetT,
-        _Decoratee[ParamT, RetT],
-        _Receive[ParamT, RetT],
-        _Send[ParamT, RetT],
-        _Exit[ParamT, RetT],
-        _Enter[ParamT, RetT],
-        _Decorated[ParamT, RetT],
-        _Decorator[ParamT, RetT],
-    ],
-    throttle_.Decorated[
-        ParamT,
-        RetT,
-        _Decoratee[ParamT, RetT],
-        _Receive[ParamT, RetT],
-        _Send[ParamT, RetT],
-        _Exit[ParamT, RetT],
-        _Enter[ParamT, RetT],
-        _Decorated[ParamT, RetT],
-        _Decorator[ParamT, RetT],
-        _Condition,
-    ],
+    decorator.Decorated[ParamT, RetT],
+    throttle_.Decorated[ParamT, RetT, _Condition],
 ):
     condition: _Condition = dataclasses.field(default_factory=threading.Condition)
 
@@ -191,28 +83,8 @@ class Decorated[**ParamT, RetT](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Throttle[**ParamT, RetT](
-    decorator.Decorator[
-        ParamT,
-        RetT,
-        _Decoratee[ParamT, RetT],
-        _Receive[ParamT, RetT],
-        _Send[ParamT, RetT],
-        _Exit[ParamT, RetT],
-        _Enter[ParamT, RetT],
-        _Decorated[ParamT, RetT],
-        _Decorator[ParamT, RetT],
-    ],
-    throttle_.Decorator[
-        ParamT,
-        RetT,
-        _Decoratee[ParamT, RetT],
-        _Receive[ParamT, RetT],
-        _Send[ParamT, RetT],
-        _Exit[ParamT, RetT],
-        _Enter[ParamT, RetT],
-        _Decorated[ParamT, RetT],
-        _Decorator[ParamT, RetT],
-    ],
+    decorator.Decorator[ParamT, RetT],
+    throttle_.Decorator[ParamT, RetT],
 ): ...
 
 

@@ -7,11 +7,9 @@ from .abc import decorator
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorator[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
-    decorator.Decorator[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
-):
+class Decorator[**ParamT, RetT](decorator.Decorator[ParamT, RetT]):
 
-    def __call__[DecorateeT](self, decoratee: DecorateeT) -> DecorateeT:  # type: ignore[override, misc]
+    def __call__[DecorateeT](self, decoratee: DecorateeT) -> DecorateeT:  # type: ignore[override]
         (name_parts := self.__module__.split('.')).insert(
             -1,
             'asyncio' if inspect.iscoroutinefunction(decoratee) else 'threading'

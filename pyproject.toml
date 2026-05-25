@@ -41,6 +41,9 @@ Repository = 'https://github.com/cevans87/Stranded.git'
 include = ['*']
 where = ['src']
 
+[tool.setuptools.package-data]
+stranded = ['py.typed']
+
 [tool.pytest.ini_options]
 addopts = [
     '--cov=stranded',
@@ -48,6 +51,7 @@ addopts = [
     '--cov-report=term-missing',
     '--mypy',
 ]
+pythonpath = ['src']
 testpaths = ['test', 'src']
 
 [tool.coverage.run]
@@ -67,6 +71,6 @@ skip_covered = false
 [tool.mypy]
 strict = true
 files = ['src', 'test']
-mypy_path = 'src'
+mypy_path = '$MYPY_CONFIG_FILE_DIR/src'
 explicit_package_bases = true
 namespace_packages = true

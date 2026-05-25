@@ -7,8 +7,8 @@ from .abc import sender_
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Sender(
-    decorator.Decorator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
-    sender_.Sender[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
+    decorator.Decorator[..., typing.Any],
+    sender_.Sender[..., typing.Any],
 ): ...
 
 

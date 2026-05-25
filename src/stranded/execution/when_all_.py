@@ -7,8 +7,8 @@ from .abc import when_all_
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class WhenAll(
-    decorator.Decorator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
-    when_all_.WhenAll[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
+    decorator.Decorator[..., typing.Any],
+    when_all_.WhenAll[..., typing.Any],
 ): ...
 
 

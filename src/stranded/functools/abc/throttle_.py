@@ -35,22 +35,22 @@ Stop = decorator.Stop
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Send[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
-    decorator.Send[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
+class Send[**ParamT, RetT](
+    decorator.Send[ParamT, RetT],
     abc.ABC,
 ): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Receive[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
-    decorator.Receive[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
+class Receive[**ParamT, RetT](
+    decorator.Receive[ParamT, RetT],
     abc.ABC,
 ): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Exit[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
-    decorator.Exit[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
+class Exit[**ParamT, RetT](
+    decorator.Exit[ParamT, RetT],
     abc.ABC,
 ):
     def __call__(self, result: Raise | RetT) -> tuple[()]:  # type: ignore[override]
@@ -71,15 +71,15 @@ class Exit[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Decorated
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Enter[** ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
-    decorator.Enter[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
+class Enter[**ParamT, RetT](
+    decorator.Enter[ParamT, RetT],
     abc.ABC,
 ): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT, ConditionT](
-    decorator.Decorated[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
+class Decorated[**ParamT, RetT, ConditionT](
+    decorator.Decorated[ParamT, RetT],
     abc.ABC,
 ):
     condition: ConditionT
@@ -96,7 +96,7 @@ class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
                     instance, dataclasses.replace(
                         self,
                         condition=type(self.condition)(),
-                        decoratee=self.decoratee.__get__(instance, owner),  # type: ignore[attr-defined]
+                        decoratee=self.decoratee.__get__(instance, owner),
                         state=State(),
                     )
                 )
@@ -104,8 +104,8 @@ class Decorated[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, Deco
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Throttle[**ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT](
-    decorator.Decorator[ParamT, RetT, DecorateeT, ReceiveT, SendT, ExitT, EnterT, DecoratedT, DecoratorT],
+class Throttle[**ParamT, RetT](
+    decorator.Decorator[ParamT, RetT],
     abc.ABC,
 ):
     # How many callees are allowed through concurrently before additional callees become waiters.

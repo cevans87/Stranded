@@ -7,8 +7,8 @@ from .abc import default_domain_
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class DefaultDomain(
-    decorator.Decorator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
-    default_domain_.DefaultDomain[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
+    decorator.Decorator[..., typing.Any],
+    default_domain_.DefaultDomain[..., typing.Any],
 ): ...
 
 

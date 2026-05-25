@@ -7,8 +7,8 @@ from .abc import get_domain_
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class GetDomain(
-    decorator.Decorator[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
-    get_domain_.GetDomain[..., typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any, typing.Any],
+    decorator.Decorator[..., typing.Any],
+    get_domain_.GetDomain[..., typing.Any],
 ): ...
 
 
