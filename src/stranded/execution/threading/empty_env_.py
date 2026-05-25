@@ -58,8 +58,12 @@ class Decorated[**ParamT, RetT](
 class EmptyEnv[**ParamT, RetT](
     decorator.Decorator[ParamT, RetT],
     empty_env_.Decorator[ParamT, RetT],
-): ...
-
-
+):
+    decoratee_t: typing.ClassVar = Decoratee
+    receive_t: typing.ClassVar = Receive
+    send_t: typing.ClassVar = Send
+    exit_t: typing.ClassVar = Exit
+    enter_t: typing.ClassVar = Enter
+    decorated_t: typing.ClassVar = Decorated
 Decorator = EmptyEnv
 empty_env: EmptyEnv[..., typing.Any] = EmptyEnv()

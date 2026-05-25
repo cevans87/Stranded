@@ -78,7 +78,7 @@ class Enter[**ParamT, RetT](
         match future is None:
             case True:
                 future = self.decorated.future_by_key[key] = self.decorated.decorator.future_t()  # type: ignore[attr-defined]
-                return self.exit_t(enter=self, future=future, key=key), self.decorated.decoratee  # type: ignore[call-arg, return-value]
+                return self.decorated.decorator.exit_t(enter=self, future=future, key=key), self.decorated.decoratee  # type: ignore[call-arg, return-value]
             case False:
                 return future,
         assert False, "Unreachable"

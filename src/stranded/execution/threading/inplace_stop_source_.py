@@ -58,8 +58,12 @@ class Decorated[**ParamT, RetT](
 class InplaceStopSource[**ParamT, RetT](
     decorator.Decorator[ParamT, RetT],
     inplace_stop_source_.Decorator[ParamT, RetT],
-): ...
-
-
+):
+    decoratee_t: typing.ClassVar = Decoratee
+    receive_t: typing.ClassVar = Receive
+    send_t: typing.ClassVar = Send
+    exit_t: typing.ClassVar = Exit
+    enter_t: typing.ClassVar = Enter
+    decorated_t: typing.ClassVar = Decorated
 Decorator = InplaceStopSource
 inplace_stop_source: InplaceStopSource[..., typing.Any] = InplaceStopSource()

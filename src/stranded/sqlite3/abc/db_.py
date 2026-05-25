@@ -92,7 +92,7 @@ class Enter[**ParamT, RetT](
                 if ret:
                     return Return(ret=self.decorated.decorator.serialize(ret[0])),  # type: ignore[attr-defined]
 
-                return self.exit_t(enter=self, key=key), self.decorated.decoratee,  # type: ignore[call-arg, return-value]
+                return self.decorated.decorator.exit_t(enter=self, key=key), self.decorated.decoratee,  # type: ignore[call-arg, return-value]
 
         raise ValueError(f'Invalid {value=}')
 

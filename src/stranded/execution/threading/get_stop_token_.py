@@ -58,8 +58,12 @@ class Decorated[**ParamT, RetT](
 class GetStopToken[**ParamT, RetT](
     decorator.Decorator[ParamT, RetT],
     get_stop_token_.Decorator[ParamT, RetT],
-): ...
-
-
+):
+    decoratee_t: typing.ClassVar = Decoratee
+    receive_t: typing.ClassVar = Receive
+    send_t: typing.ClassVar = Send
+    exit_t: typing.ClassVar = Exit
+    enter_t: typing.ClassVar = Enter
+    decorated_t: typing.ClassVar = Decorated
 Decorator = GetStopToken
 get_stop_token: GetStopToken[..., typing.Any] = GetStopToken()

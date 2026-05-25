@@ -67,7 +67,11 @@ class Decorated[**ParamT, RetT](
 class Decorator[**ParamT, RetT](
     decorator.Decorator[ParamT, RetT],
     sender_.Decorator[ParamT, RetT],
-): ...
-
-
+):
+    decoratee_t: typing.ClassVar = Decoratee
+    receive_t: typing.ClassVar = Receive
+    send_t: typing.ClassVar = Send
+    exit_t: typing.ClassVar = Exit
+    enter_t: typing.ClassVar = Enter
+    decorated_t: typing.ClassVar = Decorated
 sender: Decorator[..., typing.Any] = Decorator()
