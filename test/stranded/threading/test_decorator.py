@@ -51,7 +51,7 @@ def test_or_calls_each_decoratee() -> None:
     assert result == 77
 
 
-def test_or_stack_grows() -> None:
+def test_or_chain_grows() -> None:
     @Decorator()
     def foo(v: int) -> int:
         return v
@@ -65,9 +65,9 @@ def test_or_stack_grows() -> None:
         return v
 
     composer = Composer()
-    assert composer(foo).stack != ()  # type: ignore[arg-type]
-    assert len(composer(foo, bar).stack) > len(composer(foo).stack)  # type: ignore[arg-type]
-    assert len(composer(foo, bar, baz).stack) > len(composer(foo, bar).stack)  # type: ignore[arg-type]
+    assert len(composer(foo).decorateds) == 1  # type: ignore[arg-type]
+    assert len(composer(foo, bar).decorateds) > len(composer(foo).decorateds)  # type: ignore[arg-type]
+    assert len(composer(foo, bar, baz).decorateds) > len(composer(foo, bar).decorateds)  # type: ignore[arg-type]
 
 
 def test_composed_or_extends_with_decorated() -> None:
