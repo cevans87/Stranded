@@ -17,92 +17,86 @@ Stop = decorator.Stop
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Receive[**ParamT, RetT](abc.ABC):
-    composed: Composed[typing.Any, typing.Any]
+    decorated: decorator.Decorated[ParamT, RetT]
+    sender: decorator.Decorated[typing.Any, typing.Any]
 
-    def call_sync[SRetT, **SParamT](
-        self,
-        value: Param[ParamT] | Raise | Return[SRetT] | Stop,
-        /,
-    ) -> Param[ParamT] | Raise | Param[typing.Concatenate[SRetT, SParamT]] | Stop:
-        match value:
-            case Param() as param_: return param_
-            case Raise() as raise_: return raise_
-            case Return() as return_: return Param(args=(return_.ret,), kwargs={})  # noqa
-            case Stop() as stop_: return stop_
+    def call_sync[SenderRetT](self, value: Composed.Value[ParamT, SenderRetT], /) -> Composed.Stack:
+        return (
+            self.decorated.enter_t(decorated=self.decorated),
+            Param(args=(value.ret,), kwargs={}) if isinstance(value, Return) else value,
+        )
 
-    async def call_async[SRetT, **SParamT](
-        self,
-        value: Param[ParamT] | Raise | Return[SRetT] | Stop,
-        /,
-    ) -> Param[ParamT] | Raise | Param[typing.Concatenate[SRetT, SParamT]] | Stop:
+    async def call_async[SenderRetT](self, value: Composed.Value[ParamT, SenderRetT], /) -> Composed.Stack:
         return self.call_sync(value)  # type: ignore[return-value]
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Send[**ParamT, RetT](abc.ABC):
-    composed: Composed[typing.Any, typing.Any]
+    decorated: decorator.Decorated[ParamT, RetT]
+    receiver: decorator.Decorated[typing.Any, typing.Any]
 
-    def call_sync[**RParamT](
-        self,
-        value: Param[ParamT] | Raise | Return[RetT] | Stop,
-        /,
-    ) -> Param[ParamT] | Raise | Param[typing.Concatenate[RetT, RParamT]] | Stop:
-        match value:
-            case Param() as param_: return param_
-            case Raise() as raise_: return raise_
-            case Return() as return_: return Param(args=(return_.ret,), kwargs={})
-            case Stop() as stop_: return stop_
+    def call_sync[**ReceiverParamT](self, value: Composed.Value[ReceiverParamT, RetT], /) -> Composed.Stack:
+        return (
+            self.receiver.enter_t(decorated=self.receiver),
+            Param(args=(value.ret,), kwargs={}) if isinstance(value, Return) else value,
+        )
 
-    async def call_async[**RParamT](
-        self,
-        value: Param[ParamT] | Raise | Return[RetT] | Stop,
-        /,
-    ) -> Param[ParamT] | Raise | Param[typing.Concatenate[RetT, RParamT]] | Stop:
+    async def call_async[**ReceiverParamT](self, value: Composed.Value[ReceiverParamT, RetT], /) -> Composed.Stack:
         return self.call_sync(value)  # type: ignore[return-value]
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Composed[**ParamT, RetT](abc.ABC):
-    __doc__: str
-    __module__: str
-    __name__: str
-    __qualname__: str
-    __signature__: inspect.Signature
     composer: Composer
-    decorateds: tuple[decorator.Decorated[typing.Any, typing.Any], ...]
+    decorateds: tuple[decorator.Decorated[typing.Any, RetT], ...]
 
-    @property
-    def stack(self) -> tuple[
-        decorator.Enter[typing.Any, typing.Any]
+    type Stack = tuple[
+        Param[typing.Any]
+        | Raise
+        | Return[typing.Any]
+        | Stop
+        | decorator.Enter[typing.Any, typing.Any]
         | decorator.Exit[typing.Any, typing.Any]
         | Send[typing.Any, typing.Any]
-        | Receive[typing.Any, typing.Any], ...
-    ]:
-        # Build execution-order events for decorateds = [d0, d1, ..., dN]:
-        #   d0.enter, d0.send, d1.receive, d1.enter, d1.send, d2.receive, ..., dN.enter
-        # Stack is the reverse so list.pop() yields execution order.
-        pops: list[
-            decorator.Enter[typing.Any, typing.Any]
-            | Send[typing.Any, typing.Any]
-            | Receive[typing.Any, typing.Any]
-        ] = []
-        for i, decorated in enumerate(self.decorateds):
-            if i > 0:
-                pops.append(self.composer.send_t(composed=self))
-                pops.append(self.composer.receive_t(composed=self))
-            pops.append(decorated.decorator.enter_t(decorated=decorated))
-        return tuple(reversed(pops))
+        | Receive[typing.Any, typing.Any]
+        | decorator.Decoratee[typing.Any, typing.Any],
+        ...,
+    ]
+    type Value[**ParamT_, RetT_] = Param[ParamT_] | Raise | Return[RetT_] | Stop
 
-    def __or__[**Param2T, Ret2T](
+    @property
+    def __doc__(self) -> str:
+        return '\n\n'.join(str(decorated.__doc__) for decorated in self.decorateds)
+
+    @property
+    def __module__(self) -> str:
+        return ', '.join(str(decorated.__module__) for decorated in self.decorateds)
+
+    @property
+    def __name__(self) -> str:
+        return ', '.join(str(decorated.__name__) for decorated in self.decorateds)
+
+    @property
+    def __qualname__(self) -> str:
+        return ', '.join(str(decorated.__qualname__) for decorated in self.decorateds)
+
+    @property
+    def __signature__(self) -> inspect.Signature:
+        return inspect.Signature().replace(
+           parameters=list(self.decorateds[0].__signature__.parameters.values()),
+           return_annotation=self.decorateds[-1].__signature__.return_annotation,
+        )
+
+    def __or__[**OtherParamT, OtherRetT](
         self,
-        other: Composed[Param2T, Ret2T] | decorator.Decorated[Param2T, Ret2T],
+        other: Composed[OtherParamT, OtherRetT] | decorator.Decorated[OtherParamT, OtherRetT],
         /,
-    ) -> Composed[ParamT, Ret2T]:
+    ) -> Composed[ParamT, OtherRetT]:
         match other:
-            case Composed(): more = other.decorateds
-            case decorator.Decorated(): more = (other,)
-            case _: return NotImplemented
-        return self.composer(*self.decorateds, *more)
+            case Composed() as composed_:
+                return dataclasses.replace(self, decorateds=(*composed_.decorateds, *self.decorateds))
+            case decorator.Decorated() as decorated_:
+                return dataclasses.replace(self, decorateds=(decorated_, *self.decorateds))
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -118,22 +112,13 @@ class Composer(abc.ABC):
     @abc.abstractmethod
     def composed_t(self) -> type[Composed[typing.Any, typing.Any]]: ...
 
-    def __call__[**Param1T, Ret1T, **Param2T, Ret2T](
-        self,
-        *decorateds: decorator.Decorated[typing.Any, typing.Any],
-    ) -> Composed[Param1T, Ret2T]:
-        if not decorateds:
-            raise exception_.Exception(f'{type(self).__name__} requires at least one decorated.')
-        first, last = decorateds[0], decorateds[-1]
+    def __call__[**ParamT, RetT](self, decorated: decorator.Decorated[ParamT, RetT], /) -> Composed[ParamT, RetT]:
         return self.composed_t(
-            __doc__='\n\n'.join(str(d.__doc__) for d in decorateds),
-            __module__=', '.join(str(d.__module__) for d in decorateds),
-            __name__=', '.join(str(d.__name__) for d in decorateds),
-            __qualname__=', '.join(str(d.__qualname__) for d in decorateds),
-            __signature__=inspect.Signature().replace(
-                parameters=list(first.__signature__.parameters.values()),
-                return_annotation=last.__signature__.return_annotation,
-            ),
+            __doc__=decorated.__doc__,
+            __module__=decorated.__module__,
+            __name__=decorated.__name__,
+            __qualname__=decorated.__qualname__,
+            __signature__=decorated.__signature__,
             composer=self,
-            decorateds=tuple(decorateds),
+            decorateds=(decorated,),
         )
