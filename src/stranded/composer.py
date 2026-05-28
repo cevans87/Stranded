@@ -35,7 +35,7 @@ class Composed[**ParamT, RetT](composer.Composed[ParamT, RetT], abc.ABC):
 
     def call_sync(self, *args: ParamT.args, **kwargs: ParamT.kwargs) -> RetT:
         value: Param[ParamT] | Raise | Return[RetT] | Stop = Param(args=args, kwargs=kwargs)
-        stack: list[typing.Any] = list(self.stack)
+        stack: list[typing.Any] = [*self.decorateds]
         while stack:
             match popped := stack.pop():
                 case Param() | Raise() | Return() | Stop(): value = popped
@@ -43,8 +43,15 @@ class Composed[**ParamT, RetT](composer.Composed[ParamT, RetT], abc.ABC):
                     extension: typing.Any = popped(value)
                     if inspect.isawaitable(extension):
                         extension = asyncio.run(extension)  # type: ignore[arg-type]
-                    stack.extend(extension)
-                case Send() | Receive(): value = popped.call_sync(value)  # type: ignore[assignment]
+                    stack += extension
+                case Send() | Receive(): stack += popped.call_sync(value)
+                case decorator.Decorated() if isinstance(value, Param) and stack:
+                    stack += [
+                        self.composer.send_t(decorated=popped, receiver=stack[-1]),
+                        popped.enter_t(decorated=popped),
+                    ]
+                case decorator.Decorated() if isinstance(value, Param):
+                    stack.append(popped.enter_t(decorated=popped))
                 case decorator.Decoratee() if isinstance(value, Param):
                     try:
                         ret: typing.Any = popped(*value.args, **value.kwargs)
@@ -64,7 +71,7 @@ class Composed[**ParamT, RetT](composer.Composed[ParamT, RetT], abc.ABC):
 
     async def call_async(self, *args: ParamT.args, **kwargs: ParamT.kwargs) -> RetT:
         value: Param[ParamT] | Raise | Return[RetT] | Stop = Param(args=args, kwargs=kwargs)
-        stack: list[typing.Any] = list(self.stack)
+        stack: list[typing.Any] = [*self.decorateds]
         while stack:
             match popped := stack.pop():
                 case Param() | Raise() | Return() | Stop(): value = popped
@@ -72,8 +79,15 @@ class Composed[**ParamT, RetT](composer.Composed[ParamT, RetT], abc.ABC):
                     extension: typing.Any = popped(value)
                     if inspect.isawaitable(extension):
                         extension = await extension
-                    stack.extend(extension)
-                case Send() | Receive(): value = await popped.call_async(value)  # type: ignore[assignment]
+                    stack += extension
+                case Send() | Receive(): stack += await popped.call_async(value)
+                case decorator.Decorated() if isinstance(value, Param) and stack:
+                    stack += [
+                        self.composer.send_t(decorated=popped, receiver=stack[-1]),
+                        popped.enter_t(decorated=popped),
+                    ]
+                case decorator.Decorated() if isinstance(value, Param):
+                    stack.append(popped.enter_t(decorated=popped))
                 case decorator.Decoratee() if isinstance(value, Param):
                     try:
                         ret: typing.Any = popped(*value.args, **value.kwargs)

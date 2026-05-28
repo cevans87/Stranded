@@ -55,7 +55,7 @@ async def test_or_calls_each_decoratee() -> None:
 
 
 @pytest.mark.asyncio
-async def test_or_stack_grows() -> None:
+async def test_or_chain_grows() -> None:
     @Decorator()
     async def foo(v: int) -> int:
         return v
@@ -69,9 +69,9 @@ async def test_or_stack_grows() -> None:
         return v
 
     composer = Composer()
-    assert composer(foo).stack != ()  # type: ignore[arg-type]
-    assert len(composer(foo, bar).stack) > len(composer(foo).stack)  # type: ignore[arg-type]
-    assert len(composer(foo, bar, baz).stack) > len(composer(foo, bar).stack)  # type: ignore[arg-type]
+    assert len(composer(foo).decorateds) == 1  # type: ignore[arg-type]
+    assert len(composer(foo, bar).decorateds) > len(composer(foo).decorateds)  # type: ignore[arg-type]
+    assert len(composer(foo, bar, baz).decorateds) > len(composer(foo, bar).decorateds)  # type: ignore[arg-type]
 
 
 @pytest.mark.asyncio
