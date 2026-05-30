@@ -32,6 +32,10 @@ class Send[**ParamT, RetT](abc.ABC):
     decorated: decorator.Decorated[ParamT, RetT]
     receiver: decorator.Decorated[typing.Any, typing.Any]
 
+    @property
+    @abc.abstractmethod
+    def receive_t(self) -> type[Receive[typing.Any, typing.Any]]: ...
+
     def call_sync[**ReceiverParamT](self, value: Composed.Value[ReceiverParamT, RetT], /) -> Composed.Stack:
         return (Param(args=(value.ret,), kwargs={}) if isinstance(value, Return) else value,)
 
@@ -59,6 +63,13 @@ class Composed[**ParamT, RetT](abc.ABC):
     ]
     type Value[**ParamT_, RetT_] = Param[ParamT_] | Raise | Return[RetT_] | Stop
 
+    @property
+    @abc.abstractmethod
+    def receive_t(self) -> type[Receive[typing.Any, typing.Any]]: ...
+    @property
+    @abc.abstractmethod
+    def send_t(self) -> type[Send[typing.Any, typing.Any]]: ...
+
     # decorateds is stored in reverse execution order: decorateds[-1] runs first, decorateds[0] runs last.
     def __post_init__(self) -> None:
         ds = self.decorateds
@@ -82,7 +93,7 @@ class Composed[**ParamT, RetT](abc.ABC):
                 return dataclasses.replace(self, decorateds=(*composed_.decorateds, *self.decorateds))
             case decorator.Decorated() as decorated_:
                 return dataclasses.replace(self, decorateds=(decorated_, *self.decorateds))
-            case _: return NotImplemented
+        return NotImplemented
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -90,10 +101,10 @@ class Composer(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def send_t(self) -> type[Send[typing.Any, typing.Any]]: ...
+    def receive_t(self) -> type[Receive[typing.Any, typing.Any]]: ...
     @property
     @abc.abstractmethod
-    def receive_t(self) -> type[Receive[typing.Any, typing.Any]]: ...
+    def send_t(self) -> type[Send[typing.Any, typing.Any]]: ...
     @property
     @abc.abstractmethod
     def composed_t(self) -> type[Composed[typing.Any, typing.Any]]: ...

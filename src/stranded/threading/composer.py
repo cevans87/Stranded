@@ -16,11 +16,12 @@ Stop = composer.Stop
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Send[**ParamT, RetT](composer.Send[ParamT, RetT], abc.ABC): ...
+class Receive[**ParamT, RetT](composer.Receive[ParamT, RetT], abc.ABC): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Receive[**ParamT, RetT](composer.Receive[ParamT, RetT], abc.ABC): ...
+class Send[**ParamT, RetT](composer.Send[ParamT, RetT], abc.ABC):
+    receive_t: typing.ClassVar = Receive
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -29,6 +30,9 @@ class Composed[**ParamT, RetT](composer.Composed[ParamT, RetT], abc.ABC):
 
     Drives any async Decoratee via ``asyncio.run``. Sync Decorateds run inline.
     """
+
+    receive_t: typing.ClassVar = Receive
+    send_t: typing.ClassVar = Send
 
     def call_sync(self, *args: ParamT.args, **kwargs: ParamT.kwargs) -> RetT:
         value: Param[ParamT] | Raise | Return[RetT] | Stop = Param(args=args, kwargs=kwargs)
