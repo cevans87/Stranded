@@ -16,22 +16,18 @@ Stop = composer.Stop
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Send[**ParamT, RetT](composer.Send[ParamT, RetT], abc.ABC): ...
-
-
-@dataclasses.dataclass(frozen=True, kw_only=True)
 class Receive[**ParamT, RetT](composer.Receive[ParamT, RetT], abc.ABC): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
+class Send[**ParamT, RetT](composer.Send[ParamT, RetT], abc.ABC):
+    receive_t: typing.ClassVar = Receive
+
+
+@dataclasses.dataclass(frozen=True, kw_only=True)
 class Composed[**ParamT, RetT](composer.Composed[ParamT, RetT], abc.ABC):
-    """Agnostic Composed — supports both sync and async entry.
-
-    `call_sync` ``asyncio.run``s any awaitable returned by an Enter/Exit or
-    Decoratee, so async Decorateds work from a sync caller.
-
-    `call_async` ``await``s any awaitable, and runs sync Decorateds inline.
-    """
+    receive_t: typing.ClassVar = Receive
+    send_t: typing.ClassVar = Send
 
     def call_sync(self, *args: ParamT.args, **kwargs: ParamT.kwargs) -> RetT:
         value: Param[ParamT] | Raise | Return[RetT] | Stop = Param(args=args, kwargs=kwargs)
