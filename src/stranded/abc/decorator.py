@@ -11,6 +11,17 @@ if typing.TYPE_CHECKING:
 
 type Instance = object
 
+type ValueT[**ParamT_, RetT_] = Param[ParamT_] | Raise | Return[RetT_] | Stop
+type StackT = tuple[
+    ValueT[typing.Any, typing.Any]
+    | Decoratee[typing.Any, typing.Any]
+    | Connect[typing.Any, typing.Any]
+    | Exit[typing.Any, typing.Any]
+    | Enter[typing.Any, typing.Any]
+    | Decorated[typing.Any, typing.Any],
+    ...,
+]
+
 
 @dataclasses.dataclass(frozen=True)
 class Raise:
@@ -34,45 +45,32 @@ class Return[RetT]:
     ret: RetT
 
 
-@typing.runtime_checkable
 class Decoratee[**ParamT, RetT](typing.Protocol):
+    @property
+    def __doc__(self) -> str: ...
+    @property
+    def __module__(self) -> str: ...
+    @property
+    def __name__(self) -> str: ...
+    @property
+    def __qualname__(self) -> str: ...
+    @property
+    def __signature__(self) -> inspect.Signature: ...
     def __call__(self, *args: ParamT.args, **kwargs: ParamT.kwargs) -> RetT: ...
     def __get__(self, instance: Instance, owner: type[object] | None) -> typing.Self: ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Receive[**ParamT, RetT](abc.ABC):
-    # Sub-domain code subclasses this for parallel structure with Send/Exit/Enter.
-    # The composition pipeline does NOT use these instances; it uses composer.Receive
-    # (which holds a Composed reference rather than a Decorated reference).
-    decorated: Decorated[ParamT, RetT]
+class Connect[**ParamT, RetT](abc.ABC):
+    decorator: Decorator[ParamT, RetT]
+    stack: StackT
 
-    def __call__[SRetT, **SParamT](
-        self,
-        value: Param[ParamT] | Raise | Return[SRetT] | Stop,
-        /,
-    ) -> Param[ParamT] | Raise | Param[typing.Concatenate[SRetT, SParamT]] | Stop:
+    def __call__(self, value: ValueT[ParamT, RetT], /) -> StackT:
         match value:
-            case Param() as param_: return param_
-            case Raise() as raise_: return raise_
-            case Return() as return_: return Param(args=(return_.ret,), kwargs={})  # noqa
-            case Stop() as stop_: return stop_
-
-
-@dataclasses.dataclass(frozen=True, kw_only=True)
-class Send[**ParamT, RetT](abc.ABC):
-    decorated: Decorated[ParamT, RetT]
-
-    def __call__[**RParamT](
-        self,
-        value: Param[ParamT] | Raise | Return[RetT] | Stop,
-        /,
-    ) -> Param[ParamT] | Raise | Param[typing.Concatenate[RetT, RParamT]] | Stop:
-        match value:
-            case Param() as param_: return param_
-            case Raise() as raise_: return raise_
-            case Return() as return_: return Param(args=(return_.ret,), kwargs={})
-            case Stop() as stop_: return stop_
+            case Param() as param_: return *self.stack, param_
+            case Raise() as raise_: return raise_,
+            case Return() as return_: return *self.stack, Param(args=(return_.ret,), kwargs={}),
+            case Stop() as stop_: return stop_,
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -90,16 +88,17 @@ class Exit[**ParamT, RetT](abc.ABC):
     @property
     def decorated_t(self) -> type[Decorated[typing.Any, typing.Any]]: return self.decorator.decorated_t
 
-    def __call__(self, value: Param[ParamT] | Raise | Return[RetT] | Stop) -> tuple[()]:
+    def __call__(self, value: ValueT[ParamT, RetT], /) -> StackT:
         return ()
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[**ParamT, RetT](abc.ABC):
-    decorated: Decorated[ParamT, RetT]
+    decorator: Decorator[ParamT, RetT]
+    decoratee: Decoratee[ParamT, RetT]
 
     @property
-    def decorator(self) -> Decorator[typing.Any, typing.Any]: return self.decorated.decorator
+    def decorator(self) -> Decorator[typing.Any, typing.Any]: return self.decorator
     @property
     def decoratee_t(self) -> type[Decoratee[typing.Any, typing.Any]]: return self.decorator.decoratee_t
     @property
@@ -109,15 +108,9 @@ class Enter[**ParamT, RetT](abc.ABC):
     @property
     def decorated_t(self) -> type[Decorated[typing.Any, typing.Any]]: return self.decorator.decorated_t
 
-    @typing.overload
-    def __call__(self, value: Param[ParamT], /) -> tuple[Exit[ParamT, RetT], Decoratee[ParamT, RetT]]: ...
-    @typing.overload
-    def __call__(self, value: Raise | Return[RetT] | Stop, /) -> tuple[()]: ...
-    def __call__(
-        self, value: Param[ParamT] | Raise | Return[RetT] | Stop, /,
-    ) -> tuple[Exit[ParamT, RetT], Decoratee[ParamT, RetT]] | tuple[()]:
+    def __call__(self, value: ValueT[ParamT, RetT], /) -> StackT:
         match value:
-            case Param(): return self.exit_t(enter=self), self.decorated.decoratee,
+            case Param(): return self.exit_t(enter=self), self.decoratee,
             case _: return ()
 
 
@@ -128,11 +121,13 @@ class Decorated[**ParamT, RetT](abc.ABC):
     __name__: str
     __qualname__: str
     __signature__: inspect.Signature
-    decoratee: Decoratee[ParamT, RetT]
+    stack: StackT
     decorator: Decorator[ParamT, RetT]
 
     @property
     def decoratee_t(self) -> type[Decoratee[typing.Any, typing.Any]]: return self.decorator.decoratee_t
+    @property
+    def connect_t(self) -> type[Connect[typing.Any, typing.Any]]: return self.decorator.connect_t
     @property
     def exit_t(self) -> type[Exit[typing.Any, typing.Any]]: return self.decorator.exit_t
     @property
@@ -141,7 +136,25 @@ class Decorated[**ParamT, RetT](abc.ABC):
     def decorated_t(self) -> type[Decorated[typing.Any, typing.Any]]: return self.decorator.decorated_t
 
     def __get__(self, instance: Instance, owner: type[object] | None) -> typing.Self:
-        return dataclasses.replace(self, decoratee=self.decoratee.__get__(instance, owner))
+        match self.stack:
+            case [*_, Enter() as enter_]:
+                return dataclasses.replace(
+                    self,
+                    stack=(
+                        *self.stack[:-1],
+                        dataclasses.replace(enter_, decoratee=enter_.decoratee.__get__(instance, owner)),
+                    )
+                )
+        assert False, "unreachable"
+
+    def __or__[**OtherParamT, OtherRetT](
+        self,
+        other_decorated: Decorated[OtherParamT, OtherRetT],
+        /,
+    ) -> Decorated[ParamT, OtherRetT]:
+        return dataclasses.replace(
+            self, stack=(self.connect_t(decorator=self.decorator, stack=other_decorated.stack), *self.stack),
+        )
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -150,6 +163,9 @@ class Decorator[**ParamT, RetT](abc.ABC):
     @property
     @abc.abstractmethod
     def decoratee_t(self) -> type[Decoratee[typing.Any, typing.Any]]: ...
+    @property
+    @abc.abstractmethod
+    def connect_t(self) -> type[Connect[typing.Any, typing.Any]]: ...
     @property
     @abc.abstractmethod
     def exit_t(self) -> type[Exit[typing.Any, typing.Any]]: ...
@@ -167,9 +183,9 @@ class Decorator[**ParamT, RetT](abc.ABC):
         return self.decorated_t(
             __doc__=str(decoratee.__doc__),
             __module__=str(decoratee.__module__),
-            __name__=str(decoratee.__name__),  # type: ignore[attr-defined]
-            __qualname__=str(decoratee.__qualname__),  # type: ignore[attr-defined]
+            __name__=str(decoratee.__name__),
+            __qualname__=str(decoratee.__qualname__),
             __signature__=inspect.signature(decoratee),
-            decoratee=decoratee,
             decorator=self,
+            stack=(self.enter_t(decorator=self, decoratee=decoratee),)
         )
