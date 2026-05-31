@@ -93,4 +93,4 @@ class LruCache[**ParamT, RetT](composer.Composer[ParamT, RetT], lru_cache_.Compo
 
 
 Composer = LruCache
-lru_cache: LruCache[..., typing.Any] = LruCache()
+lru_cache = LruCache()

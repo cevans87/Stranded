@@ -46,5 +46,7 @@ class ArgumentParser[**ParamT, RetT](composer.Composer[ParamT, RetT], argument_p
     exit_t: typing.ClassVar = Exit
     enter_t: typing.ClassVar = Enter
     composed_t: typing.ClassVar = Composed
+
+
 Composer = ArgumentParser
-argument_parser: ArgumentParser[..., typing.Any] = ArgumentParser()
+argument_parser = ArgumentParser()

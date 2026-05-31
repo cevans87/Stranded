@@ -69,5 +69,7 @@ class Throttle[**ParamT, RetT](composer.Composer[ParamT, RetT], throttle_.Compos
     exit_t: typing.ClassVar = Exit
     enter_t: typing.ClassVar = Enter
     composed_t: typing.ClassVar = Composed
+
+
 Composer = Throttle
-throttle: Throttle[..., typing.Any] = Throttle()
+throttle = Throttle()

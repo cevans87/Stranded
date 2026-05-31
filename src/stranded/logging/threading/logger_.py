@@ -36,4 +36,6 @@ class Logger[**ParamT, RetT](composer.Composer[ParamT, RetT], logger_.Composer[P
     exit_t: typing.ClassVar = Exit  # type: ignore[assignment]
     enter_t: typing.ClassVar = Enter
     composed_t: typing.ClassVar = Composed
+
+
 Composer = Logger
