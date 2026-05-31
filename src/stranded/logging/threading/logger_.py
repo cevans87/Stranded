@@ -14,6 +14,14 @@ class Composee[**ParamT, RetT](
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
+class Connect[**ParamT, RetT](
+    composer.Connect[ParamT, RetT],
+    logger_.Connect[ParamT, RetT],
+): ...
+
+
+@typing.final
+@dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**ParamT, RetT](
     composer.Exit[ParamT, RetT],
     logger_.Exit[ParamT, RetT],
@@ -43,6 +51,7 @@ class Logger[**ParamT, RetT](
     logger_.Composer[ParamT, RetT],
 ):
     composee_t: typing.ClassVar = Composee
+    connect_t: typing.ClassVar = Connect
     exit_t: typing.ClassVar = Exit  # type: ignore[assignment]
     enter_t: typing.ClassVar = Enter
     composed_t: typing.ClassVar = Composed

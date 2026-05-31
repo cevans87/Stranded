@@ -29,6 +29,13 @@ class Composee[**ParamT, RetT](
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
+class Connect[**ParamT, RetT](
+    composer.Connect[ParamT, RetT],
+    abc.ABC,
+): ...
+
+
+@dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**ParamT, RetT](
     composer.Exit[ParamT, RetT],
     abc.ABC,
@@ -115,6 +122,22 @@ class Db[**ParamT, RetT](
     path: pathlib.Path = pathlib.Path.home() / '.cache' / 'stranded' / 'sqlite3' / 'db'
     serialize: typing.Callable[[RetT], str] = repr
     version: Version = '0.0.0'
+
+    @property
+    @abc.abstractmethod
+    def composee_t(self) -> type[Composee[typing.Any, typing.Any]]: ...
+    @property
+    @abc.abstractmethod
+    def connect_t(self) -> type[Connect[typing.Any, typing.Any]]: ...
+    @property
+    @abc.abstractmethod
+    def exit_t(self) -> type[Exit[typing.Any, typing.Any]]: ...
+    @property
+    @abc.abstractmethod
+    def enter_t(self) -> type[Enter[typing.Any, typing.Any]]: ...
+    @property
+    @abc.abstractmethod
+    def composed_t(self) -> type[Composed[typing.Any, typing.Any]]: ...
 
     def __call__(self, composee: Composee[ParamT, RetT], /) -> Composed[ParamT, RetT]:
         table_name = f'{composee.__module__}.{composee.__qualname__}.{self.version}'

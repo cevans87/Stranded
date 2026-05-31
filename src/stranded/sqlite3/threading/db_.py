@@ -15,6 +15,14 @@ class Composee[**ParamT, RetT](
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
+class Connect[**ParamT, RetT](
+    composer.Connect[ParamT, RetT],
+    db_.Connect[ParamT, RetT],
+): ...
+
+
+@typing.final
+@dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**ParamT, RetT](
     composer.Exit[ParamT, RetT],
     db_.Exit[ParamT, RetT],
@@ -44,7 +52,8 @@ class Db[**ParamT, RetT](
     db_.Composer[ParamT, RetT],
 ):
     composee_t: typing.ClassVar = Composee
-    exit_t: typing.ClassVar = Exit  # type: ignore[assignment]
+    connect_t: typing.ClassVar = Connect
+    exit_t: typing.ClassVar = Exit
     enter_t: typing.ClassVar = Enter
     composed_t: typing.ClassVar = Composed
 Composer = Db

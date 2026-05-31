@@ -45,6 +45,13 @@ class Composee[**ParamT, RetT](
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
+class Connect[**ParamT, RetT](
+    composer.Connect[ParamT, RetT],
+    abc.ABC,
+): ...
+
+
+@dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**ParamT, RetT, FutureT](
     composer.Exit[ParamT, RetT],
     abc.ABC,

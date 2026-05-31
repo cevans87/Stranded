@@ -15,6 +15,14 @@ class Composee[**ParamT, RetT](
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
+class Connect[**ParamT, RetT](
+    composer.Connect[ParamT, RetT],
+    retry_.Connect[ParamT, RetT],
+): ...
+
+
+@typing.final
+@dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**ParamT, RetT](  # type: ignore[misc]
     composer.Exit[ParamT, RetT],
     retry_.Exit[ParamT, RetT],
@@ -44,6 +52,7 @@ class Retry[**ParamT, RetT](
     retry_.Composer[ParamT, RetT],
 ):
     composee_t: typing.ClassVar = Composee
+    connect_t: typing.ClassVar = Connect
     exit_t: typing.ClassVar = Exit
     enter_t: typing.ClassVar = Enter
     composed_t: typing.ClassVar = Composed

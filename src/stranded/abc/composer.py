@@ -151,7 +151,15 @@ class Composed[**ParamT, RetT](abc.ABC):
         /,
     ) -> Composed[ParamT, OtherRetT]:
         return dataclasses.replace(
-            self, stack=(self.connect_t(composer=self.composer, stack=other_composed.stack), *self.stack),
+            other_composed,
+            __doc__=f"{self.__doc__}\n\n{other_composed.__doc__}",
+            __name__=f"{self.__name__}|{other_composed.__name__}",
+            __qualname__=f"{self.__qualname__}|{other_composed.__qualname__}",
+            __signature__=inspect.Signature().replace(
+                parameters=self.__signature__.parameters,
+                return_annotation=other_composed.__signature__.return_annotation,
+            ),
+            stack=(self.connect_t(composer=self.composer, stack=other_composed.stack), *self.stack),
         )
 
 
