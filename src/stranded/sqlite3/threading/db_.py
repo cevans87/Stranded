@@ -1,14 +1,14 @@
 import dataclasses
 import typing
 
-from ...threading import decorator
+from ...threading import composer
 from ..abc import db_
 
 
 @typing.runtime_checkable
-class Decoratee[**ParamT, RetT](
-    decorator.Decoratee[ParamT, RetT],
-    db_.Decoratee[ParamT, RetT],
+class Composee[**ParamT, RetT](
+    composer.Composee[ParamT, RetT],
+    db_.Composee[ParamT, RetT],
     typing.Protocol,
 ): ...
 
@@ -16,7 +16,7 @@ class Decoratee[**ParamT, RetT](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**ParamT, RetT](
-    decorator.Exit[ParamT, RetT],
+    composer.Exit[ParamT, RetT],
     db_.Exit[ParamT, RetT],
 ): ...
 
@@ -24,28 +24,28 @@ class Exit[**ParamT, RetT](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[**ParamT, RetT](
-    decorator.Enter[ParamT, RetT],
+    composer.Enter[ParamT, RetT],
     db_.Enter[ParamT, RetT],
 ): ...
 
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorated[**ParamT, RetT](
-    decorator.Decorated[ParamT, RetT],
-    db_.Decorated[ParamT, RetT],
+class Composed[**ParamT, RetT](
+    composer.Composed[ParamT, RetT],
+    db_.Composed[ParamT, RetT],
 ): ...
 
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Db[**ParamT, RetT](
-    decorator.Decorator[ParamT, RetT],
-    db_.Decorator[ParamT, RetT],
+    composer.Composer[ParamT, RetT],
+    db_.Composer[ParamT, RetT],
 ):
-    decoratee_t: typing.ClassVar = Decoratee
+    composee_t: typing.ClassVar = Composee
     exit_t: typing.ClassVar = Exit  # type: ignore[assignment]
     enter_t: typing.ClassVar = Enter
-    decorated_t: typing.ClassVar = Decorated
-Decorator = Db
+    composed_t: typing.ClassVar = Composed
+Composer = Db
 db: Db[..., typing.Any] = Db()

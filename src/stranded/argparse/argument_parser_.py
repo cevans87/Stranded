@@ -2,15 +2,15 @@ import dataclasses
 import typing
 
 from .abc import argument_parser_
-from .. import decorator
+from .. import composer
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class ArgumentParser(  # type: ignore[misc]
-    decorator.Decorator[..., typing.Any],
+    composer.Composer[..., typing.Any],
     argument_parser_.ArgumentParser[..., typing.Any],
 ): ...
 
 
-Decorator = ArgumentParser
+Composer = ArgumentParser
 argument_parser = ArgumentParser()

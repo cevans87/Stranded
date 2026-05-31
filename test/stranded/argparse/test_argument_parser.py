@@ -26,7 +26,7 @@ def test_union_preserves_order() -> None:
     @ArgumentParser()
     def baz(c: typing.Annotated[int, "A c to set"]) -> dict[str, int]: return locals()
 
-    assert (foo | bar | baz).decorateds == (foo, bar, baz)  # type: ignore[operator]
+    assert (foo | bar | baz).composeds == (foo, bar, baz)  # type: ignore[operator]
 
 
 def test_creates_signature() -> None:

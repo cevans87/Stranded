@@ -7,7 +7,7 @@ import typing
 
 from stranded import types
 
-from stranded.abc import decorator
+from stranded.abc import composer
 from stranded.builtins import exception_
 
 
@@ -382,27 +382,27 @@ class _BoundSignature(_Signature):
     variadic_positional_values: list[object]
     variadic_keyword_value_by_name: dict[str, object]
 
-    def __call__(self, decorateds: typing.Iterable[Decorated[..., typing.Any]]) -> typing.Iterable[typing.Callable[..., typing.Any]]:  # type: ignore[override]
-        for decorated in decorateds:
-            decoratee_signature = inspect.signature(decorated.decoratee)
-            yield lambda: decorated.decoratee(
+    def __call__(self, composeds: typing.Iterable[Composed[..., typing.Any]]) -> typing.Iterable[typing.Callable[..., typing.Any]]:  # type: ignore[override]
+        for composed in composeds:
+            composee_signature = inspect.signature(composed.composee)
+            yield lambda: composed.composee(
                 *(
                     value for name, value in self.positional_value_by_name.items()
-                    if name in decoratee_signature.parameters
+                    if name in composee_signature.parameters
                        and isinstance(self.parameter_by_name[name], _StackedParameter)
                 ),
                 *(
                     value for value in self.variadic_positional_values
-                    if self.variadic_positional_parameter.name in decoratee_signature.parameters  # type: ignore[union-attr]
+                    if self.variadic_positional_parameter.name in composee_signature.parameters  # type: ignore[union-attr]
                 ),
                 **{
                     name: value for name, value in self.keyword_value_by_name.items()
-                    if name in decoratee_signature.parameters
+                    if name in composee_signature.parameters
                        and isinstance(self.parameter_by_name[name], _KeywordParameter)
                 },
                 **{
                     name: value for name, value in self.variadic_keyword_value_by_name.items()
-                    if self.variadic_keyword_parameter.name in decoratee_signature.parameters  # type: ignore[union-attr]
+                    if self.variadic_keyword_parameter.name in composee_signature.parameters  # type: ignore[union-attr]
                 },
             )
 
@@ -411,51 +411,51 @@ class Exception(exception_.Exception): ...  # noqa
 
 
 @typing.runtime_checkable
-class Decoratee[**ParamT, RetT](
-    decorator.Decoratee[ParamT, RetT],
+class Composee[**ParamT, RetT](
+    composer.Composee[ParamT, RetT],
     typing.Protocol,
 ): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**ParamT, RetT](
-    decorator.Exit[ParamT, RetT],
+    composer.Exit[ParamT, RetT],
     abc.ABC,
 ): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[**ParamT, RetT](
-    decorator.Enter[ParamT, RetT],
+    composer.Enter[ParamT, RetT],
     abc.ABC,
 ): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorated[**ParamT, RetT](
-    decorator.Decorated[ParamT, RetT],
+class Composed[**ParamT, RetT](
+    composer.Composed[ParamT, RetT],
     abc.ABC,
 ):
     children: tuple[typing.Self, typing.Self] | None = None
 
     @property
-    def decorateds(self) -> tuple[typing.Self, ...]:
+    def composeds(self) -> tuple[typing.Self, ...]:
         match self.children:
             case None:
                 return self,
             case left, right:
-                return *left.decorateds, *right.decorateds
+                return *left.composeds, *right.composeds
             case _:
                 raise RuntimeError(f'{self.children=}. Expected {self.__annotations__['children']}')
 
     def __call__(self, *argv: str) -> typing.Iterable[typing.Callable[..., typing.Any]]:
-        yield from self.to_signature()(*argv)(self.decorateds)
+        yield from self.to_signature()(*argv)(self.composeds)
 
 
-    def __or__[Decorated2T: Decorated[..., typing.Any]](self, other: Decorated2T) -> Decorated2T:
+    def __or__[Composed2T: Composed[..., typing.Any]](self, other: Composed2T) -> Composed2T:
         return dataclasses.replace(other, children=(self, other))
 
-    def __xor__[Decorated2T: Decorated[..., typing.Any]](self, other: Decorated2T) -> Decorated2T:  # type: ignore[empty-body]
+    def __xor__[Composed2T: Composed[..., typing.Any]](self, other: Composed2T) -> Composed2T:  # type: ignore[empty-body]
         # TODO make this mark flags in the two CLI's as mutually exclusive.
         ...
 
@@ -474,14 +474,14 @@ class Decorated[**ParamT, RetT](
         ])
 
     def to_signature(self) -> _Signature:
-        return _Signature.of_signature(inspect.signature(self.decoratee)) if self.children is None else (
+        return _Signature.of_signature(inspect.signature(self.composee)) if self.children is None else (
             _Signature.of_signatures(self.children[0].to_signature(), self.children[1].to_signature())
         )
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class ArgumentParser[**ParamT, RetT](
-    decorator.Decorator[ParamT, RetT],
+    composer.Composer[ParamT, RetT],
     abc.ABC,
 ):
     LogLevel = typing.Annotated[
@@ -491,20 +491,20 @@ class ArgumentParser[**ParamT, RetT](
 
     Signature: typing.ClassVar = _Signature
 
-    def __call__(self, decoratee: Decoratee[ParamT, RetT], /) -> Decorated[ParamT, RetT]:
-        return self.decorated_t(  # type: ignore[return-value]
-            __doc__=str(decoratee.__doc__),
-            __module__=str(decoratee.__module__),
-            __name__=str(decoratee.__name__),
-            __qualname__=str(decoratee.__qualname__),
-            __signature__=inspect.signature(decoratee).replace(
+    def __call__(self, composee: Composee[ParamT, RetT], /) -> Composed[ParamT, RetT]:
+        return self.composed_t(  # type: ignore[return-value]
+            __doc__=str(composee.__doc__),
+            __module__=str(composee.__module__),
+            __name__=str(composee.__name__),
+            __qualname__=str(composee.__qualname__),
+            __signature__=inspect.signature(composee).replace(
                 parameters=(
                     inspect.Parameter('argv', inspect.Parameter.VAR_POSITIONAL),
                 ),
             ),
-            decorator=self,
-            stack=(self.enter_t(decorator=self, decoratee=decoratee),),
+            composer=self,
+            stack=(self.enter_t(composer=self, composee=composee),),
         )
 
 
-Decorator = ArgumentParser
+Composer = ArgumentParser

@@ -11,11 +11,11 @@ type Instance = object
 type ValueT[**ParamT_, RetT_] = Param[ParamT_] | Raise | Return[RetT_] | Stop
 type StackT = tuple[
     ValueT[typing.Any, typing.Any]
-    | Decoratee[typing.Any, typing.Any]
+    | Composee[typing.Any, typing.Any]
     | Connect[typing.Any, typing.Any]
     | Exit[typing.Any, typing.Any]
     | Enter[typing.Any, typing.Any]
-    | Decorated[typing.Any, typing.Any],
+    | Composed[typing.Any, typing.Any],
     ...,
 ]
 
@@ -42,7 +42,7 @@ class Return[RetT]:
     ret: RetT
 
 
-class Decoratee[**ParamT, RetT](typing.Protocol):
+class Composee[**ParamT, RetT](typing.Protocol):
     __doc__: str
     __module__: str
     __name__: str
@@ -54,7 +54,7 @@ class Decoratee[**ParamT, RetT](typing.Protocol):
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Connect[**ParamT, RetT](abc.ABC):
-    decorator: Decorator[ParamT, RetT]
+    composer: Composer[ParamT, RetT]
     stack: StackT
 
     def __call__(self, value: ValueT[ParamT, RetT], /) -> StackT:
@@ -70,15 +70,15 @@ class Exit[**ParamT, RetT](abc.ABC):
     enter: Enter[ParamT, RetT]
 
     @property
-    def decorator(self) -> Decorator[typing.Any, typing.Any]: return self.enter.decorator
+    def composer(self) -> Composer[typing.Any, typing.Any]: return self.enter.composer
     @property
-    def decoratee_t(self) -> type[Decoratee[typing.Any, typing.Any]]: return self.decorator.decoratee_t
+    def composee_t(self) -> type[Composee[typing.Any, typing.Any]]: return self.composer.composee_t
     @property
-    def exit_t(self) -> type[Exit[typing.Any, typing.Any]]: return self.decorator.exit_t
+    def exit_t(self) -> type[Exit[typing.Any, typing.Any]]: return self.composer.exit_t
     @property
-    def enter_t(self) -> type[Enter[typing.Any, typing.Any]]: return self.decorator.enter_t
+    def enter_t(self) -> type[Enter[typing.Any, typing.Any]]: return self.composer.enter_t
     @property
-    def decorated_t(self) -> type[Decorated[typing.Any, typing.Any]]: return self.decorator.decorated_t
+    def composed_t(self) -> type[Composed[typing.Any, typing.Any]]: return self.composer.composed_t
 
     def __call__(self, value: ValueT[ParamT, RetT], /) -> StackT:
         return ()
@@ -86,51 +86,51 @@ class Exit[**ParamT, RetT](abc.ABC):
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[**ParamT, RetT](abc.ABC):
-    decorator: Decorator[ParamT, RetT]
-    decoratee: Decoratee[ParamT, RetT]
+    composer: Composer[ParamT, RetT]
+    composee: Composee[ParamT, RetT]
 
     @property
-    def decoratee_t(self) -> type[Decoratee[typing.Any, typing.Any]]: return self.decorator.decoratee_t
+    def composee_t(self) -> type[Composee[typing.Any, typing.Any]]: return self.composer.composee_t
     @property
-    def exit_t(self) -> type[Exit[typing.Any, typing.Any]]: return self.decorator.exit_t
+    def exit_t(self) -> type[Exit[typing.Any, typing.Any]]: return self.composer.exit_t
     @property
-    def enter_t(self) -> type[Enter[typing.Any, typing.Any]]: return self.decorator.enter_t
+    def enter_t(self) -> type[Enter[typing.Any, typing.Any]]: return self.composer.enter_t
     @property
-    def decorated_t(self) -> type[Decorated[typing.Any, typing.Any]]: return self.decorator.decorated_t
+    def composed_t(self) -> type[Composed[typing.Any, typing.Any]]: return self.composer.composed_t
 
     def __call__(self, value: ValueT[ParamT, RetT], /) -> StackT:
         match value:
-            case Param(): return self.exit_t(enter=self), self.decoratee,
+            case Param(): return self.exit_t(enter=self), self.composee,
             case _: return ()
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorated[**ParamT, RetT](abc.ABC):
+class Composed[**ParamT, RetT](abc.ABC):
     __doc__: str
     __module__: str
     __name__: str
     __qualname__: str
     __signature__: inspect.Signature
     stack: StackT
-    decorator: Decorator[ParamT, RetT]
+    composer: Composer[ParamT, RetT]
 
     @property
-    def decoratee_t(self) -> type[Decoratee[typing.Any, typing.Any]]: return self.decorator.decoratee_t
+    def composee_t(self) -> type[Composee[typing.Any, typing.Any]]: return self.composer.composee_t
     @property
-    def connect_t(self) -> type[Connect[typing.Any, typing.Any]]: return self.decorator.connect_t
+    def connect_t(self) -> type[Connect[typing.Any, typing.Any]]: return self.composer.connect_t
     @property
-    def exit_t(self) -> type[Exit[typing.Any, typing.Any]]: return self.decorator.exit_t
+    def exit_t(self) -> type[Exit[typing.Any, typing.Any]]: return self.composer.exit_t
     @property
-    def enter_t(self) -> type[Enter[typing.Any, typing.Any]]: return self.decorator.enter_t
+    def enter_t(self) -> type[Enter[typing.Any, typing.Any]]: return self.composer.enter_t
     @property
-    def decorated_t(self) -> type[Decorated[typing.Any, typing.Any]]: return self.decorator.decorated_t
+    def composed_t(self) -> type[Composed[typing.Any, typing.Any]]: return self.composer.composed_t
 
     @property
-    def decoratee(self) -> Decoratee[ParamT, RetT]:
-        # The decoratee lives on the Enter at the base of the stack. Sub-domain code that
-        # used to read self.decorated.decoratee now reads it through this accessor.
+    def composee(self) -> Composee[ParamT, RetT]:
+        # The composee lives on the Enter at the base of the stack. Sub-domain code that
+        # used to read self.composed.composee now reads it through this accessor.
         match self.stack:
-            case [*_, Enter() as enter_]: return enter_.decoratee
+            case [*_, Enter() as enter_]: return enter_.composee
         assert False, "unreachable"
 
     def __get__(self, instance: Instance, owner: type[object] | None) -> typing.Self:
@@ -140,27 +140,27 @@ class Decorated[**ParamT, RetT](abc.ABC):
                     self,
                     stack=(
                         *self.stack[:-1],
-                        dataclasses.replace(enter_, decoratee=enter_.decoratee.__get__(instance, owner)),
+                        dataclasses.replace(enter_, composee=enter_.composee.__get__(instance, owner)),
                     )
                 )
         assert False, "unreachable"
 
     def __or__[**OtherParamT, OtherRetT](
         self,
-        other_decorated: Decorated[OtherParamT, OtherRetT],
+        other_composed: Composed[OtherParamT, OtherRetT],
         /,
-    ) -> Decorated[ParamT, OtherRetT]:
+    ) -> Composed[ParamT, OtherRetT]:
         return dataclasses.replace(
-            self, stack=(self.connect_t(decorator=self.decorator, stack=other_decorated.stack), *self.stack),
+            self, stack=(self.connect_t(composer=self.composer, stack=other_composed.stack), *self.stack),
         )
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorator[**ParamT, RetT](abc.ABC):
+class Composer[**ParamT, RetT](abc.ABC):
 
     @property
     @abc.abstractmethod
-    def decoratee_t(self) -> type[Decoratee[typing.Any, typing.Any]]: ...
+    def composee_t(self) -> type[Composee[typing.Any, typing.Any]]: ...
     @property
     @abc.abstractmethod
     def connect_t(self) -> type[Connect[typing.Any, typing.Any]]: ...
@@ -172,15 +172,15 @@ class Decorator[**ParamT, RetT](abc.ABC):
     def enter_t(self) -> type[Enter[typing.Any, typing.Any]]: ...
     @property
     @abc.abstractmethod
-    def decorated_t(self) -> type[Decorated[typing.Any, typing.Any]]: ...
+    def composed_t(self) -> type[Composed[typing.Any, typing.Any]]: ...
 
-    def __call__(self, decoratee: Decoratee[ParamT, RetT], /) -> Decorated[ParamT, RetT]:
-        return self.decorated_t(
-            __doc__=str(decoratee.__doc__),
-            __module__=str(decoratee.__module__),
-            __name__=str(decoratee.__name__),
-            __qualname__=str(decoratee.__qualname__),
-            __signature__=inspect.signature(decoratee),
-            decorator=self,
-            stack=(self.enter_t(decorator=self, decoratee=decoratee),)
+    def __call__(self, composee: Composee[ParamT, RetT], /) -> Composed[ParamT, RetT]:
+        return self.composed_t(
+            __doc__=str(composee.__doc__),
+            __module__=str(composee.__module__),
+            __name__=str(composee.__name__),
+            __qualname__=str(composee.__qualname__),
+            __signature__=inspect.signature(composee),
+            composer=self,
+            stack=(self.enter_t(composer=self, composee=composee),)
         )

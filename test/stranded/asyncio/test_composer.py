@@ -2,25 +2,25 @@ from __future__ import absolute_import
 
 import pytest
 
-from stranded import Decorator
-from stranded.abc import decorator as abc_decorator
+from stranded import Composer
+from stranded.abc import composer as abc_composer
 
 
 @pytest.mark.asyncio
-async def test_or_calls_each_decoratee() -> None:
+async def test_or_calls_each_composee() -> None:
     calls: list[tuple[str, int]] = []
 
-    @Decorator()
+    @Composer()
     async def foo(v: int) -> int:
         calls.append(('foo', v))
         return v + 1
 
-    @Decorator()
+    @Composer()
     async def bar(v: int) -> int:
         calls.append(('bar', v))
         return v * 10
 
-    @Decorator()
+    @Composer()
     async def baz(v: int) -> int:
         calls.append(('baz', v))
         return v - 3
@@ -32,14 +32,14 @@ async def test_or_calls_each_decoratee() -> None:
 
 
 @pytest.mark.asyncio
-async def test_composed_or_extends_with_decorated() -> None:
-    @Decorator()
+async def test_composed_or_extends_with_composed() -> None:
+    @Composer()
     async def foo(v: int) -> int: return v + 1
 
-    @Decorator()
+    @Composer()
     async def bar(v: int) -> int: return v * 10
 
-    @Decorator()
+    @Composer()
     async def baz(v: int) -> int: return v - 3
 
     composed = (foo | bar) | baz
@@ -48,16 +48,16 @@ async def test_composed_or_extends_with_decorated() -> None:
 
 @pytest.mark.asyncio
 async def test_composed_or_extends_with_composed() -> None:
-    @Decorator()
+    @Composer()
     async def foo(v: int) -> int: return v + 1
 
-    @Decorator()
+    @Composer()
     async def bar(v: int) -> int: return v * 10
 
-    @Decorator()
+    @Composer()
     async def baz(v: int) -> int: return v - 3
 
-    @Decorator()
+    @Composer()
     async def qux(v: int) -> int: return v + 100
 
     composed = (foo | bar) | (baz | qux)
@@ -65,8 +65,8 @@ async def test_composed_or_extends_with_composed() -> None:
 
 
 @pytest.mark.asyncio
-async def test_decoratee_exception_propagates() -> None:
-    @Decorator()
+async def test_composee_exception_propagates() -> None:
+    @Composer()
     async def boom() -> None:
         raise ValueError('boom')
 
@@ -75,14 +75,14 @@ async def test_decoratee_exception_propagates() -> None:
 
 
 @pytest.mark.asyncio
-async def test_raise_skips_downstream_decoratee() -> None:
+async def test_raise_skips_downstream_composee() -> None:
     inner_called = False
 
-    @Decorator()
+    @Composer()
     async def boom(v: int) -> int:
         raise ValueError('boom')
 
-    @Decorator()
+    @Composer()
     async def inner(v: int) -> int:
         nonlocal inner_called
         inner_called = True
@@ -96,7 +96,7 @@ async def test_raise_skips_downstream_decoratee() -> None:
 
 @pytest.mark.asyncio
 async def test_raise_dataclass_carries_exception() -> None:
-    raise_ = abc_decorator.Raise(
+    raise_ = abc_composer.Raise(
         exc_type=ValueError,
         exc_val=ValueError('x'),
         exc_tb=None,
@@ -106,30 +106,30 @@ async def test_raise_dataclass_carries_exception() -> None:
 
 
 @pytest.mark.asyncio
-async def test_decoratee_stop_propagates() -> None:
-    @Decorator()
+async def test_composee_stop_propagates() -> None:
+    @Composer()
     async def cancelled() -> None:
-        raise abc_decorator.Stop()
+        raise abc_composer.Stop()
 
-    with pytest.raises(abc_decorator.Stop):
+    with pytest.raises(abc_composer.Stop):
         await cancelled()
 
 
 @pytest.mark.asyncio
-async def test_stop_skips_downstream_decoratee() -> None:
+async def test_stop_skips_downstream_composee() -> None:
     inner_called = False
 
-    @Decorator()
+    @Composer()
     async def cancelled(v: int) -> int:
-        raise abc_decorator.Stop()
+        raise abc_composer.Stop()
 
-    @Decorator()
+    @Composer()
     async def inner(v: int) -> int:
         nonlocal inner_called
         inner_called = True
         return v
 
-    with pytest.raises(abc_decorator.Stop):
+    with pytest.raises(abc_composer.Stop):
         await (cancelled | inner)(0)
 
     assert inner_called is False
@@ -139,15 +139,15 @@ async def test_stop_skips_downstream_decoratee() -> None:
 async def test_stop_is_not_caught_by_except_exception() -> None:
     swallowed = False
 
-    @Decorator()
+    @Composer()
     async def cancelled() -> None:
         nonlocal swallowed
         try:
-            raise abc_decorator.Stop()
+            raise abc_composer.Stop()
         except Exception:  # noqa
             swallowed = True
 
-    with pytest.raises(abc_decorator.Stop):
+    with pytest.raises(abc_composer.Stop):
         await cancelled()
 
     assert swallowed is False

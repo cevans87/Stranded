@@ -2,46 +2,46 @@ import abc
 import dataclasses
 import typing
 
-from ..abc import decorator
+from ..abc import composer
 
 
-Raise = decorator.Raise
-Stop = decorator.Stop
-Param = decorator.Param
-Return = decorator.Return
-type ValueT[**ParamT_, RetT_] = decorator.ValueT[ParamT_, RetT_]
+Raise = composer.Raise
+Stop = composer.Stop
+Param = composer.Param
+Return = composer.Return
+type ValueT[**ParamT_, RetT_] = composer.ValueT[ParamT_, RetT_]
 type StackT = tuple[
     ValueT[typing.Any, typing.Any]
-    | Decoratee[typing.Any, typing.Any]
+    | Composee[typing.Any, typing.Any]
     | Connect[typing.Any, typing.Any]
     | Exit[typing.Any, typing.Any]
     | Enter[typing.Any, typing.Any]
-    | Decorated[typing.Any, typing.Any],
+    | Composed[typing.Any, typing.Any],
     ...,
 ]
 
 
-class Decoratee[**ParamT, RetT](decorator.Decoratee[ParamT, RetT], typing.Protocol):
+class Composee[**ParamT, RetT](composer.Composee[ParamT, RetT], typing.Protocol):
     async def __call__(*args: ParamT.args, **kwargs: ParamT.kwargs) -> RetT: ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Connect[**ParamT, RetT](decorator.Connect[ParamT, RetT], abc.ABC):
+class Connect[**ParamT, RetT](composer.Connect[ParamT, RetT], abc.ABC):
     async def __call__(self, value: ValueT[ParamT, RetT], /) -> StackT: return super().__call__(value)
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Exit[**ParamT, RetT](decorator.Exit[ParamT, RetT], abc.ABC):
+class Exit[**ParamT, RetT](composer.Exit[ParamT, RetT], abc.ABC):
     async def __call__(self, value: ValueT[ParamT, RetT], /) -> StackT: return super().__call__(value)
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Enter[**ParamT, RetT](decorator.Enter[ParamT, RetT], abc.ABC):
+class Enter[**ParamT, RetT](composer.Enter[ParamT, RetT], abc.ABC):
     async def __call__(self, value: ValueT[ParamT, RetT], /) -> StackT: return super().__call__(value)
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorated[**ParamT, RetT](decorator.Decorated[ParamT, RetT], abc.ABC):
+class Composed[**ParamT, RetT](composer.Composed[ParamT, RetT], abc.ABC):
     async def __call__(self, *args: ParamT.args, **kwargs: ParamT.kwargs) -> RetT:
         value: Param[ParamT] | Raise | Return[RetT] | Stop = Param(args=args, kwargs=kwargs)
         stack = list(self.stack)
@@ -49,10 +49,10 @@ class Decorated[**ParamT, RetT](decorator.Decorated[ParamT, RetT], abc.ABC):
             match stack.pop():
                 case Param() | Raise() | Return() | Stop() as value_: value = value_
                 case Enter() | Exit() | Connect() as get_stack_: stack += await get_stack_(value)
-                case Decorated() as decorated_ if isinstance(value, Param): stack += decorated_.stack
-                case decoratee_ if isinstance(value, Param):
+                case Composed() as composed_ if isinstance(value, Param): stack += composed_.stack
+                case composee_ if isinstance(value, Param):
                     try:
-                        value = Return(ret=await decoratee_(*value.args, **value.kwargs))
+                        value = Return(ret=await composee_(*value.args, **value.kwargs))
                     except Stop as stopped_:
                         value = stopped_
                     except Exception as exception_:
@@ -66,9 +66,9 @@ class Decorated[**ParamT, RetT](decorator.Decorated[ParamT, RetT], abc.ABC):
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorator[**ParamT, RetT](decorator.Decorator[ParamT, RetT]):
-    decoratee_t: typing.ClassVar = Decoratee
+class Composer[**ParamT, RetT](composer.Composer[ParamT, RetT]):
+    composee_t: typing.ClassVar = Composee
     connect_t: typing.ClassVar = Connect
     exit_t: typing.ClassVar = Exit
     enter_t: typing.ClassVar = Enter
-    decorated_t: typing.ClassVar = Decorated
+    composed_t: typing.ClassVar = Composed

@@ -3,19 +3,19 @@ import dataclasses
 import typing
 
 from ..abc import lru_cache_
-from ...asyncio import decorator
+from ...asyncio import composer
 
 
-Raise = decorator.Raise
-Stop = decorator.Stop
-Param = decorator.Param
-Return = decorator.Return
+Raise = composer.Raise
+Stop = composer.Stop
+Param = composer.Param
+Return = composer.Return
 
 
 @typing.runtime_checkable
-class Decoratee[**ParamT, RetT](
-    decorator.Decoratee[ParamT, RetT],
-    lru_cache_.Decoratee[ParamT, RetT],
+class Composee[**ParamT, RetT](
+    composer.Composee[ParamT, RetT],
+    lru_cache_.Composee[ParamT, RetT],
     typing.Protocol,
 ): ...
 
@@ -40,11 +40,11 @@ class Future[RetT](lru_cache_.Future[RetT]):
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**ParamT, RetT](
-    decorator.Exit[ParamT, RetT],
+    composer.Exit[ParamT, RetT],
     lru_cache_.Exit[ParamT, RetT, Future[RetT]],
 ):
     @typing.override
-    async def __call__(self, value: decorator.ValueT[ParamT, RetT], /) -> decorator.StackT:  # type: ignore[override]
+    async def __call__(self, value: composer.ValueT[ParamT, RetT], /) -> composer.StackT:  # type: ignore[override]
         match value:
             case Param(): pass
             case Return() | Raise() | Stop(): self.future.set_value(value)
@@ -55,23 +55,23 @@ class Exit[**ParamT, RetT](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[**ParamT, RetT](
-    decorator.Enter[ParamT, RetT],
+    composer.Enter[ParamT, RetT],
     lru_cache_.Enter[ParamT, RetT, Future[RetT]],
 ):
     # TODO: Dedup this with the threading version.
     @typing.override
     async def __call__(  # type: ignore[override]
-        self, value: decorator.ValueT[ParamT, RetT], /,
-    ) -> decorator.StackT:
+        self, value: composer.ValueT[ParamT, RetT], /,
+    ) -> composer.StackT:
         match value:
             case Param():
                 key = self.create_key(*value.args, **value.kwargs)
                 future = self.future_by_key.get(key)
                 if future is None:
-                    while self.decorator.size <= len(self.future_by_key):  # type: ignore[attr-defined]
+                    while self.composer.size <= len(self.future_by_key):  # type: ignore[attr-defined]
                         self.future_by_key.popitem(last=False)
-                    future = self.future_by_key[key] = self.decorator.future_t()  # type: ignore[attr-defined]
-                    return self.exit_t(enter=self, future=future, key=key), self.decoratee  # type: ignore[call-arg, return-value]
+                    future = self.future_by_key[key] = self.composer.future_t()  # type: ignore[attr-defined]
+                    return self.exit_t(enter=self, future=future, key=key), self.composee  # type: ignore[call-arg, return-value]
                 self.future_by_key.move_to_end(key)
                 return future,
             case _: return ()
@@ -79,22 +79,22 @@ class Enter[**ParamT, RetT](
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorated[**ParamT, RetT](
-    decorator.Decorated[ParamT, RetT],
-    lru_cache_.Decorated[ParamT, RetT],
+class Composed[**ParamT, RetT](
+    composer.Composed[ParamT, RetT],
+    lru_cache_.Composed[ParamT, RetT],
 ): ...
 
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class LruCache[**ParamT, RetT](
-    decorator.Decorator[ParamT, RetT],
-    lru_cache_.Decorator[ParamT, RetT],
+    composer.Composer[ParamT, RetT],
+    lru_cache_.Composer[ParamT, RetT],
 ):
-    decoratee_t: typing.ClassVar = Decoratee
+    composee_t: typing.ClassVar = Composee
     exit_t: typing.ClassVar = Exit  # type: ignore[assignment]
     enter_t: typing.ClassVar = Enter
-    decorated_t: typing.ClassVar = Decorated
+    composed_t: typing.ClassVar = Composed
 
     @property
     @typing.override
@@ -102,5 +102,5 @@ class LruCache[**ParamT, RetT](
         return Future
 
 
-Decorator = LruCache
+Composer = LruCache
 lru_cache: LruCache[..., typing.Any] = LruCache()

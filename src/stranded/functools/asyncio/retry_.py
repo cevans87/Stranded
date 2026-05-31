@@ -2,13 +2,13 @@ import dataclasses
 import typing
 
 from ..abc import retry_
-from ...asyncio import decorator
+from ...asyncio import composer
 
 
 @typing.runtime_checkable
-class Decoratee[**ParamT, RetT](
-    decorator.Decoratee[ParamT, RetT],
-    retry_.Decoratee[ParamT, RetT],
+class Composee[**ParamT, RetT](
+    composer.Composee[ParamT, RetT],
+    retry_.Composee[ParamT, RetT],
     typing.Protocol,
 ): ...
 
@@ -16,7 +16,7 @@ class Decoratee[**ParamT, RetT](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**ParamT, RetT](  # type: ignore[misc]
-    decorator.Exit[ParamT, RetT],
+    composer.Exit[ParamT, RetT],
     retry_.Exit[ParamT, RetT],
 ): ...
 
@@ -24,28 +24,28 @@ class Exit[**ParamT, RetT](  # type: ignore[misc]
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[**ParamT, RetT](  # type: ignore[misc]
-    decorator.Enter[ParamT, RetT],
+    composer.Enter[ParamT, RetT],
     retry_.Enter[ParamT, RetT],
 ): ...
 
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorated[**ParamT, RetT](
-    decorator.Decorated[ParamT, RetT],
-    retry_.Decorated[ParamT, RetT],
+class Composed[**ParamT, RetT](
+    composer.Composed[ParamT, RetT],
+    retry_.Composed[ParamT, RetT],
 ): ...
 
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Retry[**ParamT, RetT](
-    decorator.Decorator[ParamT, RetT],
-    retry_.Decorator[ParamT, RetT],
+    composer.Composer[ParamT, RetT],
+    retry_.Composer[ParamT, RetT],
 ):
-    decoratee_t: typing.ClassVar = Decoratee
+    composee_t: typing.ClassVar = Composee
     exit_t: typing.ClassVar = Exit
     enter_t: typing.ClassVar = Enter
-    decorated_t: typing.ClassVar = Decorated
-Decorator = Retry
+    composed_t: typing.ClassVar = Composed
+Composer = Retry
 retry: Retry[..., typing.Any] = Retry()

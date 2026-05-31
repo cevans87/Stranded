@@ -6,7 +6,7 @@ import importlib
 import inspect
 import typing
 
-from .abc import decorator
+from .abc import composer
 from .abc import scheduler as scheduler_
 
 
@@ -27,11 +27,11 @@ def _dispatch(self: scheduler_.Scheduler[typing.Any, typing.Any], target: typing
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Scheduler[**ParamT, RetT](scheduler_.Scheduler[ParamT, RetT]):
-    decoratee_t: typing.ClassVar = decorator.Decoratee
-    connect_t: typing.ClassVar = decorator.Connect
-    exit_t: typing.ClassVar = decorator.Exit
-    enter_t: typing.ClassVar = decorator.Enter
-    decorated_t: typing.ClassVar = decorator.Decorated
+    composee_t: typing.ClassVar = composer.Composee
+    connect_t: typing.ClassVar = composer.Connect
+    exit_t: typing.ClassVar = composer.Exit
+    enter_t: typing.ClassVar = composer.Enter
+    composed_t: typing.ClassVar = composer.Composed
 
     # Union of flavor-specific fields. The dispatcher forwards only the fields
     # the target flavor's Scheduler actually accepts.
@@ -55,5 +55,5 @@ class Scheduler[**ParamT, RetT](scheduler_.Scheduler[ParamT, RetT]):
     ) -> typing.Any:
         raise NotImplementedError
 
-    def __call__[DecorateeT](self, target: DecorateeT) -> DecorateeT:  # type: ignore[override]
+    def __call__[ComposeeT](self, target: ComposeeT) -> ComposeeT:  # type: ignore[override]
         return _dispatch(self, target)
