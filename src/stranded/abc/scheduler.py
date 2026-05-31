@@ -12,10 +12,7 @@ class Exception(exception_.Exception): ...  # noqa
 
 
 @typing.runtime_checkable
-class Composee[**ParamT, RetT](
-    composer.Composee[ParamT, RetT],
-    typing.Protocol,
-): ...
+class Composee[**ParamT, RetT](composer.Composee[ParamT, RetT], typing.Protocol): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)

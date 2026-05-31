@@ -13,10 +13,7 @@ class Exception(exception_.Exception): ...  # noqa
 
 
 @typing.runtime_checkable
-class Composee[**ParamT, RetT](
-    composer.Composee[ParamT, RetT],
-    typing.Protocol,
-): ...
+class Composee[**ParamT, RetT](composer.Composee[ParamT, RetT], typing.Protocol): ...
 
 
 Param = composer.Param
@@ -26,17 +23,11 @@ Stop = composer.Stop
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Connect[**ParamT, RetT](
-    composer.Connect[ParamT, RetT],
-    abc.ABC,
-): ...
+class Connect[**ParamT, RetT](composer.Connect[ParamT, RetT], abc.ABC): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Exit[**ParamT, RetT](
-    composer.Exit[ParamT, RetT],
-    abc.ABC,
-):
+class Exit[**ParamT, RetT](composer.Exit[ParamT, RetT], abc.ABC):
     def __call__(self, value: composer.ValueT[ParamT, RetT], /) -> composer.StackT:
         if self.enter.n_retried < self.enter.composer.n and isinstance(value, Raise):  # type: ignore[attr-defined]
             return dataclasses.replace(self.enter, n_retried=self.enter.n_retried + 1), self.enter.param  # type: ignore[attr-defined, call-arg]
@@ -45,10 +36,7 @@ class Exit[**ParamT, RetT](
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Enter[**ParamT, RetT](
-    composer.Enter[ParamT, RetT],
-    abc.ABC,
-):
+class Enter[**ParamT, RetT](composer.Enter[ParamT, RetT], abc.ABC):
     n_retried: int = 0
     param: Param[ParamT] | None = None
 
@@ -61,17 +49,12 @@ class Enter[**ParamT, RetT](
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Composed[**ParamT, RetT](
-    composer.Composed[ParamT, RetT],
-    abc.ABC,
-): ...
+class Composed[**ParamT, RetT](composer.Composed[ParamT, RetT], abc.ABC): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Retry[**ParamT, RetT](
-    composer.Composer[ParamT, RetT],
-    abc.ABC,
-): n: int = sys.maxsize
+class Retry[**ParamT, RetT](composer.Composer[ParamT, RetT], abc.ABC):
+    n: int = sys.maxsize
 
 
 Composer = Retry

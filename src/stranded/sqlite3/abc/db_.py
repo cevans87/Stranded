@@ -22,24 +22,15 @@ Return = composer.Return
 
 
 @typing.runtime_checkable
-class Composee[**ParamT, RetT](
-    composer.Composee[ParamT, RetT],
-    typing.Protocol,
-): ...
+class Composee[**ParamT, RetT](composer.Composee[ParamT, RetT], typing.Protocol): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Connect[**ParamT, RetT](
-    composer.Connect[ParamT, RetT],
-    abc.ABC,
-): ...
+class Connect[**ParamT, RetT](composer.Connect[ParamT, RetT], abc.ABC): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Exit[**ParamT, RetT](
-    composer.Exit[ParamT, RetT],
-    abc.ABC,
-):
+class Exit[**ParamT, RetT](composer.Exit[ParamT, RetT], abc.ABC):
     key: str
 
     def __call__(self, value: composer.ValueT[ParamT, RetT], /) -> composer.StackT:
@@ -60,10 +51,7 @@ class Exit[**ParamT, RetT](
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Enter[**ParamT, RetT](
-    composer.Enter[ParamT, RetT],
-    abc.ABC,
-):
+class Enter[**ParamT, RetT](composer.Enter[ParamT, RetT], abc.ABC):
     # The connection and its per-composition metadata live on the Enter now that
     # Enter/Exit no longer reach Composed.
     connection: sqlite3.Connection
@@ -92,10 +80,7 @@ class Enter[**ParamT, RetT](
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Composed[**ParamT, RetT](
-    composer.Composed[ParamT, RetT],
-    abc.ABC,
-):
+class Composed[**ParamT, RetT](composer.Composed[ParamT, RetT], abc.ABC):
     def __get__(self, instance: composer.Instance, owner: type[object] | None) -> typing.Self:
         match self.stack:
             case [*rest, Enter() as enter_]:
@@ -112,10 +97,7 @@ class Composed[**ParamT, RetT](
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Db[**ParamT, RetT](
-    composer.Composer[ParamT, RetT],
-    abc.ABC,
-):
+class Db[**ParamT, RetT](composer.Composer[ParamT, RetT], abc.ABC):
     type Version = str
 
     deserialize: typing.Callable[[str], RetT] = ast.literal_eval
