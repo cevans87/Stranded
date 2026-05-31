@@ -27,7 +27,7 @@ type StackT = tuple[
 class Raise:
     exc_type: type[BaseException]
     exc_val: BaseException
-    exc_tb: types.TracebackType
+    exc_tb: types.TracebackType | None
 
 
 @dataclasses.dataclass(frozen=True)
@@ -46,16 +46,11 @@ class Return[RetT]:
 
 
 class Decoratee[**ParamT, RetT](typing.Protocol):
-    @property
-    def __doc__(self) -> str: ...
-    @property
-    def __module__(self) -> str: ...
-    @property
-    def __name__(self) -> str: ...
-    @property
-    def __qualname__(self) -> str: ...
-    @property
-    def __signature__(self) -> inspect.Signature: ...
+    __doc__: str
+    __module__: str
+    __name__: str
+    __qualname__: str
+    __signature__: inspect.Signature
     def __call__(self, *args: ParamT.args, **kwargs: ParamT.kwargs) -> RetT: ...
     def __get__(self, instance: Instance, owner: type[object] | None) -> typing.Self: ...
 
@@ -98,8 +93,6 @@ class Enter[**ParamT, RetT](abc.ABC):
     decoratee: Decoratee[ParamT, RetT]
 
     @property
-    def decorator(self) -> Decorator[typing.Any, typing.Any]: return self.decorator
-    @property
     def decoratee_t(self) -> type[Decoratee[typing.Any, typing.Any]]: return self.decorator.decoratee_t
     @property
     def exit_t(self) -> type[Exit[typing.Any, typing.Any]]: return self.decorator.exit_t
@@ -134,6 +127,14 @@ class Decorated[**ParamT, RetT](abc.ABC):
     def enter_t(self) -> type[Enter[typing.Any, typing.Any]]: return self.decorator.enter_t
     @property
     def decorated_t(self) -> type[Decorated[typing.Any, typing.Any]]: return self.decorator.decorated_t
+
+    @property
+    def decoratee(self) -> Decoratee[ParamT, RetT]:
+        # The decoratee lives on the Enter at the base of the stack. Sub-domain code that
+        # used to read self.decorated.decoratee now reads it through this accessor.
+        match self.stack:
+            case [*_, Enter() as enter_]: return enter_.decoratee
+        assert False, "unreachable"
 
     def __get__(self, instance: Instance, owner: type[object] | None) -> typing.Self:
         match self.stack:

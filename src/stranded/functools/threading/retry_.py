@@ -14,22 +14,6 @@ class Decoratee[**ParamT, RetT](
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Send[**ParamT, RetT](
-    decorator.Send[ParamT, RetT],
-    retry_.Send[ParamT, RetT],
-): ...
-
-
-@typing.final
-@dataclasses.dataclass(frozen=True, kw_only=True)
-class Receive[**ParamT, RetT](
-    decorator.Receive[ParamT, RetT],
-    retry_.Receive[ParamT, RetT],
-): ...
-
-
-@typing.final
-@dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**ParamT, RetT](  # type: ignore[misc]
     decorator.Exit[ParamT, RetT],
     retry_.Exit[ParamT, RetT],
@@ -59,8 +43,6 @@ class Retry[**ParamT, RetT](
     retry_.Decorator[ParamT, RetT],
 ):
     decoratee_t: typing.ClassVar = Decoratee
-    receive_t: typing.ClassVar = Receive
-    send_t: typing.ClassVar = Send
     exit_t: typing.ClassVar = Exit
     enter_t: typing.ClassVar = Enter
     decorated_t: typing.ClassVar = Decorated

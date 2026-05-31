@@ -24,20 +24,6 @@ class Decoratee[**ParamT, RetT](
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Send[**ParamT, RetT](
-    decorator.Send[ParamT, RetT],
-    scheduler_.Send[ParamT, RetT],
-): ...
-
-
-@dataclasses.dataclass(frozen=True, kw_only=True)
-class Receive[**ParamT, RetT](
-    decorator.Receive[ParamT, RetT],
-    scheduler_.Receive[ParamT, RetT],
-): ...
-
-
-@dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**ParamT, RetT](
     decorator.Exit[ParamT, RetT],
     scheduler_.Exit[ParamT, RetT],
@@ -59,7 +45,7 @@ class Enter[**ParamT, RetT](
         if not isinstance(value, Param):
             return ()
         scheduler: Scheduler[ParamT, RetT] = typing.cast('Scheduler[ParamT, RetT]', self.decorator)
-        inner = self.decorated.decoratee
+        inner = self.decoratee
 
         async def wrapped(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             return await scheduler.submit_async(inner, args, kwargs)

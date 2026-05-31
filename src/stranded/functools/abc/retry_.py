@@ -26,27 +26,13 @@ Stop = decorator.Stop
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Send[**ParamT, RetT](
-    decorator.Send[ParamT, RetT],
-    abc.ABC,
-): ...
-
-
-@dataclasses.dataclass(frozen=True, kw_only=True)
-class Receive[**ParamT, RetT](
-    decorator.Receive[ParamT, RetT],
-    abc.ABC,
-): ...
-
-
-@dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**ParamT, RetT](
     decorator.Exit[ParamT, RetT],
     abc.ABC,
 ):
-    def __call__(self, value: Param[ParamT] | Raise | Return[RetT] | Stop) -> tuple[()] | tuple[Enter[ParamT, RetT], Param[ParamT]]:  # type: ignore[override]
-        if self.enter.n_retried < self.enter.decorated.decorator.n and isinstance(value, Raise):  # type: ignore[attr-defined]
-            return dataclasses.replace(self.enter, n_retried=self.enter.n_retried + 1), self.enter.param  # type: ignore[attr-defined, call-arg, return-value]
+    def __call__(self, value: decorator.ValueT[ParamT, RetT], /) -> decorator.StackT:
+        if self.enter.n_retried < self.enter.decorator.n and isinstance(value, Raise):  # type: ignore[attr-defined]
+            return dataclasses.replace(self.enter, n_retried=self.enter.n_retried + 1), self.enter.param  # type: ignore[attr-defined, return-value]
 
         return ()
 
@@ -59,11 +45,11 @@ class Enter[**ParamT, RetT](
     n_retried: int = 0
     param: Param[ParamT] | None = None
 
-    def __call__(self, value: Param[ParamT] | Raise | Return[RetT] | Stop) -> tuple[Exit[ParamT, RetT], Decoratee[ParamT, RetT]] | tuple[()]:  # type: ignore[override]
+    def __call__(self, value: decorator.ValueT[ParamT, RetT], /) -> decorator.StackT:
         match value:
             case Param() as param_:
                 new_self = dataclasses.replace(self, param=param_)
-                return new_self.decorated.decorator.exit_t(enter=new_self), self.decorated.decoratee  # type: ignore[return-value]
+                return new_self.exit_t(enter=new_self), self.decoratee  # type: ignore[return-value]
             case _: return ()
 
 

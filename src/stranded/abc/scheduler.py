@@ -19,14 +19,6 @@ class Decoratee[**ParamT, RetT](
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Send[**ParamT, RetT](decorator.Send[ParamT, RetT], abc.ABC): ...
-
-
-@dataclasses.dataclass(frozen=True, kw_only=True)
-class Receive[**ParamT, RetT](decorator.Receive[ParamT, RetT], abc.ABC): ...
-
-
-@dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**ParamT, RetT](decorator.Exit[ParamT, RetT], abc.ABC): ...
 
 

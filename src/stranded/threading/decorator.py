@@ -10,7 +10,7 @@ Raise = decorator.Raise
 Stop = decorator.Stop
 Param = decorator.Param
 Return = decorator.Return
-ValueT = decorator.ValueT
+type ValueT[**ParamT_, RetT_] = decorator.ValueT[ParamT_, RetT_]
 type StackT = tuple[
     ValueT[typing.Any, typing.Any]
     | Decoratee[typing.Any, typing.Any]
@@ -28,17 +28,17 @@ class Decoratee[**ParamT, RetT](decorator.Decoratee[ParamT, RetT], typing.Protoc
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Connect[**ParamT, RetT](decorator.Connect[ParamT, RetT], abc.ABC):
-    def __call__( self, value: ValueT, /) -> StackT: return super().__call__(value)
+    def __call__(self, value: ValueT[ParamT, RetT], /) -> StackT: return super().__call__(value)
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**ParamT, RetT](decorator.Exit[ParamT, RetT], abc.ABC):
-    def __call__( self, value: ValueT, /) -> StackT: return super().__call__(value)
+    def __call__(self, value: ValueT[ParamT, RetT], /) -> StackT: return super().__call__(value)
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[**ParamT, RetT](decorator.Enter[ParamT, RetT], abc.ABC):
-    def __call__(self, value: ValueT, /) -> StackT: return super().__call__(value)
+    def __call__(self, value: ValueT[ParamT, RetT], /) -> StackT: return super().__call__(value)
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)

@@ -39,30 +39,14 @@ class Future[RetT](herd_.Future[RetT]):
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Send[**ParamT, RetT](
-    decorator.Send[ParamT, RetT],
-    herd_.Send[ParamT, RetT, Future[RetT]],
-): ...
-
-
-@typing.final
-@dataclasses.dataclass(frozen=True, kw_only=True)
-class Receive[**ParamT, RetT](
-    decorator.Receive[ParamT, RetT],
-    herd_.Receive[ParamT, RetT, Future[RetT]],
-): ...
-
-
-@typing.final
-@dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**ParamT, RetT](
     decorator.Exit[ParamT, RetT],
     herd_.Exit[ParamT, RetT, Future[RetT]],
 ):
     future: Future[RetT] = dataclasses.field(default_factory=Future)
 
-    def __call__(self, value: Param[ParamT] | Raise | Return[RetT] | Stop) -> tuple[()]:  # type: ignore[override]
-        self.enter.decorated.future_by_key.pop(self.key, None)  # type: ignore[attr-defined]
+    def __call__(self, value: decorator.ValueT[ParamT, RetT], /) -> decorator.StackT:  # type: ignore[override]
+        self.enter.future_by_key.pop(self.key, None)  # type: ignore[attr-defined]
         match value:
             case Param(): pass
             case Return() | Raise() | Stop(): self.future.set_value(value)
@@ -74,12 +58,12 @@ class Exit[**ParamT, RetT](
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[**ParamT, RetT](
     decorator.Enter[ParamT, RetT],
-    herd_.Enter[ParamT, RetT],
+    herd_.Enter[ParamT, RetT, Future[RetT]],
 ):
     @typing.override
     def __call__(  # type: ignore[override]
-        self, value: Param[ParamT] | Raise | Return[RetT] | Stop,
-    ) -> tuple[Exit[ParamT, RetT], Decoratee[ParamT, RetT]] | tuple[Future[RetT]] | tuple[()]:
+        self, value: decorator.ValueT[ParamT, RetT], /,
+    ) -> decorator.StackT:
         match value:
             case Param(): return self._dispatch(*value.args, **value.kwargs)  # type: ignore[return-value]
             case _: return ()
@@ -89,7 +73,7 @@ class Enter[**ParamT, RetT](
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Decorated[**ParamT, RetT](
     decorator.Decorated[ParamT, RetT],
-    herd_.Decorated[ParamT, RetT, Future[RetT]],
+    herd_.Decorated[ParamT, RetT],
 ): ...
 
 
@@ -100,8 +84,6 @@ class Herd[**ParamT, RetT](
     herd_.Herd[ParamT, RetT],
 ):
     decoratee_t: typing.ClassVar = Decoratee
-    receive_t: typing.ClassVar = Receive
-    send_t: typing.ClassVar = Send
     exit_t: typing.ClassVar = Exit  # type: ignore[assignment]
     enter_t: typing.ClassVar = Enter
     decorated_t: typing.ClassVar = Decorated

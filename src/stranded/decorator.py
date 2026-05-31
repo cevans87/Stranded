@@ -12,6 +12,7 @@ class Decorator[**ParamT, RetT](decorator.Decorator[ParamT, RetT]):
     # Stub bindings for the agnostic dispatcher — never instantiated, since
     # __call__ delegates to the asyncio/threading concrete Decorator.
     decoratee_t: typing.ClassVar = decorator.Decoratee
+    connect_t: typing.ClassVar = decorator.Connect
     exit_t: typing.ClassVar = decorator.Exit
     enter_t: typing.ClassVar = decorator.Enter
     decorated_t: typing.ClassVar = decorator.Decorated

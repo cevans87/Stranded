@@ -30,44 +30,30 @@ Stop = decorator.Stop
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Send[**ParamT, RetT](
-    decorator.Send[ParamT, RetT],
-    abc.ABC,
-): ...
-
-
-@dataclasses.dataclass(frozen=True, kw_only=True)
-class Receive[**ParamT, RetT](
-    decorator.Receive[ParamT, RetT],
-    abc.ABC,
-): ...
-
-
-@dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**ParamT, RetT](
     decorator.Exit[ParamT, RetT],
     abc.ABC,
 ):
     bound_arguments: inspect.BoundArguments
 
-    @abc.abstractmethod
-    def __call__(self, result: Raise | RetT) -> tuple[()]:  # type: ignore[override]
-        if isinstance(result, Raise):
-            self.enter.decorated.decorator.logger.log(  # type: ignore[attr-defined]
-                logging.getLevelNamesMapping()[self.enter.decorated.decorator.err_level],  # type: ignore[attr-defined]
-                '%s :: %s !! %s',
-                self.enter.decorated.__signature__,
-                self.bound_arguments.arguments,
-                result.exc_val,
-            )
-        else:
-            self.enter.decorated.decorator.logger.log(  # type: ignore[attr-defined]
-                logging.getLevelNamesMapping()[self.enter.decorated.decorator.ok_level],  # type: ignore[attr-defined]
-                '%s :: %s -> %s',
-                self.enter.decorated.__signature__,
-                self.bound_arguments.arguments,
-                result,
-            )
+    def __call__(self, value: decorator.ValueT[ParamT, RetT], /) -> decorator.StackT:
+        match value:
+            case Raise() as raise_:
+                self.enter.decorator.logger.log(  # type: ignore[attr-defined]
+                    logging.getLevelNamesMapping()[self.enter.decorator.err_level],  # type: ignore[attr-defined]
+                    '%s :: %s !! %s',
+                    inspect.signature(self.enter.decoratee),
+                    self.bound_arguments.arguments,
+                    raise_.exc_val,
+                )
+            case Return(ret=ret):
+                self.enter.decorator.logger.log(  # type: ignore[attr-defined]
+                    logging.getLevelNamesMapping()[self.enter.decorator.ok_level],  # type: ignore[attr-defined]
+                    '%s :: %s -> %s',
+                    inspect.signature(self.enter.decoratee),
+                    self.bound_arguments.arguments,
+                    ret,
+                )
 
         return ()
 
@@ -77,17 +63,20 @@ class Enter[**ParamT, RetT](
     decorator.Enter[ParamT, RetT],
     abc.ABC,
 ):
-    @abc.abstractmethod
-    def __call__(self, *args: ParamT.args, **kwargs: ParamT.kwargs) -> tuple[Exit[ParamT, RetT], Decoratee[ParamT, RetT]]:  # type: ignore[override]
-        bound_arguments = self.decorated.__signature__.bind(*args, **kwargs)
+    def __call__(self, value: decorator.ValueT[ParamT, RetT], /) -> decorator.StackT:
+        match value:
+            case Param() as param_:
+                bound_arguments = inspect.signature(self.decoratee).bind(*param_.args, **param_.kwargs)
 
-        self.decorated.decorator.logger.log(  # type: ignore[attr-defined]
-            logging.getLevelNamesMapping()[self.decorated.decorator.call_level],  # type: ignore[attr-defined]
-            '%s',
-            bound_arguments,
-        )
+                self.decorator.logger.log(  # type: ignore[attr-defined]
+                    logging.getLevelNamesMapping()[self.decorator.call_level],  # type: ignore[attr-defined]
+                    '%s',
+                    bound_arguments,
+                )
 
-        return self.decorated.decorator.exit_t(enter=self, bound_arguments=bound_arguments), self.decorated.decoratee,  # type: ignore[call-arg, return-value]
+                return self.exit_t(enter=self, bound_arguments=bound_arguments), self.decoratee,  # type: ignore[call-arg]
+            case _:
+                return ()
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)

@@ -15,22 +15,6 @@ class Decoratee[**ParamT, RetT](
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Send[**ParamT, RetT](
-    decorator.Send[ParamT, RetT],
-    db_.Send[ParamT, RetT],
-): ...
-
-
-@typing.final
-@dataclasses.dataclass(frozen=True, kw_only=True)
-class Receive[**ParamT, RetT](
-    decorator.Receive[ParamT, RetT],
-    db_.Receive[ParamT, RetT],
-): ...
-
-
-@typing.final
-@dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**ParamT, RetT](  # type: ignore[misc]
     decorator.Exit[ParamT, RetT],
     db_.Exit[ParamT, RetT],
@@ -60,8 +44,6 @@ class Db[**ParamT, RetT](
     db_.Decorator[ParamT, RetT],
 ):
     decoratee_t: typing.ClassVar = Decoratee
-    receive_t: typing.ClassVar = Receive
-    send_t: typing.ClassVar = Send
     exit_t: typing.ClassVar = Exit  # type: ignore[assignment]
     enter_t: typing.ClassVar = Enter
     decorated_t: typing.ClassVar = Decorated  # type: ignore[assignment]

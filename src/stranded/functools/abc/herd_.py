@@ -39,20 +39,6 @@ class Decoratee[**ParamT, RetT](
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Send[**ParamT, RetT, FutureT](
-    decorator.Send[ParamT, RetT],
-    abc.ABC,
-): ...
-
-
-@dataclasses.dataclass(frozen=True, kw_only=True)
-class Receive[**ParamT, RetT, FutureT](
-    decorator.Receive[ParamT, RetT],
-    abc.ABC,
-): ...
-
-
-@dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**ParamT, RetT, FutureT](
     decorator.Exit[ParamT, RetT],
     abc.ABC,
@@ -62,10 +48,13 @@ class Exit[**ParamT, RetT, FutureT](
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Enter[**ParamT, RetT](
+class Enter[**ParamT, RetT, FutureT](
     decorator.Enter[ParamT, RetT],
     abc.ABC,
 ):
+    # The in-flight-call cache lives on the Enter now that Enter/Exit no longer reach Decorated.
+    future_by_key: dict[Key, FutureT] = dataclasses.field(default_factory=dict)
+
     @staticmethod
     def create_key(*args: ParamT.args, **kwargs: ParamT.kwargs) -> Key:
         return tuple(args), tuple(sorted([*kwargs.items()]))
@@ -74,36 +63,39 @@ class Enter[**ParamT, RetT](
         self, *args: ParamT.args, **kwargs: ParamT.kwargs,
     ) -> tuple[Exit[ParamT, RetT, Future[RetT]], Decoratee[ParamT, RetT]] | tuple[Future[RetT]]:
         key = self.create_key(*args, **kwargs)
-        future = self.decorated.future_by_key.get(key)  # type: ignore[attr-defined]
+        future = self.future_by_key.get(key)
         match future is None:
             case True:
-                future = self.decorated.future_by_key[key] = self.decorated.decorator.future_t()  # type: ignore[attr-defined]
-                return self.decorated.decorator.exit_t(enter=self, future=future, key=key), self.decorated.decoratee  # type: ignore[call-arg, return-value]
+                future = self.future_by_key[key] = self.decorator.future_t()  # type: ignore[attr-defined]
+                return self.exit_t(enter=self, future=future, key=key), self.decoratee  # type: ignore[call-arg, return-value]
             case False:
                 return future,
         assert False, "Unreachable"
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorated[**ParamT, RetT, FutureT](
+class Decorated[**ParamT, RetT](
     decorator.Decorated[ParamT, RetT],
     abc.ABC,
 ):
     decorated_by_instance: weakref.WeakKeyDictionary[
         decorator.Instance, typing.Self,
     ] = dataclasses.field(default_factory=weakref.WeakKeyDictionary)
-    future_by_key: dict[Key, FutureT] = dataclasses.field(default_factory=dict)
 
     def __get__(self, instance: decorator.Instance, owner: type[object] | None) -> typing.Self:
-        return decorated if (decorated := self.decorated_by_instance.get(instance)) is not None else (
-            self.decorated_by_instance.setdefault(
-                instance, dataclasses.replace(
-                    self,
-                    decoratee=self.decoratee.__get__(instance, owner),
+        if (decorated := self.decorated_by_instance.get(instance)) is not None:
+            return decorated
+        match self.stack:
+            case [*rest, Enter() as enter_]:
+                fresh_enter = dataclasses.replace(
+                    enter_,
+                    decoratee=enter_.decoratee.__get__(instance, owner),
                     future_by_key={},
                 )
-            )
-        )
+                return self.decorated_by_instance.setdefault(
+                    instance, dataclasses.replace(self, stack=(*rest, fresh_enter)),
+                )
+        assert False, "unreachable"
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)

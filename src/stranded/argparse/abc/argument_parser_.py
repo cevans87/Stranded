@@ -418,20 +418,6 @@ class Decoratee[**ParamT, RetT](
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Send[**ParamT, RetT](
-    decorator.Send[ParamT, RetT],
-    abc.ABC,
-): ...
-
-
-@dataclasses.dataclass(frozen=True, kw_only=True)
-class Receive[**ParamT, RetT](
-    decorator.Receive[ParamT, RetT],
-    abc.ABC,
-): ...
-
-
-@dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**ParamT, RetT](
     decorator.Exit[ParamT, RetT],
     abc.ABC,
@@ -516,8 +502,8 @@ class ArgumentParser[**ParamT, RetT](
                     inspect.Parameter('argv', inspect.Parameter.VAR_POSITIONAL),
                 ),
             ),
-            decoratee=decoratee,
             decorator=self,
+            stack=(self.enter_t(decorator=self, decoratee=decoratee),),
         )
 
 

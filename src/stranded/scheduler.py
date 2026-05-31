@@ -35,6 +35,7 @@ def _dispatch(self: scheduler_.Scheduler[typing.Any, typing.Any], target: typing
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Scheduler[**ParamT, RetT](scheduler_.Scheduler[ParamT, RetT]):
     decoratee_t: typing.ClassVar = decorator.Decoratee
+    connect_t: typing.ClassVar = decorator.Connect
     exit_t: typing.ClassVar = decorator.Exit
     enter_t: typing.ClassVar = decorator.Enter
     decorated_t: typing.ClassVar = decorator.Decorated

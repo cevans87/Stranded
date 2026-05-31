@@ -35,37 +35,23 @@ Stop = decorator.Stop
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Send[**ParamT, RetT](
-    decorator.Send[ParamT, RetT],
-    abc.ABC,
-): ...
-
-
-@dataclasses.dataclass(frozen=True, kw_only=True)
-class Receive[**ParamT, RetT](
-    decorator.Receive[ParamT, RetT],
-    abc.ABC,
-): ...
-
-
-@dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**ParamT, RetT](
     decorator.Exit[ParamT, RetT],
     abc.ABC,
 ):
-    def __call__(self, result: Raise | RetT) -> tuple[()]:  # type: ignore[override]
-        state = self.enter.decorated.state  # type: ignore[attr-defined]
-        if isinstance(result, Raise) and state.num_running <= state.cap_running:
+    def __call__(self, value: decorator.ValueT[ParamT, RetT], /) -> decorator.StackT:
+        state = self.enter.state  # type: ignore[attr-defined]
+        if isinstance(value, Raise) and state.num_running <= state.cap_running:
             state.cap_running //= 2
         elif (
-            not isinstance(result, Raise)
-            and state.num_running == state.cap_running < self.enter.decorated.decorator.max_running  # type: ignore[attr-defined]
+            not isinstance(value, Raise)
+            and state.num_running == state.cap_running < self.enter.decorator.max_running  # type: ignore[attr-defined]
         ):
             state.cap_running += 1
         state.num_running -= 1
 
         if 0 < (n := state.cap_running - state.num_running):
-            self.enter.decorated.condition.notify(n=n)  # type: ignore[attr-defined]
+            self.enter.condition.notify(n=n)  # type: ignore[attr-defined]
 
         return ()
 
@@ -74,33 +60,38 @@ class Exit[**ParamT, RetT](
 class Enter[**ParamT, RetT](
     decorator.Enter[ParamT, RetT],
     abc.ABC,
-): ...
+):
+    # Per-decoration state lives on the Enter now that Enter/Exit no longer reach Decorated.
+    # Exit reads it back through self.enter; __get__ reinstalls a fresh-state Enter per instance.
+    state: State = dataclasses.field(default_factory=State)
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorated[**ParamT, RetT, ConditionT](
+class Decorated[**ParamT, RetT](
     decorator.Decorated[ParamT, RetT],
     abc.ABC,
 ):
-    condition: ConditionT
     decorated_by_instance: weakref.WeakKeyDictionary[
         decorator.Instance, typing.Self,
     ] = dataclasses.field(default_factory=weakref.WeakKeyDictionary)
     lock: threading.Lock = dataclasses.field(default_factory=threading.Lock)
-    state: State = dataclasses.field(default_factory=State)
 
     def __get__(self, instance: decorator.Instance, owner: type[object] | None) -> typing.Self:
         with self.lock:
-            return decorated if (decorated := self.decorated_by_instance.get(instance)) is not None else (
-                self.decorated_by_instance.setdefault(
-                    instance, dataclasses.replace(
-                        self,
-                        condition=type(self.condition)(),
-                        decoratee=self.decoratee.__get__(instance, owner),
+            if (decorated := self.decorated_by_instance.get(instance)) is not None:
+                return decorated
+            match self.stack:
+                case [*rest, Enter() as enter_]:
+                    fresh_enter = dataclasses.replace(
+                        enter_,
+                        condition=type(enter_.condition)(),  # type: ignore[attr-defined]
+                        decoratee=enter_.decoratee.__get__(instance, owner),
                         state=State(),
                     )
-                )
-            )
+                    return self.decorated_by_instance.setdefault(
+                        instance, dataclasses.replace(self, stack=(*rest, fresh_enter)),
+                    )
+            assert False, "unreachable"
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
