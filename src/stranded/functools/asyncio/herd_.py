@@ -72,7 +72,7 @@ class Composed[**ParamT, RetT](composer.Composed[ParamT, RetT], herd_.Composed[P
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Herd[**ParamT, RetT](composer.Composer[ParamT, RetT], herd_.Herd[ParamT, RetT]):
+class Herd[**ParamT = ..., RetT = typing.Any](composer.Composer[ParamT, RetT], herd_.Herd[ParamT, RetT]):
     composee_t: typing.ClassVar = Composee
     connect_t: typing.ClassVar = Connect
     exit_t: typing.ClassVar = Exit  # type: ignore[assignment]

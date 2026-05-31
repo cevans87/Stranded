@@ -31,7 +31,7 @@ class Composed[**ParamT, RetT](composer.Composed[ParamT, RetT], db_.Composed[Par
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Db[**ParamT, RetT](composer.Composer[ParamT, RetT], db_.Composer[ParamT, RetT]):
+class Db[**ParamT = ..., RetT = typing.Any](composer.Composer[ParamT, RetT], db_.Composer[ParamT, RetT]):
     composee_t: typing.ClassVar = Composee
     connect_t: typing.ClassVar = Connect
     exit_t: typing.ClassVar = Exit

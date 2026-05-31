@@ -63,7 +63,7 @@ class Composed[**ParamT, RetT](composer.Composed[ParamT, RetT], throttle_.Compos
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Throttle[**ParamT, RetT](composer.Composer[ParamT, RetT], throttle_.Composer[ParamT, RetT]):
+class Throttle[**ParamT = ..., RetT = typing.Any](composer.Composer[ParamT, RetT], throttle_.Composer[ParamT, RetT]):
     composee_t: typing.ClassVar = Composee
     connect_t: typing.ClassVar = Connect
     exit_t: typing.ClassVar = Exit
