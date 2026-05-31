@@ -18,22 +18,6 @@ class Decoratee[**ParamT, RetT](
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Send[**ParamT, RetT](
-    decorator.Send[ParamT, RetT],
-    argument_parser_.Send[ParamT, RetT],
-): ...
-
-
-@typing.final
-@dataclasses.dataclass(frozen=True, kw_only=True)
-class Receive[**ParamT, RetT](
-    decorator.Receive[ParamT, RetT],
-    argument_parser_.Receive[ParamT, RetT],
-): ...
-
-
-@typing.final
-@dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**ParamT, RetT](
     decorator.Exit[ParamT, RetT],
     argument_parser_.Exit[ParamT, RetT],
@@ -69,8 +53,6 @@ class ArgumentParser[**ParamT, RetT](
     argument_parser_.Decorator[ParamT, RetT],
 ):
     decoratee_t: typing.ClassVar = Decoratee
-    receive_t: typing.ClassVar = Receive
-    send_t: typing.ClassVar = Send
     exit_t: typing.ClassVar = Exit
     enter_t: typing.ClassVar = Enter
     decorated_t: typing.ClassVar = Decorated
