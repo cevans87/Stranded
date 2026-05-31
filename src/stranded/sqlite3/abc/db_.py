@@ -72,7 +72,7 @@ class Enter[**ParamT, RetT](composer.Enter[ParamT, RetT], abc.ABC):
                         (key,),
                     ).fetchone()
                 if ret:
-                    return Return(ret=self.composer.serialize(ret[0])),  # type: ignore[attr-defined]
+                    return Return(ret=self.composer.deserialize(ret[0])),  # type: ignore[attr-defined]
 
                 return self.exit_t(enter=self, key=key), self.composee,  # type: ignore[call-arg]
 
@@ -125,7 +125,7 @@ class Db[**ParamT, RetT](composer.Composer[ParamT, RetT], abc.ABC):
         table_name = f'{composee.__module__}.{composee.__qualname__}.{self.version}'
         (connection := sqlite3.connect(self.path, check_same_thread=False, isolation_level=None)).execute(
             f'CREATE TABLE IF NOT EXISTS `{table_name}` '  # noqa
-            f'(key STRING PRIMARY KEY NOT NULL UNIQUE, ret STRING NOT NULL)',  # noqa
+            f'(key TEXT PRIMARY KEY NOT NULL UNIQUE, ret TEXT NOT NULL)',  # noqa
         )
 
         return self.composed_t(  # type: ignore[return-value]

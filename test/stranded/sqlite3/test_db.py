@@ -214,3 +214,44 @@ def test_multi_staticmethod(path: pathlib.Path) -> None:
     assert call_count == 1
 
 
+@pytest.mark.parametrize('value', [
+    # builtins.
+    None,
+    True,
+    False,
+    0,
+    42,
+    -7,
+    3.14,
+    1 + 2j,
+    '',
+    'foo',
+    b'bytes',
+
+    # containers.
+    (),
+    (1, 'two', 3.0),
+    [],
+    [1, 2, 3],
+    {},
+    {'a': 1, 'b': 2},
+    {1, 2, 3},
+    {'nums': [1, 2], 'pair': (3, 4), 'flag': True, 'inner': {'x': None}},
+])
+def test_multi_round_trip(path: pathlib.Path, value: object) -> None:
+    call_count = 0
+
+    @Db(path=path)
+    def foo() -> object:
+        nonlocal call_count
+        call_count += 1
+        return value
+
+    miss = foo()  # computed
+    hit = foo()  # read back from the db
+
+    assert miss == value and type(miss) is type(value)
+    assert hit == value and type(hit) is type(value)
+    assert call_count == 1
+
+
