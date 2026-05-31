@@ -1,32 +1,9 @@
 from __future__ import absolute_import
 
-import typing
-
 import pytest
 
 from stranded import Decorator
 from stranded.abc import decorator as abc_decorator
-from stranded.asyncio.composer import Composer
-
-
-@pytest.mark.asyncio
-async def test_or_combines_metadata() -> None:
-    @Decorator()
-    async def foo(v: int) -> int:
-        """foo doc"""
-        return v + 1
-
-    @Decorator()
-    async def bar(v: int) -> int:
-        """bar doc"""
-        return v * 2
-
-    combined: typing.Any = Composer()(foo, bar)  # type: ignore[arg-type]
-
-    assert combined.__doc__ == f'{foo.__doc__}\n\n{bar.__doc__}'
-    assert combined.__name__ == f'{foo.__name__}, {bar.__name__}'
-    assert combined.__qualname__ == f'{foo.__qualname__}, {bar.__qualname__}'
-    assert combined.__module__ == f'{foo.__module__}, {bar.__module__}'
 
 
 @pytest.mark.asyncio
@@ -48,30 +25,10 @@ async def test_or_calls_each_decoratee() -> None:
         calls.append(('baz', v))
         return v - 3
 
-    result: typing.Any = await Composer()(foo, bar, baz).call_async(7)  # type: ignore[arg-type, attr-defined]
+    result = await (foo | bar | baz)(7)
 
     assert calls == [('foo', 7), ('bar', 8), ('baz', 80)]
     assert result == 77
-
-
-@pytest.mark.asyncio
-async def test_or_chain_grows() -> None:
-    @Decorator()
-    async def foo(v: int) -> int:
-        return v
-
-    @Decorator()
-    async def bar(v: int) -> int:
-        return v
-
-    @Decorator()
-    async def baz(v: int) -> int:
-        return v
-
-    composer = Composer()
-    assert len(composer(foo).decorateds) == 1  # type: ignore[arg-type]
-    assert len(composer(foo, bar).decorateds) > len(composer(foo).decorateds)  # type: ignore[arg-type]
-    assert len(composer(foo, bar, baz).decorateds) > len(composer(foo, bar).decorateds)  # type: ignore[arg-type]
 
 
 @pytest.mark.asyncio
@@ -85,8 +42,8 @@ async def test_composed_or_extends_with_decorated() -> None:
     @Decorator()
     async def baz(v: int) -> int: return v - 3
 
-    composed: typing.Any = Composer()(foo, bar) | baz  # type: ignore[arg-type, operator]
-    assert await composed.call_async(7) == 77
+    composed = (foo | bar) | baz
+    assert await composed(7) == 77
 
 
 @pytest.mark.asyncio
@@ -100,9 +57,11 @@ async def test_composed_or_extends_with_composed() -> None:
     @Decorator()
     async def baz(v: int) -> int: return v - 3
 
-    composer = Composer()
-    composed: typing.Any = composer(foo, bar) | composer(baz)  # type: ignore[arg-type]
-    assert await composed.call_async(7) == 77
+    @Decorator()
+    async def qux(v: int) -> int: return v + 100
+
+    composed = (foo | bar) | (baz | qux)
+    assert await composed(7) == 177
 
 
 @pytest.mark.asyncio
@@ -120,7 +79,7 @@ async def test_raise_skips_downstream_decoratee() -> None:
     inner_called = False
 
     @Decorator()
-    async def boom() -> None:
+    async def boom(v: int) -> int:
         raise ValueError('boom')
 
     @Decorator()
@@ -130,7 +89,7 @@ async def test_raise_skips_downstream_decoratee() -> None:
         return v
 
     with pytest.raises(ValueError, match='boom'):
-        await Composer()(boom, inner).call_async()  # type: ignore[arg-type, attr-defined]
+        await (boom | inner)(0)
 
     assert inner_called is False
 
@@ -140,7 +99,7 @@ async def test_raise_dataclass_carries_exception() -> None:
     raise_ = abc_decorator.Raise(
         exc_type=ValueError,
         exc_val=ValueError('x'),
-        exc_tb=None,  # type: ignore[arg-type]
+        exc_tb=None,
     )
     assert raise_.exc_type is ValueError
     assert isinstance(raise_.exc_val, ValueError)
@@ -161,7 +120,7 @@ async def test_stop_skips_downstream_decoratee() -> None:
     inner_called = False
 
     @Decorator()
-    async def cancelled() -> None:
+    async def cancelled(v: int) -> int:
         raise abc_decorator.Stop()
 
     @Decorator()
@@ -171,7 +130,7 @@ async def test_stop_skips_downstream_decoratee() -> None:
         return v
 
     with pytest.raises(abc_decorator.Stop):
-        await Composer()(cancelled, inner).call_async()  # type: ignore[arg-type, attr-defined]
+        await (cancelled | inner)(0)
 
     assert inner_called is False
 

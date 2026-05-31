@@ -4,16 +4,13 @@ import importlib as _importlib
 import typing as _typing
 
 if _typing.TYPE_CHECKING:
-    from . import composer, decorator, scheduler
-    from .composer import Composer
+    from . import decorator, scheduler
     from .decorator import Decorator
     from .scheduler import Scheduler
 
 
 def __getattr__(name: str) -> _typing.Any:
     match name:
-        case 'composer': return _importlib.import_module('.composer', __name__)
-        case 'Composer': return _importlib.import_module('.composer', __name__).Composer
         case 'decorator': return _importlib.import_module('.decorator', __name__)
         case 'Decorator': return _importlib.import_module('.decorator', __name__).Decorator
         case 'scheduler': return _importlib.import_module('.scheduler', __name__)
@@ -22,8 +19,6 @@ def __getattr__(name: str) -> _typing.Any:
 
 
 __all__ = (
-    'composer',
-    'Composer',
     'decorator',
     'Decorator',
     'scheduler',

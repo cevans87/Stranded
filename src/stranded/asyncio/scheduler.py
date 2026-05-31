@@ -5,7 +5,7 @@ import dataclasses
 import inspect
 import typing
 
-from . import composer, decorator
+from . import decorator
 from ..abc import scheduler as scheduler_
 
 
@@ -69,7 +69,6 @@ class Scheduler[**ParamT = ..., RetT = typing.Any](
     exit_t: typing.ClassVar = Exit
     enter_t: typing.ClassVar = Enter
     decorated_t: typing.ClassVar = Decorated
-    composer_t: typing.ClassVar = composer.Composer
 
     loop: asyncio.AbstractEventLoop | None = None
 

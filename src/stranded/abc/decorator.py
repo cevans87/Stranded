@@ -6,9 +6,6 @@ import inspect
 import types
 import typing
 
-if typing.TYPE_CHECKING:
-    from . import composer as _composer
-
 type Instance = object
 
 type ValueT[**ParamT_, RetT_] = Param[ParamT_] | Raise | Return[RetT_] | Stop
@@ -176,9 +173,6 @@ class Decorator[**ParamT, RetT](abc.ABC):
     @property
     @abc.abstractmethod
     def decorated_t(self) -> type[Decorated[typing.Any, typing.Any]]: ...
-    @property
-    @abc.abstractmethod
-    def composer_t(self) -> type[_composer.Composer]: ...
 
     def __call__(self, decoratee: Decoratee[ParamT, RetT], /) -> Decorated[ParamT, RetT]:
         return self.decorated_t(
