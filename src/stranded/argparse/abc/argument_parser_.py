@@ -495,8 +495,8 @@ class ArgumentParser[**ParamT, RetT](
         return self.decorated_t(  # type: ignore[return-value]
             __doc__=str(decoratee.__doc__),
             __module__=str(decoratee.__module__),
-            __name__=str(decoratee.__name__),  # type: ignore[attr-defined]
-            __qualname__=str(decoratee.__qualname__),  # type: ignore[attr-defined]
+            __name__=str(decoratee.__name__),
+            __qualname__=str(decoratee.__qualname__),
             __signature__=inspect.signature(decoratee).replace(
                 parameters=(
                     inspect.Parameter('argv', inspect.Parameter.VAR_POSITIONAL),

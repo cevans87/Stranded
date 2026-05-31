@@ -45,7 +45,7 @@ class Exit[**ParamT, RetT](
 ):
     future: Future[RetT] = dataclasses.field(default_factory=Future)
 
-    def __call__(self, value: decorator.ValueT[ParamT, RetT], /) -> decorator.StackT:  # type: ignore[override]
+    def __call__(self, value: decorator.ValueT[ParamT, RetT], /) -> decorator.StackT:
         self.enter.future_by_key.pop(self.key, None)  # type: ignore[attr-defined]
         match value:
             case Param(): pass
@@ -61,7 +61,7 @@ class Enter[**ParamT, RetT](
     herd_.Enter[ParamT, RetT, Future[RetT]],
 ):
     @typing.override
-    def __call__(  # type: ignore[override]
+    def __call__(
         self, value: decorator.ValueT[ParamT, RetT], /,
     ) -> decorator.StackT:
         match value:
