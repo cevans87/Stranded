@@ -40,7 +40,7 @@ class Composed[**ParamT, RetT](composer.Composed[ParamT, RetT], argument_parser_
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class ArgumentParser[**ParamT, RetT](composer.Composer[ParamT, RetT], argument_parser_.Composer[ParamT, RetT]):
+class ArgumentParser[**ParamT = ..., RetT = typing.Any](composer.Composer[ParamT, RetT], argument_parser_.Composer[ParamT, RetT]):
     composee_t: typing.ClassVar = Composee
     connect_t: typing.ClassVar = Connect
     exit_t: typing.ClassVar = Exit

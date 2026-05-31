@@ -79,7 +79,7 @@ class Composed[**ParamT, RetT](composer.Composed[ParamT, RetT], lru_cache_.Compo
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class LruCache[**ParamT, RetT](composer.Composer[ParamT, RetT], lru_cache_.Composer[ParamT, RetT]):
+class LruCache[**ParamT = ..., RetT = typing.Any](composer.Composer[ParamT, RetT], lru_cache_.Composer[ParamT, RetT]):
     composee_t: typing.ClassVar = Composee
     connect_t: typing.ClassVar = Connect
     exit_t: typing.ClassVar = Exit  # type: ignore[assignment]

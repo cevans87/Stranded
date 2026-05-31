@@ -47,7 +47,6 @@ class Composee[**ParamT, RetT](typing.Protocol):
     __module__: str
     __name__: str
     __qualname__: str
-    __signature__: inspect.Signature
     def __call__(self, *args: ParamT.args, **kwargs: ParamT.kwargs) -> RetT: ...
     def __get__(self, instance: Instance, owner: type[object] | None) -> typing.Self: ...
 
@@ -126,6 +125,9 @@ class Composed[**ParamT, RetT](abc.ABC):
     @property
     def composed_t(self) -> type[Composed[typing.Any, typing.Any]]: return self.composer.composed_t
 
+    @abc.abstractmethod
+    def __call__(self, *args: ParamT.args, **kwargs: ParamT.kwargs) -> RetT: ...
+
     @property
     def composee(self) -> Composee[ParamT, RetT]:
         # The composee lives on the Enter at the base of the stack. Sub-domain code that
@@ -157,7 +159,7 @@ class Composed[**ParamT, RetT](abc.ABC):
             __name__=f"{self.__name__}|{other_composed.__name__}",
             __qualname__=f"{self.__qualname__}|{other_composed.__qualname__}",
             __signature__=inspect.Signature().replace(
-                parameters=self.__signature__.parameters,
+                parameters=tuple(self.__signature__.parameters.values()),
                 return_annotation=other_composed.__signature__.return_annotation,
             ),
             stack=(self.connect_t(composer=self.composer, stack=other_composed.stack), *self.stack),
@@ -183,7 +185,9 @@ class Composer[**ParamT, RetT](abc.ABC):
     @abc.abstractmethod
     def composed_t(self) -> type[Composed[typing.Any, typing.Any]]: ...
 
-    def __call__(self, composee: Composee[ParamT, RetT], /) -> Composed[ParamT, RetT]:
+    def __call__[**CallParamT, CallRetT](
+        self, composee: Composee[CallParamT, CallRetT], /,
+    ) -> Composed[CallParamT, CallRetT]:
         return self.composed_t(
             __doc__=str(composee.__doc__),
             __module__=str(composee.__module__),
