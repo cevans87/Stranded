@@ -39,6 +39,14 @@ class Future[RetT](herd_.Future[RetT]):
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
+class Connect[**ParamT, RetT](
+    composer.Connect[ParamT, RetT],
+    herd_.Connect[ParamT, RetT],
+): ...
+
+
+@typing.final
+@dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**ParamT, RetT](
     composer.Exit[ParamT, RetT],
     herd_.Exit[ParamT, RetT, Future[RetT]],
@@ -84,6 +92,7 @@ class Herd[**ParamT, RetT](
     herd_.Herd[ParamT, RetT],
 ):
     composee_t: typing.ClassVar = Composee
+    connect_t: typing.ClassVar = Connect
     exit_t: typing.ClassVar = Exit  # type: ignore[assignment]
     enter_t: typing.ClassVar = Enter
     composed_t: typing.ClassVar = Composed

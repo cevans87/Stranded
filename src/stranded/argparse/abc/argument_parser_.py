@@ -338,28 +338,28 @@ class _Signature:
                 )
 
             left_signature = _Signature(
-                required_positional_parameter_by_name=({}
-                                                       | right_signature.required_positional_parameter_by_name
-                                                       | left_signature.required_positional_parameter_by_name
-                                                       ),
-                optional_positional_parameter_by_name=({}
-                                                       | right_signature.optional_positional_parameter_by_name
-                                                       | left_signature.optional_positional_parameter_by_name
-                                                       ),
-                required_keyword_parameter_by_name=({}
-                    | right_signature.required_keyword_parameter_by_name
+                required_positional_parameter_by_name=(
+                    right_signature.required_positional_parameter_by_name
+                    | left_signature.required_positional_parameter_by_name
+                ),
+                optional_positional_parameter_by_name=(
+                    right_signature.optional_positional_parameter_by_name
+                    | left_signature.optional_positional_parameter_by_name
+                ),
+                required_keyword_parameter_by_name=(
+                    right_signature.required_keyword_parameter_by_name
                     | left_signature.required_keyword_parameter_by_name
                 ),
-                optional_keyword_parameter_by_name=({}
-                    | right_signature.optional_keyword_parameter_by_name
+                optional_keyword_parameter_by_name=(
+                    right_signature.optional_keyword_parameter_by_name
                     | left_signature.optional_keyword_parameter_by_name
                 ),
-                variadic_positional_parameter=(None
-                                               or right_signature.variadic_positional_parameter
-                                               or left_signature.variadic_positional_parameter
-                                               ),
-                variadic_keyword_parameter=(None
-                    or right_signature.variadic_keyword_parameter
+                variadic_positional_parameter=(
+                    right_signature.variadic_positional_parameter
+                    or left_signature.variadic_positional_parameter
+                ),
+                variadic_keyword_parameter=(
+                    right_signature.variadic_keyword_parameter
                     or left_signature.variadic_keyword_parameter
                 ),
                 return_annotation=right_signature.return_annotation,
@@ -414,6 +414,13 @@ class Exception(exception_.Exception): ...  # noqa
 class Composee[**ParamT, RetT](
     composer.Composee[ParamT, RetT],
     typing.Protocol,
+): ...
+
+
+@dataclasses.dataclass(frozen=True, kw_only=True)
+class Connect[**ParamT, RetT](
+    composer.Connect[ParamT, RetT],
+    abc.ABC,
 ): ...
 
 

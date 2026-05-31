@@ -27,6 +27,13 @@ class Composee[**ParamT, RetT](
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
+class Connect[**ParamT, RetT](
+    composer.Connect[ParamT, RetT],
+    scheduler_.Connect[ParamT, RetT],
+): ...
+
+
+@dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**ParamT, RetT](
     composer.Exit[ParamT, RetT],
     scheduler_.Exit[ParamT, RetT],
@@ -96,6 +103,7 @@ class Scheduler[**ParamT = ..., RetT = typing.Any](
     scheduler_.Scheduler[ParamT, RetT],
 ):
     composee_t: typing.ClassVar = Composee
+    connect_t: typing.ClassVar = Connect
     exit_t: typing.ClassVar = Exit
     enter_t: typing.ClassVar = Enter
     composed_t: typing.ClassVar = Composed
