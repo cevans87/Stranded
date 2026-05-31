@@ -3,7 +3,7 @@ import sys
 
 import pytest
 
-from stranded.logging import Logger
+from stranded.logging.asyncio import Logger
 
 
 logger = logging.getLogger(__name__)

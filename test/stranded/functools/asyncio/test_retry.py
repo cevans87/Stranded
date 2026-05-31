@@ -1,6 +1,6 @@
 import pytest
 
-from stranded.functools import Retry
+from stranded.functools.asyncio import Retry
 
 
 @pytest.mark.asyncio

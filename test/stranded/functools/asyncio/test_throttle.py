@@ -2,7 +2,7 @@ import asyncio
 
 import pytest
 
-from stranded.functools import Throttle
+from stranded.functools.asyncio import Throttle
 
 
 @pytest.mark.asyncio

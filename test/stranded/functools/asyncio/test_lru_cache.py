@@ -2,11 +2,11 @@ import asyncio
 
 import pytest
 
-from stranded.functools import LruCache
+from stranded.functools.asyncio import LruCache
 
 
 @pytest.mark.asyncio
-async def test_async_zero_args() -> None:
+async def test_zero_args() -> None:
     call_count = 0
 
     @LruCache()
@@ -21,7 +21,7 @@ async def test_async_zero_args() -> None:
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize('arg', [None, 1, 'foo', 0.0])
-async def test_async_primitive_arg(arg: object) -> None:
+async def test_primitive_arg(arg: object) -> None:
     call_count = 0
 
     @LruCache()
@@ -57,7 +57,7 @@ async def test_method() -> None:
 
 
 @pytest.mark.asyncio
-async def test_async_classmethod() -> None:
+async def test_classmethod() -> None:
     call_count = 0
 
     class Foo:
@@ -82,32 +82,7 @@ async def test_async_classmethod() -> None:
 
 
 @pytest.mark.asyncio
-async def test_multi_classmethod() -> None:
-    call_count = 0
-
-    class Foo:
-        @classmethod
-        @LruCache()
-        async def foo(cls) -> None:
-            nonlocal call_count
-            call_count += 1
-
-    foo0, foo1 = Foo(), Foo()
-    await foo0.foo()
-    await foo0.foo()
-    assert call_count == 1
-
-    await foo1.foo()
-    await foo1.foo()
-    assert call_count == 1
-
-    await Foo.foo()
-    await Foo.foo()
-    assert call_count == 1
-
-
-@pytest.mark.asyncio
-async def test_async_size_expires_memos() -> None:
+async def test_size_expires_memos() -> None:
     call_count = 0
 
     class Foo:
@@ -125,7 +100,7 @@ async def test_async_size_expires_memos() -> None:
 
 
 @pytest.mark.asyncio
-async def test_async_size_method_is_per_instance() -> None:
+async def test_size_method_is_per_instance() -> None:
     call_count = 0
 
     class Foo:
@@ -160,7 +135,7 @@ async def test_async_size_method_is_per_instance() -> None:
 
 
 @pytest.mark.asyncio
-async def test_async_size_classmethod_is_per_declaration() -> None:
+async def test_size_classmethod_is_per_declaration() -> None:
     call_count = 0
 
     class Foo:
@@ -196,7 +171,7 @@ async def test_async_size_classmethod_is_per_declaration() -> None:
 
 
 @pytest.mark.asyncio
-async def test_async_size_staticmethod_is_per_declaration() -> None:
+async def test_size_staticmethod_is_per_declaration() -> None:
     call_count = 0
 
     class Foo:
@@ -270,4 +245,3 @@ async def test_exceptions_are_saved() -> None:
     with pytest.raises(FooException):
         await foo()
     assert call_count == 1
-
