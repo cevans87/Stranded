@@ -3,19 +3,19 @@ import dataclasses
 import typing
 
 from ..abc import herd_
-from ...asyncio import decorator
+from ...asyncio import composer
 
 
-Raise = decorator.Raise
-Stop = decorator.Stop
-Param = decorator.Param
-Return = decorator.Return
+Raise = composer.Raise
+Stop = composer.Stop
+Param = composer.Param
+Return = composer.Return
 
 
 @typing.runtime_checkable
-class Decoratee[**ParamT, RetT](
-    decorator.Decoratee[ParamT, RetT],
-    herd_.Decoratee[ParamT, RetT],
+class Composee[**ParamT, RetT](
+    composer.Composee[ParamT, RetT],
+    herd_.Composee[ParamT, RetT],
     typing.Protocol,
 ): ...
 
@@ -40,13 +40,13 @@ class Future[RetT](herd_.Future[RetT]):
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**ParamT, RetT](
-    decorator.Exit[ParamT, RetT],
+    composer.Exit[ParamT, RetT],
     herd_.Exit[ParamT, RetT, Future[RetT]],
 ):
     future: Future[RetT] = dataclasses.field(default_factory=Future)
 
     @typing.override
-    async def __call__(self, value: decorator.ValueT[ParamT, RetT], /) -> decorator.StackT:  # type: ignore[override]
+    async def __call__(self, value: composer.ValueT[ParamT, RetT], /) -> composer.StackT:  # type: ignore[override]
         self.enter.future_by_key.pop(self.key, None)  # type: ignore[attr-defined]
         match value:
             case Param(): pass
@@ -58,13 +58,13 @@ class Exit[**ParamT, RetT](
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[**ParamT, RetT](
-    decorator.Enter[ParamT, RetT],
+    composer.Enter[ParamT, RetT],
     herd_.Enter[ParamT, RetT, Future[RetT]],
 ):
     @typing.override
     async def __call__(  # type: ignore[override]
-        self, value: decorator.ValueT[ParamT, RetT], /,
-    ) -> decorator.StackT:
+        self, value: composer.ValueT[ParamT, RetT], /,
+    ) -> composer.StackT:
         match value:
             case Param(): return self._dispatch(*value.args, **value.kwargs)  # type: ignore[return-value]
             case _: return ()
@@ -72,22 +72,22 @@ class Enter[**ParamT, RetT](
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorated[**ParamT, RetT](
-    decorator.Decorated[ParamT, RetT],
-    herd_.Decorated[ParamT, RetT],
+class Composed[**ParamT, RetT](
+    composer.Composed[ParamT, RetT],
+    herd_.Composed[ParamT, RetT],
 ): ...
 
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Herd[**ParamT, RetT](
-    decorator.Decorator[ParamT, RetT],
+    composer.Composer[ParamT, RetT],
     herd_.Herd[ParamT, RetT],
 ):
-    decoratee_t: typing.ClassVar = Decoratee
+    composee_t: typing.ClassVar = Composee
     exit_t: typing.ClassVar = Exit  # type: ignore[assignment]
     enter_t: typing.ClassVar = Enter
-    decorated_t: typing.ClassVar = Decorated
+    composed_t: typing.ClassVar = Composed
 
     @property
     @typing.override
@@ -95,5 +95,5 @@ class Herd[**ParamT, RetT](
         return Future
 
 
-Decorator = Herd
+Composer = Herd
 herd: Herd[..., typing.Any] = Herd()

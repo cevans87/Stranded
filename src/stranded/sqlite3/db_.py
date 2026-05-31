@@ -1,16 +1,16 @@
 import dataclasses
 import typing
 
-from .. import decorator
+from .. import composer
 from .abc import db_
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Db(  # type: ignore[misc]
-    decorator.Decorator[..., typing.Any],
+    composer.Composer[..., typing.Any],
     db_.Db[..., typing.Any],
 ): ...
 
 
-Decorator = Db
+Composer = Db
 db = Db()

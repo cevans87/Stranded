@@ -24,11 +24,11 @@ async def test_scheduler_runs_sync_fn_inline() -> None:
 
     @Scheduler()
     def f() -> int:
-        # When asyncio.Scheduler decorates a sync fn, it runs inline (same thread).
+        # When asyncio.Scheduler composes a sync fn, it runs inline (same thread).
         return threading.get_ident()
 
     # The asyncio scheduler turns a sync callee awaitable; the identity-typed
-    # decorator keeps the sync `() -> int` signature, so mypy can't see the await.
+    # composer keeps the sync `() -> int` signature, so mypy can't see the await.
     assert await f() == caller_tid  # type: ignore[misc]
 
 

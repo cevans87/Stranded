@@ -2,15 +2,15 @@ import dataclasses
 import typing
 
 from .abc import retry_
-from .. import decorator
+from .. import composer
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Retry(
-    decorator.Decorator[..., typing.Any],
+    composer.Composer[..., typing.Any],
     retry_.Retry[..., typing.Any],
 ): ...
 
 
-Decorator = Retry
+Composer = Retry
 retry = Retry()

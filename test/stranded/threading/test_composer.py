@@ -2,23 +2,23 @@ from __future__ import absolute_import
 
 import pytest
 
-from stranded import Decorator
+from stranded import Composer
 
 
-def test_or_calls_each_decoratee() -> None:
+def test_or_calls_each_composee() -> None:
     calls: list[tuple[str, int]] = []
 
-    @Decorator()
+    @Composer()
     def foo(v: int) -> int:
         calls.append(('foo', v))
         return v + 1
 
-    @Decorator()
+    @Composer()
     def bar(v: int) -> int:
         calls.append(('bar', v))
         return v * 10
 
-    @Decorator()
+    @Composer()
     def baz(v: int) -> int:
         calls.append(('baz', v))
         return v - 3
@@ -29,14 +29,14 @@ def test_or_calls_each_decoratee() -> None:
     assert result == 77
 
 
-def test_composed_or_extends_with_decorated() -> None:
-    @Decorator()
+def test_composed_or_extends_with_composed() -> None:
+    @Composer()
     def foo(v: int) -> int: return v + 1
 
-    @Decorator()
+    @Composer()
     def bar(v: int) -> int: return v * 10
 
-    @Decorator()
+    @Composer()
     def baz(v: int) -> int: return v - 3
 
     composed = (foo | bar) | baz
@@ -44,16 +44,16 @@ def test_composed_or_extends_with_decorated() -> None:
 
 
 def test_composed_or_extends_with_composed() -> None:
-    @Decorator()
+    @Composer()
     def foo(v: int) -> int: return v + 1
 
-    @Decorator()
+    @Composer()
     def bar(v: int) -> int: return v * 10
 
-    @Decorator()
+    @Composer()
     def baz(v: int) -> int: return v - 3
 
-    @Decorator()
+    @Composer()
     def qux(v: int) -> int: return v + 100
 
     composed = (foo | bar) | (baz | qux)

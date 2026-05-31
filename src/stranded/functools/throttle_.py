@@ -2,15 +2,15 @@ import dataclasses
 import typing
 
 from .abc import throttle_
-from .. import decorator
+from .. import composer
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Throttle(
-    decorator.Decorator[..., typing.Any],
+    composer.Composer[..., typing.Any],
     throttle_.Throttle[..., typing.Any],
 ): ...
 
 
-Decorator = Throttle
+Composer = Throttle
 throttle = Throttle()

@@ -5,70 +5,70 @@ import dataclasses
 import inspect
 import typing
 
-from . import decorator
+from . import composer
 from ..abc import scheduler as scheduler_
 
 
-Raise = decorator.Raise
-Stop = decorator.Stop
-Param = decorator.Param
-Return = decorator.Return
+Raise = composer.Raise
+Stop = composer.Stop
+Param = composer.Param
+Return = composer.Return
 
 
 @typing.runtime_checkable
-class Decoratee[**ParamT, RetT](
-    decorator.Decoratee[ParamT, RetT],
-    scheduler_.Decoratee[ParamT, RetT],
+class Composee[**ParamT, RetT](
+    composer.Composee[ParamT, RetT],
+    scheduler_.Composee[ParamT, RetT],
     typing.Protocol,
 ): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**ParamT, RetT](
-    decorator.Exit[ParamT, RetT],
+    composer.Exit[ParamT, RetT],
     scheduler_.Exit[ParamT, RetT],
 ): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[**ParamT, RetT](
-    decorator.Enter[ParamT, RetT],
+    composer.Enter[ParamT, RetT],
     scheduler_.Enter[ParamT, RetT],
 ):
     @typing.overload  # type: ignore[override]
-    async def __call__(self, value: Param[ParamT], /) -> tuple[decorator.Exit[ParamT, RetT], decorator.Decoratee[ParamT, RetT]]: ...
+    async def __call__(self, value: Param[ParamT], /) -> tuple[composer.Exit[ParamT, RetT], composer.Composee[ParamT, RetT]]: ...
     @typing.overload
     async def __call__(self, value: Raise | Return[RetT] | Stop, /) -> tuple[()]: ...
     async def __call__(
         self, value: Param[ParamT] | Raise | Return[RetT] | Stop, /,
-    ) -> tuple[decorator.Exit[ParamT, RetT], decorator.Decoratee[ParamT, RetT]] | tuple[()]:
+    ) -> tuple[composer.Exit[ParamT, RetT], composer.Composee[ParamT, RetT]] | tuple[()]:
         if not isinstance(value, Param):
             return ()
-        scheduler: Scheduler[ParamT, RetT] = typing.cast('Scheduler[ParamT, RetT]', self.decorator)
-        inner = self.decoratee
+        scheduler: Scheduler[ParamT, RetT] = typing.cast('Scheduler[ParamT, RetT]', self.composer)
+        inner = self.composee
 
         async def wrapped(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             return await scheduler.submit_async(inner, args, kwargs)
 
-        return self.exit_t(enter=self), typing.cast(decorator.Decoratee[ParamT, RetT], wrapped)
+        return self.exit_t(enter=self), typing.cast(composer.Composee[ParamT, RetT], wrapped)
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorated[**ParamT, RetT](
-    decorator.Decorated[ParamT, RetT],
-    scheduler_.Decorated[ParamT, RetT],
+class Composed[**ParamT, RetT](
+    composer.Composed[ParamT, RetT],
+    scheduler_.Composed[ParamT, RetT],
 ): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Scheduler[**ParamT = ..., RetT = typing.Any](
-    decorator.Decorator[ParamT, RetT],
+    composer.Composer[ParamT, RetT],
     scheduler_.Scheduler[ParamT, RetT],
 ):
-    decoratee_t: typing.ClassVar = Decoratee
+    composee_t: typing.ClassVar = Composee
     exit_t: typing.ClassVar = Exit
     enter_t: typing.ClassVar = Enter
-    decorated_t: typing.ClassVar = Decorated
+    composed_t: typing.ClassVar = Composed
 
     loop: asyncio.AbstractEventLoop | None = None
 

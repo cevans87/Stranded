@@ -7,7 +7,7 @@ import sys
 import typing
 import weakref
 
-from ...abc import decorator
+from ...abc import composer
 from ...builtins import exception_
 
 
@@ -22,30 +22,30 @@ class State:
 
 
 @typing.runtime_checkable
-class Decoratee[**ParamT, RetT](
-    decorator.Decoratee[ParamT, RetT],
+class Composee[**ParamT, RetT](
+    composer.Composee[ParamT, RetT],
     typing.Protocol,
 ): ...
 
 
-Param = decorator.Param
-Raise = decorator.Raise
-Return = decorator.Return
-Stop = decorator.Stop
+Param = composer.Param
+Raise = composer.Raise
+Return = composer.Return
+Stop = composer.Stop
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**ParamT, RetT](
-    decorator.Exit[ParamT, RetT],
+    composer.Exit[ParamT, RetT],
     abc.ABC,
 ):
-    def __call__(self, value: decorator.ValueT[ParamT, RetT], /) -> decorator.StackT:
+    def __call__(self, value: composer.ValueT[ParamT, RetT], /) -> composer.StackT:
         state = self.enter.state  # type: ignore[attr-defined]
         if isinstance(value, Raise) and state.num_running <= state.cap_running:
             state.cap_running //= 2
         elif (
             not isinstance(value, Raise)
-            and state.num_running == state.cap_running < self.enter.decorator.max_running  # type: ignore[attr-defined]
+            and state.num_running == state.cap_running < self.enter.composer.max_running  # type: ignore[attr-defined]
         ):
             state.cap_running += 1
         state.num_running -= 1
@@ -58,37 +58,37 @@ class Exit[**ParamT, RetT](
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[**ParamT, RetT](
-    decorator.Enter[ParamT, RetT],
+    composer.Enter[ParamT, RetT],
     abc.ABC,
 ):
-    # Per-decoration state lives on the Enter now that Enter/Exit no longer reach Decorated.
+    # Per-composition state lives on the Enter now that Enter/Exit no longer reach Composed.
     # Exit reads it back through self.enter; __get__ reinstalls a fresh-state Enter per instance.
     state: State = dataclasses.field(default_factory=State)
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorated[**ParamT, RetT](
-    decorator.Decorated[ParamT, RetT],
+class Composed[**ParamT, RetT](
+    composer.Composed[ParamT, RetT],
     abc.ABC,
 ):
-    decorated_by_instance: weakref.WeakKeyDictionary[
-        decorator.Instance, typing.Self,
+    composed_by_instance: weakref.WeakKeyDictionary[
+        composer.Instance, typing.Self,
     ] = dataclasses.field(default_factory=weakref.WeakKeyDictionary)
     lock: threading.Lock = dataclasses.field(default_factory=threading.Lock)
 
-    def __get__(self, instance: decorator.Instance, owner: type[object] | None) -> typing.Self:
+    def __get__(self, instance: composer.Instance, owner: type[object] | None) -> typing.Self:
         with self.lock:
-            if (decorated := self.decorated_by_instance.get(instance)) is not None:
-                return decorated
+            if (composed := self.composed_by_instance.get(instance)) is not None:
+                return composed
             match self.stack:
                 case [*rest, Enter() as enter_]:
                     fresh_enter = dataclasses.replace(
                         enter_,
                         condition=type(enter_.condition)(),  # type: ignore[attr-defined]
-                        decoratee=enter_.decoratee.__get__(instance, owner),
+                        composee=enter_.composee.__get__(instance, owner),
                         state=State(),
                     )
-                    return self.decorated_by_instance.setdefault(
+                    return self.composed_by_instance.setdefault(
                         instance, dataclasses.replace(self, stack=(*rest, fresh_enter)),
                     )
             assert False, "unreachable"
@@ -96,7 +96,7 @@ class Decorated[**ParamT, RetT](
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Throttle[**ParamT, RetT](
-    decorator.Decorator[ParamT, RetT],
+    composer.Composer[ParamT, RetT],
     abc.ABC,
 ):
     # How many callees are allowed through concurrently before additional callees become waiters.
@@ -106,4 +106,4 @@ class Throttle[**ParamT, RetT](
     max_waiting: int = sys.maxsize
 
 
-Decorator = Throttle
+Composer = Throttle

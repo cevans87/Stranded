@@ -4,11 +4,11 @@ import typing
 
 import pytest
 
-from stranded import Decorator
+from stranded import Composer
 
 
 def test_base() -> None:
-    @Decorator()
+    @Composer()
     def foo() -> None:
         ...
 
@@ -20,7 +20,7 @@ async def test_async_method() -> None:
 
     class Foo:
 
-        @Decorator()
+        @Composer()
         async def bar(self, v: int) -> dict[str, object]:
             return locals()
 
@@ -31,7 +31,7 @@ def test_multi_method() -> None:
 
     class Foo:
 
-        @Decorator()
+        @Composer()
         def bar(self, v: int) -> dict[str, object]:
             return locals()
 
@@ -44,7 +44,7 @@ async def test_async_classmethod() -> None:
     class Foo:
 
         @classmethod
-        @Decorator()
+        @Composer()
         async def bar(cls, v: int) -> dict[str, object]:
             return locals()
 
@@ -56,7 +56,7 @@ def test_multi_classmethod() -> None:
     class Foo:
 
         @classmethod
-        @Decorator()
+        @Composer()
         def bar(cls, v: int) -> dict[str, object]:
             return locals()
 
@@ -70,7 +70,7 @@ async def test_async_staticmethod() -> None:
         v: typing.ClassVar[int]
 
         @staticmethod
-        @Decorator()
+        @Composer()
         async def bar(v: int) -> dict[str, object]:
             return locals()
 
@@ -82,7 +82,7 @@ def test_multi_staticmethod() -> None:
     class Foo:
 
         @staticmethod
-        @Decorator()
+        @Composer()
         def bar(v: int) -> dict[str, object]:
             return locals()
 

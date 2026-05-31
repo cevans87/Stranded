@@ -9,38 +9,38 @@ import sqlite3
 import threading
 import typing
 
-from ...abc import decorator
+from ...abc import composer
 
 type GenerateKey = typing.Callable[..., Key]
 type Key = typing.Hashable
 
 
-Raise = decorator.Raise
-Stop = decorator.Stop
-Param = decorator.Param
-Return = decorator.Return
+Raise = composer.Raise
+Stop = composer.Stop
+Param = composer.Param
+Return = composer.Return
 
 
 @typing.runtime_checkable
-class Decoratee[**ParamT, RetT](
-    decorator.Decoratee[ParamT, RetT],
+class Composee[**ParamT, RetT](
+    composer.Composee[ParamT, RetT],
     typing.Protocol,
 ): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Exit[**ParamT, RetT](
-    decorator.Exit[ParamT, RetT],
+    composer.Exit[ParamT, RetT],
     abc.ABC,
 ):
     key: str
 
-    def __call__(self, value: decorator.ValueT[ParamT, RetT], /) -> decorator.StackT:
+    def __call__(self, value: composer.ValueT[ParamT, RetT], /) -> composer.StackT:
         match value:
             case Param() | Raise() | Stop(): pass
             case Return():
-                assert self.enter.decorator.deserialize(  # type: ignore[attr-defined]
-                    ret := self.enter.decorator.serialize(value.ret)  # type: ignore[attr-defined]
+                assert self.enter.composer.deserialize(  # type: ignore[attr-defined]
+                    ret := self.enter.composer.serialize(value.ret)  # type: ignore[attr-defined]
                 ) == value.ret, 'Return value must be deserializable from its serialized form.'
 
                 with self.enter.lock:  # type: ignore[attr-defined]
@@ -54,21 +54,21 @@ class Exit[**ParamT, RetT](
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[**ParamT, RetT](
-    decorator.Enter[ParamT, RetT],
+    composer.Enter[ParamT, RetT],
     abc.ABC,
 ):
-    # The connection and its per-decoration metadata live on the Enter now that
-    # Enter/Exit no longer reach Decorated.
+    # The connection and its per-composition metadata live on the Enter now that
+    # Enter/Exit no longer reach Composed.
     connection: sqlite3.Connection
-    instance: decorator.Instance
+    instance: composer.Instance
     table_name: str
     lock: threading.Lock = dataclasses.field(default_factory=threading.Lock)
 
-    def __call__(self, value: decorator.ValueT[ParamT, RetT], /) -> decorator.StackT:
+    def __call__(self, value: composer.ValueT[ParamT, RetT], /) -> composer.StackT:
         match value:
             case Raise() | Return() | Stop(): return ()
             case Param():
-                (bound := inspect.signature(self.decoratee).bind(*value.args, **value.kwargs)).apply_defaults()
+                (bound := inspect.signature(self.composee).bind(*value.args, **value.kwargs)).apply_defaults()
                 key = repr((self.instance, bound.args, tuple(sorted(bound.kwargs))))
 
                 with self.lock:
@@ -77,19 +77,19 @@ class Enter[**ParamT, RetT](
                         (key,),
                     ).fetchone()
                 if ret:
-                    return Return(ret=self.decorator.serialize(ret[0])),  # type: ignore[attr-defined]
+                    return Return(ret=self.composer.serialize(ret[0])),  # type: ignore[attr-defined]
 
-                return self.exit_t(enter=self, key=key), self.decoratee,  # type: ignore[call-arg]
+                return self.exit_t(enter=self, key=key), self.composee,  # type: ignore[call-arg]
 
         raise ValueError(f'Invalid {value=}')
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Decorated[**ParamT, RetT](
-    decorator.Decorated[ParamT, RetT],
+class Composed[**ParamT, RetT](
+    composer.Composed[ParamT, RetT],
     abc.ABC,
 ):
-    def __get__(self, instance: decorator.Instance, owner: type[object] | None) -> typing.Self:
+    def __get__(self, instance: composer.Instance, owner: type[object] | None) -> typing.Self:
         match self.stack:
             case [*rest, Enter() as enter_]:
                 return dataclasses.replace(
@@ -97,7 +97,7 @@ class Decorated[**ParamT, RetT](
                     stack=(
                         *rest,
                         dataclasses.replace(
-                            enter_, decoratee=enter_.decoratee.__get__(instance, owner), instance=instance,
+                            enter_, composee=enter_.composee.__get__(instance, owner), instance=instance,
                         ),
                     ),
                 )
@@ -106,7 +106,7 @@ class Decorated[**ParamT, RetT](
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Db[**ParamT, RetT](
-    decorator.Decorator[ParamT, RetT],
+    composer.Composer[ParamT, RetT],
     abc.ABC,
 ):
     type Version = str
@@ -116,24 +116,24 @@ class Db[**ParamT, RetT](
     serialize: typing.Callable[[RetT], str] = repr
     version: Version = '0.0.0'
 
-    def __call__(self, decoratee: Decoratee[ParamT, RetT], /) -> Decorated[ParamT, RetT]:
-        table_name = f'{decoratee.__module__}.{decoratee.__qualname__}.{self.version}'
+    def __call__(self, composee: Composee[ParamT, RetT], /) -> Composed[ParamT, RetT]:
+        table_name = f'{composee.__module__}.{composee.__qualname__}.{self.version}'
         (connection := sqlite3.connect(self.path, check_same_thread=False, isolation_level=None)).execute(
             f'CREATE TABLE IF NOT EXISTS `{table_name}` '  # noqa
             f'(key STRING PRIMARY KEY NOT NULL UNIQUE, ret STRING NOT NULL)',  # noqa
         )
 
-        return self.decorated_t(  # type: ignore[return-value]
-            __doc__=str(decoratee.__doc__),
-            __module__=str(decoratee.__module__),
-            __name__=str(decoratee.__name__),
-            __qualname__=str(decoratee.__qualname__),
-            __signature__=inspect.signature(decoratee),
-            decorator=self,
+        return self.composed_t(  # type: ignore[return-value]
+            __doc__=str(composee.__doc__),
+            __module__=str(composee.__module__),
+            __name__=str(composee.__name__),
+            __qualname__=str(composee.__qualname__),
+            __signature__=inspect.signature(composee),
+            composer=self,
             stack=(
                 self.enter_t(  # type: ignore[call-arg]
-                    decorator=self,
-                    decoratee=decoratee,
+                    composer=self,
+                    composee=composee,
                     connection=connection,
                     instance=None,
                     table_name=table_name,
@@ -142,4 +142,4 @@ class Db[**ParamT, RetT](
         )
 
 
-Decorator = Db
+Composer = Db
