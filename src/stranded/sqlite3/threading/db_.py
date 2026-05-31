@@ -15,7 +15,7 @@ class Decoratee[**ParamT, RetT](
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Exit[**ParamT, RetT](  # type: ignore[misc]
+class Exit[**ParamT, RetT](
     decorator.Exit[ParamT, RetT],
     db_.Exit[ParamT, RetT],
 ): ...
@@ -23,7 +23,7 @@ class Exit[**ParamT, RetT](  # type: ignore[misc]
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Enter[**ParamT, RetT](  # type: ignore[misc]
+class Enter[**ParamT, RetT](
     decorator.Enter[ParamT, RetT],
     db_.Enter[ParamT, RetT],
 ): ...
@@ -46,6 +46,6 @@ class Db[**ParamT, RetT](
     decoratee_t: typing.ClassVar = Decoratee
     exit_t: typing.ClassVar = Exit  # type: ignore[assignment]
     enter_t: typing.ClassVar = Enter
-    decorated_t: typing.ClassVar = Decorated  # type: ignore[assignment]
+    decorated_t: typing.ClassVar = Decorated
 Decorator = Db
 db: Db[..., typing.Any] = Db()

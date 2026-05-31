@@ -43,7 +43,7 @@ class Exit[**ParamT, RetT](
     decorator.Exit[ParamT, RetT],
     lru_cache_.Exit[ParamT, RetT, Future[RetT]],
 ):
-    def __call__(self, value: decorator.ValueT[ParamT, RetT], /) -> decorator.StackT:  # type: ignore[override]
+    def __call__(self, value: decorator.ValueT[ParamT, RetT], /) -> decorator.StackT:
         match value:
             case Param(): pass
             case Return() | Raise() | Stop(): self.future.set_value(value)
@@ -58,7 +58,7 @@ class Enter[**ParamT, RetT](
     lru_cache_.Enter[ParamT, RetT, Future[RetT]],
 ):
     # TODO: Dedup this with the asyncio version.
-    def __call__(  # type: ignore[override]
+    def __call__(
         self, value: decorator.ValueT[ParamT, RetT], /,
     ) -> decorator.StackT:
         match value:

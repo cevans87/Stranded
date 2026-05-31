@@ -46,6 +46,6 @@ class Db[**ParamT, RetT](
     decoratee_t: typing.ClassVar = Decoratee
     exit_t: typing.ClassVar = Exit  # type: ignore[assignment]
     enter_t: typing.ClassVar = Enter
-    decorated_t: typing.ClassVar = Decorated  # type: ignore[assignment]
+    decorated_t: typing.ClassVar = Decorated
 Decorator = Db
 db: Db[..., typing.Any] = Db()

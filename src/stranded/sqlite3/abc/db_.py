@@ -79,7 +79,7 @@ class Enter[**ParamT, RetT](
                 if ret:
                     return Return(ret=self.decorator.serialize(ret[0])),  # type: ignore[attr-defined]
 
-                return self.exit_t(enter=self, key=key), self.decoratee,  # type: ignore[call-arg, return-value]
+                return self.exit_t(enter=self, key=key), self.decoratee,  # type: ignore[call-arg]
 
         raise ValueError(f'Invalid {value=}')
 
@@ -117,7 +117,7 @@ class Db[**ParamT, RetT](
     version: Version = '0.0.0'
 
     def __call__(self, decoratee: Decoratee[ParamT, RetT], /) -> Decorated[ParamT, RetT]:
-        table_name = f'{decoratee.__module__}.{decoratee.__qualname__}.{self.version}'  # type: ignore[attr-defined]
+        table_name = f'{decoratee.__module__}.{decoratee.__qualname__}.{self.version}'
         (connection := sqlite3.connect(self.path, check_same_thread=False, isolation_level=None)).execute(
             f'CREATE TABLE IF NOT EXISTS `{table_name}` '  # noqa
             f'(key STRING PRIMARY KEY NOT NULL UNIQUE, ret STRING NOT NULL)',  # noqa
@@ -126,8 +126,8 @@ class Db[**ParamT, RetT](
         return self.decorated_t(  # type: ignore[return-value]
             __doc__=str(decoratee.__doc__),
             __module__=str(decoratee.__module__),
-            __name__=str(decoratee.__name__),  # type: ignore[attr-defined]
-            __qualname__=str(decoratee.__qualname__),  # type: ignore[attr-defined]
+            __name__=str(decoratee.__name__),
+            __qualname__=str(decoratee.__qualname__),
             __signature__=inspect.signature(decoratee),
             decorator=self,
             stack=(

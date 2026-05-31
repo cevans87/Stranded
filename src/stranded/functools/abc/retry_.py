@@ -32,7 +32,7 @@ class Exit[**ParamT, RetT](
 ):
     def __call__(self, value: decorator.ValueT[ParamT, RetT], /) -> decorator.StackT:
         if self.enter.n_retried < self.enter.decorator.n and isinstance(value, Raise):  # type: ignore[attr-defined]
-            return dataclasses.replace(self.enter, n_retried=self.enter.n_retried + 1), self.enter.param  # type: ignore[attr-defined, return-value]
+            return dataclasses.replace(self.enter, n_retried=self.enter.n_retried + 1), self.enter.param  # type: ignore[attr-defined, call-arg]
 
         return ()
 
@@ -49,7 +49,7 @@ class Enter[**ParamT, RetT](
         match value:
             case Param() as param_:
                 new_self = dataclasses.replace(self, param=param_)
-                return new_self.exit_t(enter=new_self), self.decoratee  # type: ignore[return-value]
+                return new_self.exit_t(enter=new_self), self.decoratee
             case _: return ()
 
 

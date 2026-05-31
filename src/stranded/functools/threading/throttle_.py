@@ -42,7 +42,7 @@ class Enter[**ParamT, RetT](
 ):
     condition: _Condition = dataclasses.field(default_factory=threading.Condition)
 
-    def __call__(self, value: decorator.ValueT[ParamT, RetT], /) -> decorator.StackT:  # type: ignore[override]
+    def __call__(self, value: decorator.ValueT[ParamT, RetT], /) -> decorator.StackT:
         # TODO: this is mostly duplicate with the asyncio version. Try to consolidate.
         match value:
             case Param():
