@@ -99,8 +99,9 @@ class Enter[**ParamT, RetT](abc.ABC):
     def composed_t(self) -> type[Composed[typing.Any, typing.Any]]: return self.composer.composed_t
 
     def __call__(self, value: ValueT[ParamT, RetT], /) -> StackT:
-        match value:
-            case Param(): return self.exit_t(enter=self), self.composee,
+        match value, self.composee:
+            case Param(), Composed() as composed_: return self.exit_t(enter=self), *composed_.stack
+            case Param(), composee_: return self.exit_t(enter=self), composee_,
             case _: return ()
 
 
