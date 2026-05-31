@@ -1,8 +1,10 @@
 from __future__ import absolute_import
 
+import typing
+
 import pytest
 
-from stranded import Composer
+from stranded.asyncio.composer import Composer
 from stranded.abc import composer as abc_composer
 
 
@@ -151,6 +153,45 @@ async def test_stop_is_not_caught_by_except_exception() -> None:
         await cancelled()
 
     assert swallowed is False
+
+
+@pytest.mark.asyncio
+async def test_method() -> None:
+
+    class Foo:
+
+        @Composer()
+        async def bar(self, v: int) -> dict[str, object]:
+            return locals()
+
+    assert await (foo := Foo()).bar(42) == {'self': foo, 'v': 42}
+
+
+@pytest.mark.asyncio
+async def test_classmethod() -> None:
+
+    class Foo:
+
+        @classmethod
+        @Composer()
+        async def bar(cls, v: int) -> dict[str, object]:
+            return locals()
+
+    assert await Foo().bar(42) == {'cls': Foo, 'v': 42}
+
+
+@pytest.mark.asyncio
+async def test_staticmethod() -> None:
+
+    class Foo:
+        v: typing.ClassVar[int]
+
+        @staticmethod
+        @Composer()
+        async def bar(v: int) -> dict[str, object]:
+            return locals()
+
+    assert await Foo.bar(42) == {'v': 42}
 
 
 if __name__ == '__main__':

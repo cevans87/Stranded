@@ -4,7 +4,7 @@ import typing
 import pytest
 import pytest_asyncio
 
-from stranded.functools import Herd
+from stranded.functools.asyncio import Herd
 
 
 @pytest_asyncio.fixture(autouse=True)
