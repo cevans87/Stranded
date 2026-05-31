@@ -2,11 +2,10 @@ from __future__ import absolute_import
 
 import asyncio
 import threading
-import typing
 
 import pytest
 
-from stranded import Composer, Decorator, Scheduler
+from stranded import Decorator, Scheduler
 
 
 def test_scheduler_on_sync_runs_on_worker_thread() -> None:
@@ -29,21 +28,6 @@ async def test_scheduler_on_async_routes_to_asyncio_flavor() -> None:
     assert await f(7) == 28
 
 
-def test_scheduler_wraps_composed_per_constituent() -> None:
-    @Decorator()
-    def a(x: int) -> int:
-        return x + 1
-
-    @Decorator()
-    def b(x: int) -> int:
-        return x * 10
-
-    composed: typing.Any = Composer()(a, b)  # type: ignore[arg-type]
-    wrapped = Scheduler(max_workers=2)(composed)
-
-    assert wrapped.call_sync(7) == 80
-
-
 def test_scheduler_nests_with_existing_decorated() -> None:
     @Decorator()
     def f(x: int) -> int:
@@ -64,7 +48,6 @@ def test_scheduler_pool_is_shared_across_instances() -> None:
 def test_top_level_scheduler_classvars_are_not_dataclass_fields() -> None:
     import dataclasses
     field_names = {f.name for f in dataclasses.fields(Scheduler)}
-    assert 'composer_t' not in field_names
     assert 'decoratee_t' not in field_names
     assert 'enter_t' not in field_names
     assert 'exit_t' not in field_names

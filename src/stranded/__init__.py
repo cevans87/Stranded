@@ -8,8 +8,6 @@ if _typing.TYPE_CHECKING:
     from . import argparse
     from . import asyncio
     from . import builtins
-    from . import composer
-    from .composer import Composer
     from . import decorator
     from .decorator import Decorator
     from . import functools
@@ -27,8 +25,6 @@ def __getattr__(name: str) -> _typing.Any:
         case 'argparse': return _importlib.import_module('.argparse', __name__)
         case 'asyncio': return _importlib.import_module('.asyncio', __name__)
         case 'builtins': return _importlib.import_module('.builtins', __name__)
-        case 'composer': return _importlib.import_module('.composer', __name__)
-        case 'Composer': return _importlib.import_module('.composer', __name__).Composer
         case 'decorator': return _importlib.import_module('.decorator', __name__)
         case 'Decorator': return _importlib.import_module('.decorator', __name__).Decorator
         case 'functools': return _importlib.import_module('.functools', __name__)
@@ -46,8 +42,6 @@ __all__ = (
     'argparse',
     'asyncio',
     'builtins',
-    'composer',
-    'Composer',
     'decorator',
     'Decorator',
     'functools',

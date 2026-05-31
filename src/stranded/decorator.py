@@ -3,7 +3,6 @@ import importlib
 import inspect
 import typing
 
-from . import composer
 from .abc import decorator
 
 
@@ -16,7 +15,6 @@ class Decorator[**ParamT, RetT](decorator.Decorator[ParamT, RetT]):
     exit_t: typing.ClassVar = decorator.Exit
     enter_t: typing.ClassVar = decorator.Enter
     decorated_t: typing.ClassVar = decorator.Decorated
-    composer_t: typing.ClassVar = composer.Composer
 
     def __call__[DecorateeT](self, decoratee: DecorateeT) -> DecorateeT:  # type: ignore[override]
         (name_parts := self.__module__.split('.')).insert(

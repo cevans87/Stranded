@@ -2,7 +2,6 @@ import abc
 import dataclasses
 import typing
 
-from . import composer
 from ..abc import decorator
 
 
@@ -73,4 +72,3 @@ class Decorator[**ParamT, RetT](decorator.Decorator[ParamT, RetT]):
     exit_t: typing.ClassVar = Exit
     enter_t: typing.ClassVar = Enter
     decorated_t: typing.ClassVar = Decorated
-    composer_t: typing.ClassVar = composer.Composer
