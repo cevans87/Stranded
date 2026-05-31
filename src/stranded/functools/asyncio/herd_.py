@@ -86,4 +86,4 @@ class Herd[**ParamT, RetT](composer.Composer[ParamT, RetT], herd_.Herd[ParamT, R
 
 
 Composer = Herd
-herd: Herd[..., typing.Any] = Herd()
+herd = Herd()

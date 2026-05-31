@@ -37,5 +37,7 @@ class Db[**ParamT, RetT](composer.Composer[ParamT, RetT], db_.Composer[ParamT, R
     exit_t: typing.ClassVar = Exit
     enter_t: typing.ClassVar = Enter
     composed_t: typing.ClassVar = Composed
+
+
 Composer = Db
-db: Db[..., typing.Any] = Db()
+db = Db()

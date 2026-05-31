@@ -36,5 +36,7 @@ class Retry[**ParamT, RetT](composer.Composer[ParamT, RetT], retry_.Composer[Par
     exit_t: typing.ClassVar = Exit
     enter_t: typing.ClassVar = Enter
     composed_t: typing.ClassVar = Composed
+
+
 Composer = Retry
-retry: Retry[..., typing.Any] = Retry()
+retry = Retry()
