@@ -22,10 +22,7 @@ class State:
 
 
 @typing.runtime_checkable
-class Composee[**ParamT, RetT](
-    composer.Composee[ParamT, RetT],
-    typing.Protocol,
-): ...
+class Composee[**ParamT, RetT](composer.Composee[ParamT, RetT], typing.Protocol): ...
 
 
 Param = composer.Param
@@ -35,17 +32,11 @@ Stop = composer.Stop
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Connect[**ParamT, RetT](
-    composer.Connect[ParamT, RetT],
-    abc.ABC,
-): ...
+class Connect[**ParamT, RetT](composer.Connect[ParamT, RetT], abc.ABC): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Exit[**ParamT, RetT](
-    composer.Exit[ParamT, RetT],
-    abc.ABC,
-):
+class Exit[**ParamT, RetT](composer.Exit[ParamT, RetT], abc.ABC):
     def __call__(self, value: composer.ValueT[ParamT, RetT], /) -> composer.StackT:
         state = self.enter.state  # type: ignore[attr-defined]
         if isinstance(value, Raise) and state.num_running <= state.cap_running:
@@ -64,20 +55,14 @@ class Exit[**ParamT, RetT](
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Enter[**ParamT, RetT](
-    composer.Enter[ParamT, RetT],
-    abc.ABC,
-):
+class Enter[**ParamT, RetT](composer.Enter[ParamT, RetT], abc.ABC):
     # Per-composition state lives on the Enter now that Enter/Exit no longer reach Composed.
     # Exit reads it back through self.enter; __get__ reinstalls a fresh-state Enter per instance.
     state: State = dataclasses.field(default_factory=State)
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Composed[**ParamT, RetT](
-    composer.Composed[ParamT, RetT],
-    abc.ABC,
-):
+class Composed[**ParamT, RetT](composer.Composed[ParamT, RetT], abc.ABC):
     composed_by_instance: weakref.WeakKeyDictionary[
         composer.Instance, typing.Self,
     ] = dataclasses.field(default_factory=weakref.WeakKeyDictionary)
@@ -102,10 +87,7 @@ class Composed[**ParamT, RetT](
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Throttle[**ParamT, RetT](
-    composer.Composer[ParamT, RetT],
-    abc.ABC,
-):
+class Throttle[**ParamT, RetT](composer.Composer[ParamT, RetT], abc.ABC):
     # How many callees are allowed through concurrently before additional callees become waiters.
     max_running: int = sys.maxsize
 

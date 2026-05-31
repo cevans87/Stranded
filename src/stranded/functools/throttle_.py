@@ -6,10 +6,7 @@ from .. import composer
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Throttle(
-    composer.Composer[..., typing.Any],
-    throttle_.Throttle[..., typing.Any],
-): ...
+class Throttle(composer.Composer[..., typing.Any], throttle_.Throttle[..., typing.Any]): ...
 
 
 Composer = Throttle

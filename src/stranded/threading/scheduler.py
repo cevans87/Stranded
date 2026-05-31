@@ -19,32 +19,19 @@ Return = composer.Return
 
 
 @typing.runtime_checkable
-class Composee[**ParamT, RetT](
-    composer.Composee[ParamT, RetT],
-    scheduler_.Composee[ParamT, RetT],
-    typing.Protocol,
-): ...
+class Composee[**ParamT, RetT](composer.Composee[ParamT, RetT], scheduler_.Composee[ParamT, RetT], typing.Protocol): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Connect[**ParamT, RetT](
-    composer.Connect[ParamT, RetT],
-    scheduler_.Connect[ParamT, RetT],
-): ...
+class Connect[**ParamT, RetT](composer.Connect[ParamT, RetT], scheduler_.Connect[ParamT, RetT]): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Exit[**ParamT, RetT](
-    composer.Exit[ParamT, RetT],
-    scheduler_.Exit[ParamT, RetT],
-): ...
+class Exit[**ParamT, RetT](composer.Exit[ParamT, RetT], scheduler_.Exit[ParamT, RetT]): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Enter[**ParamT, RetT](
-    composer.Enter[ParamT, RetT],
-    scheduler_.Enter[ParamT, RetT],
-):
+class Enter[**ParamT, RetT](composer.Enter[ParamT, RetT], scheduler_.Enter[ParamT, RetT]):
     @typing.overload  # type: ignore[override]
     def __call__(self, value: Param[ParamT], /) -> tuple[composer.Exit[ParamT, RetT], composer.Composee[ParamT, RetT]]: ...
     @typing.overload
@@ -64,10 +51,7 @@ class Enter[**ParamT, RetT](
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Composed[**ParamT, RetT](
-    composer.Composed[ParamT, RetT],
-    scheduler_.Composed[ParamT, RetT],
-): ...
+class Composed[**ParamT, RetT](composer.Composed[ParamT, RetT], scheduler_.Composed[ParamT, RetT]): ...
 
 
 _thread_pools: dict[tuple[int | None, str], concurrent.futures.ThreadPoolExecutor] = {}
@@ -98,10 +82,7 @@ atexit.register(_shutdown_all)
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Scheduler[**ParamT = ..., RetT = typing.Any](
-    composer.Composer[ParamT, RetT],
-    scheduler_.Scheduler[ParamT, RetT],
-):
+class Scheduler[**ParamT = ..., RetT = typing.Any](composer.Composer[ParamT, RetT], scheduler_.Scheduler[ParamT, RetT]):
     composee_t: typing.ClassVar = Composee
     connect_t: typing.ClassVar = Connect
     exit_t: typing.ClassVar = Exit

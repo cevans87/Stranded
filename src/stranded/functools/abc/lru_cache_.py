@@ -38,33 +38,21 @@ class Future[RetT](abc.ABC):
 
 
 @typing.runtime_checkable
-class Composee[**ParamT, RetT](
-    composer.Composee[ParamT, RetT],
-    typing.Protocol,
-): ...
+class Composee[**ParamT, RetT](composer.Composee[ParamT, RetT], typing.Protocol): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Connect[**ParamT, RetT](
-    composer.Connect[ParamT, RetT],
-    abc.ABC,
-): ...
+class Connect[**ParamT, RetT](composer.Connect[ParamT, RetT], abc.ABC): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Exit[**ParamT, RetT, FutureT](
-    composer.Exit[ParamT, RetT],
-    abc.ABC,
-):
+class Exit[**ParamT, RetT, FutureT](composer.Exit[ParamT, RetT], abc.ABC):
     future: FutureT
     key: Key
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Enter[**ParamT, RetT, FutureT](
-    composer.Enter[ParamT, RetT],
-    abc.ABC,
-):
+class Enter[**ParamT, RetT, FutureT](composer.Enter[ParamT, RetT], abc.ABC):
     # The cache lives on the Enter now that Enter/Exit no longer reach Composed.
     future_by_key: collections.OrderedDict[Key, FutureT] = dataclasses.field(default_factory=collections.OrderedDict)
 
@@ -74,10 +62,7 @@ class Enter[**ParamT, RetT, FutureT](
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Composed[**ParamT, RetT](
-    composer.Composed[ParamT, RetT],
-    abc.ABC,
-):
+class Composed[**ParamT, RetT](composer.Composed[ParamT, RetT], abc.ABC):
     composed_by_instance: weakref.WeakKeyDictionary[
         composer.Instance, typing.Self,
     ] = dataclasses.field(default_factory=weakref.WeakKeyDictionary)
@@ -99,10 +84,7 @@ class Composed[**ParamT, RetT](
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class LruCache[**ParamT, RetT](
-    composer.Composer[ParamT, RetT],
-    abc.ABC,
-):
+class LruCache[**ParamT, RetT](composer.Composer[ParamT, RetT], abc.ABC):
     size: int = sys.maxsize
 
     @property

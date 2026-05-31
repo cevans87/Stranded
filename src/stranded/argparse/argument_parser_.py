@@ -6,10 +6,7 @@ from .. import composer
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class ArgumentParser(  # type: ignore[misc]
-    composer.Composer[..., typing.Any],
-    argument_parser_.ArgumentParser[..., typing.Any],
-): ...
+class ArgumentParser(composer.Composer[..., typing.Any], argument_parser_.ArgumentParser[..., typing.Any]): ...  # type: ignore[misc]
 
 
 Composer = ArgumentParser
