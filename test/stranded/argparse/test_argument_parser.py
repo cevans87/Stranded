@@ -43,7 +43,7 @@ def test_creates_signature() -> None:
 
     for argument_parser in (foo, bar, baz):
         assert inspect.signature(argument_parser).parameters == {
-            'argv': inspect.Parameter('argv', inspect.Parameter.VAR_POSITIONAL),
+            'argv': inspect.Parameter('argv', inspect.Parameter.VAR_POSITIONAL, annotation=str),
         }
 
 

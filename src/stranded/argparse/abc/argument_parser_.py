@@ -428,6 +428,7 @@ class Enter[**ParamT, RetT](composer.Enter[ParamT, RetT], abc.ABC): ...
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Composed[**ParamT, RetT](composer.Composed[ParamT, RetT], abc.ABC):
+    composee: Composee[ParamT, RetT]
     children: tuple[typing.Self, typing.Self] | None = None
 
     @property
@@ -480,6 +481,22 @@ class ArgumentParser[**ParamT, RetT](composer.Composer[ParamT, RetT], abc.ABC):
 
     Signature: typing.ClassVar = _Signature
 
+    @property
+    @abc.abstractmethod
+    def composee_t(self) -> type[Composee[typing.Any, typing.Any]]: ...
+    @property
+    @abc.abstractmethod
+    def connect_t(self) -> type[Connect[typing.Any, typing.Any]]: ...
+    @property
+    @abc.abstractmethod
+    def exit_t(self) -> type[Exit[typing.Any, typing.Any]]: ...
+    @property
+    @abc.abstractmethod
+    def enter_t(self) -> type[Enter[typing.Any, typing.Any]]: ...
+    @property
+    @abc.abstractmethod
+    def composed_t(self) -> type[Composed[typing.Any, typing.Any]]: ...
+
     def __call__(self, composee: Composee[ParamT, RetT], /) -> Composed[ParamT, RetT]:
         return self.composed_t(  # type: ignore[return-value]
             __doc__=str(composee.__doc__),
@@ -487,10 +504,9 @@ class ArgumentParser[**ParamT, RetT](composer.Composer[ParamT, RetT], abc.ABC):
             __name__=str(composee.__name__),
             __qualname__=str(composee.__qualname__),
             __signature__=inspect.signature(composee).replace(
-                parameters=(
-                    inspect.Parameter('argv', inspect.Parameter.VAR_POSITIONAL),
-                ),
+                parameters=(inspect.Parameter('argv', inspect.Parameter.VAR_POSITIONAL, annotation=str),),
             ),
+            composee=composee,
             composer=self,
             stack=(self.enter_t(composer=self, composee=composee),),
         )
