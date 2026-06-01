@@ -53,14 +53,15 @@ class Composee[**ParamT, RetT](typing.Protocol):
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Connect[**ParamT, RetT](abc.ABC):
+    sender: Composed[ParamT, RetT]
+    receiver: Composed[typing.Any, typing.Any]
     composer: Composer[ParamT, RetT]
-    stack: StackT
-
+    
     def __call__(self, value: ValueT[ParamT, RetT], /) -> StackT:
         match value:
-            case Param() as param_: return *self.stack, param_
+            case Param() as param_: return *self.receiver.stack, param_
             case Raise() as raise_: return raise_,
-            case Return() as return_: return *self.stack, Param(args=(return_.ret,), kwargs={}),
+            case Return() as return_: return *self.receiver.stack, Param(args=(return_.ret,), kwargs={}),
             case Stop() as stop_: return stop_,
 
 
@@ -111,8 +112,8 @@ class Composed[**ParamT, RetT](abc.ABC):
     __name__: str
     __qualname__: str
     __signature__: inspect.Signature
-    stack: StackT
     composer: Composer[ParamT, RetT]
+    stack: StackT
 
     @property
     def composee_t(self) -> type[Composee[typing.Any, typing.Any]]: return self.composer.composee_t
@@ -128,17 +129,9 @@ class Composed[**ParamT, RetT](abc.ABC):
     @abc.abstractmethod
     def __call__(self, *args: ParamT.args, **kwargs: ParamT.kwargs) -> RetT: ...
 
-    @property
-    def composee(self) -> Composee[ParamT, RetT]:
-        # The composee lives on the Enter at the base of the stack. Sub-domain code that
-        # used to read self.composed.composee now reads it through this accessor.
-        match self.stack:
-            case [*_, Enter() as enter_]: return enter_.composee
-        assert False, "unreachable"
-
     def __get__(self, instance: Instance, owner: type[object] | None) -> typing.Self:
-        match self.stack:
-            case [*_, Enter() as enter_]:
+        match self.stack[-1]:
+            case Enter() as enter_:
                 return dataclasses.replace(
                     self,
                     stack=(
@@ -148,21 +141,34 @@ class Composed[**ParamT, RetT](abc.ABC):
                 )
         assert False, "unreachable"
 
-    def __or__[**OtherParamT, OtherRetT](
+    def __or__[**ReceiverParamT, ReceiverRetT](
         self,
-        other_composed: Composed[OtherParamT, OtherRetT],
+        receiver: Composed[ReceiverParamT, ReceiverRetT],
         /,
-    ) -> Composed[ParamT, OtherRetT]:
+    ) -> Composed[ReceiverParamT, RetT]:
         return dataclasses.replace(
-            other_composed,
-            __doc__=f"{self.__doc__}\n\n{other_composed.__doc__}",
-            __name__=f"{self.__name__}|{other_composed.__name__}",
-            __qualname__=f"{self.__qualname__}|{other_composed.__qualname__}",
+            self,
+            __doc__=f"{self.__doc__}\n\n{receiver.__doc__}",
             __signature__=inspect.Signature().replace(
                 parameters=tuple(self.__signature__.parameters.values()),
-                return_annotation=other_composed.__signature__.return_annotation,
+                return_annotation=receiver.__signature__.return_annotation,
             ),
-            stack=(self.connect_t(composer=self.composer, stack=other_composed.stack), *self.stack),
+            stack=(self.connect_t(composer=self.composer, receiver=receiver, sender=self), *self.stack),
+        )
+
+    def __lor__[**SenderParamT, SenderRetT](
+        self,
+        sender: Composed[SenderParamT, SenderRetT],
+        /,
+    ) -> Composed[SenderParamT, RetT]:
+        return dataclasses.replace(
+            self,
+            __doc__=f"{sender.__doc__}\n\n{self.__doc__}",
+            __signature__=inspect.Signature().replace(
+                parameters=tuple(sender.__signature__.parameters.values()),
+                return_annotation=self.__signature__.return_annotation,
+            ),
+            stack=(self.connect_t(composer=self.composer, receiver=self, sender=sender), *sender.stack),
         )
 
 

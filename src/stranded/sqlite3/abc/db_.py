@@ -82,12 +82,12 @@ class Enter[**ParamT, RetT](composer.Enter[ParamT, RetT], abc.ABC):
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Composed[**ParamT, RetT](composer.Composed[ParamT, RetT], abc.ABC):
     def __get__(self, instance: composer.Instance, owner: type[object] | None) -> typing.Self:
-        match self.stack:
-            case [*rest, Enter() as enter_]:
+        match self.stack[-1]:
+            case Enter() as enter_:
                 return dataclasses.replace(
                     self,
                     stack=(
-                        *rest,
+                        *self.stack[:-1],
                         dataclasses.replace(
                             enter_, composee=enter_.composee.__get__(instance, owner), instance=instance,
                         ),
