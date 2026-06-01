@@ -53,7 +53,6 @@ class Exit[**ParamT, RetT, FutureT](composer.Exit[ParamT, RetT], abc.ABC):
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enter[**ParamT, RetT, FutureT](composer.Enter[ParamT, RetT], abc.ABC):
-    # The cache lives on the Enter now that Enter/Exit no longer reach Composed.
     future_by_key: collections.OrderedDict[Key, FutureT] = dataclasses.field(default_factory=collections.OrderedDict)
 
     @staticmethod
@@ -70,15 +69,20 @@ class Composed[**ParamT, RetT](composer.Composed[ParamT, RetT], abc.ABC):
     def __get__(self, instance: composer.Instance, owner: type[object] | None) -> typing.Self:
         if (composed := self.composed_by_instance.get(instance)) is not None:
             return composed
-        match self.stack:
-            case [*rest, Enter() as enter_]:
-                fresh_enter = dataclasses.replace(
-                    enter_,
-                    composee=enter_.composee.__get__(instance, owner),
-                    future_by_key=collections.OrderedDict(),
-                )
+        match self.stack[-1]:
+            case Enter() as enter_:
                 return self.composed_by_instance.setdefault(
-                    instance, dataclasses.replace(self, stack=(*rest, fresh_enter)),
+                    instance, dataclasses.replace(
+                        self,
+                        stack=(
+                            *self.stack[:-1],
+                            dataclasses.replace(
+                                enter_,
+                                composee=enter_.composee.__get__(instance, owner),
+                                future_by_key=collections.OrderedDict(),
+                            )
+                        )
+                    ),
                 )
         assert False, "unreachable"
 
