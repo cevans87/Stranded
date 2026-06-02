@@ -4,8 +4,8 @@ import typing
 
 import pytest
 
-from stranded.asyncio.composer import Composer
-from stranded.abc import composer as abc_composer
+from stranded.asyncio.composer_ import Composer
+from stranded.abc import composer_ as abc_composer
 
 
 @pytest.mark.asyncio

@@ -6,8 +6,8 @@ import importlib
 import inspect
 import typing
 
-from .abc import composer
-from .abc import scheduler as scheduler_
+from .abc import composer_
+from .abc import scheduler_
 
 
 def _dispatch(self: scheduler_.Scheduler[typing.Any, typing.Any], target: typing.Any) -> typing.Any:
@@ -27,11 +27,11 @@ def _dispatch(self: scheduler_.Scheduler[typing.Any, typing.Any], target: typing
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Scheduler[**ParamT, RetT](scheduler_.Scheduler[ParamT, RetT]):
-    composee_t: typing.ClassVar = composer.Composee
-    connect_t: typing.ClassVar = composer.Connect
-    exit_t: typing.ClassVar = composer.Exit
-    enter_t: typing.ClassVar = composer.Enter
-    composed_t: typing.ClassVar = composer.Composed
+    composee_t: typing.ClassVar = composer_.Composee
+    connect_t: typing.ClassVar = composer_.Connect
+    exit_t: typing.ClassVar = composer_.Exit
+    enter_t: typing.ClassVar = composer_.Enter
+    composed_t: typing.ClassVar = composer_.Composed
 
     # Union of flavor-specific fields. The dispatcher forwards only the fields
     # the target flavor's Scheduler actually accepts.

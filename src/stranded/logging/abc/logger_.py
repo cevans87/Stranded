@@ -6,7 +6,7 @@ import inspect
 import logging
 import typing
 
-from ...abc import composer
+from ...abc import composer_
 from ...builtins import exception_
 
 
@@ -17,24 +17,24 @@ class Exception(exception_.Exception): ...  # noqa
 
 
 @typing.runtime_checkable
-class Composee[**ParamT, RetT](composer.Composee[ParamT, RetT], typing.Protocol): ...
+class Composee[**ParamT, RetT](composer_.Composee[ParamT, RetT], typing.Protocol): ...
 
 
-Param = composer.Param
-Raise = composer.Raise
-Return = composer.Return
-Stop = composer.Stop
-
-
-@dataclasses.dataclass(frozen=True, kw_only=True)
-class Connect[**ParamT, RetT](composer.Connect[ParamT, RetT], abc.ABC): ...
+Param = composer_.Param
+Raise = composer_.Raise
+Return = composer_.Return
+Stop = composer_.Stop
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Exit[**ParamT, RetT](composer.Exit[ParamT, RetT], abc.ABC):
+class Connect[**ParamT, RetT](composer_.Connect[ParamT, RetT], abc.ABC): ...
+
+
+@dataclasses.dataclass(frozen=True, kw_only=True)
+class Exit[**ParamT, RetT](composer_.Exit[ParamT, RetT], abc.ABC):
     bound_arguments: inspect.BoundArguments
 
-    def __call__(self, value: composer.ValueT[ParamT, RetT], /) -> composer.StackT:
+    def __call__(self, value: composer_.ValueT[ParamT, RetT], /) -> composer_.StackT:
         match value:
             case Raise() as raise_:
                 self.enter.composer.logger.log(  # type: ignore[attr-defined]
@@ -57,8 +57,8 @@ class Exit[**ParamT, RetT](composer.Exit[ParamT, RetT], abc.ABC):
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Enter[**ParamT, RetT](composer.Enter[ParamT, RetT], abc.ABC):
-    def __call__(self, value: composer.ValueT[ParamT, RetT], /) -> composer.StackT:
+class Enter[**ParamT, RetT](composer_.Enter[ParamT, RetT], abc.ABC):
+    def __call__(self, value: composer_.ValueT[ParamT, RetT], /) -> composer_.StackT:
         match value:
             case Param() as param_:
                 bound_arguments = inspect.signature(self.composee).bind(*param_.args, **param_.kwargs)
@@ -75,11 +75,11 @@ class Enter[**ParamT, RetT](composer.Enter[ParamT, RetT], abc.ABC):
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Composed[**ParamT, RetT](composer.Composed[ParamT, RetT], abc.ABC): ...
+class Composed[**ParamT, RetT](composer_.Composed[ParamT, RetT], abc.ABC): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Logger[**ParamT, RetT](composer.Composer[ParamT, RetT], abc.ABC):
+class Logger[**ParamT, RetT](composer_.Composer[ParamT, RetT], abc.ABC):
     logger: logging.Logger
     call_level: Level = 'DEBUG'
     err_level: Level = 'ERROR'

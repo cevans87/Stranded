@@ -2,11 +2,11 @@ import dataclasses
 import typing
 
 from .abc import herd_
-from .. import composer
+from .. import composer_
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Herd(composer.Composer[..., typing.Any], herd_.Herd[..., typing.Any]):
+class Herd(composer_.Composer[..., typing.Any], herd_.Herd[..., typing.Any]):
     @property
     def future_t(self) -> type:
         raise NotImplementedError(

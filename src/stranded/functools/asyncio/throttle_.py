@@ -3,40 +3,40 @@ import dataclasses
 import typing
 
 from ..abc import throttle_
-from ...asyncio import composer
+from ...asyncio import composer_
 
 type _Condition = asyncio.Condition
 
 
 @typing.runtime_checkable
-class Composee[**ParamT, RetT](composer.Composee[ParamT, RetT], throttle_.Composee[ParamT, RetT], typing.Protocol): ...
+class Composee[**ParamT, RetT](composer_.Composee[ParamT, RetT], throttle_.Composee[ParamT, RetT], typing.Protocol): ...
 
 
-Param = composer.Param
-Raise = composer.Raise
-Return = composer.Return
-Stop = composer.Stop
-
-
-@typing.final
-@dataclasses.dataclass(frozen=True, kw_only=True)
-class Connect[**ParamT, RetT](composer.Connect[ParamT, RetT], throttle_.Connect[ParamT, RetT]): ...
+Param = composer_.Param
+Raise = composer_.Raise
+Return = composer_.Return
+Stop = composer_.Stop
 
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Exit[**ParamT, RetT](composer.Exit[ParamT, RetT], throttle_.Exit[ParamT, RetT]):
-    async def __call__(self, value: composer.ValueT[ParamT, RetT], /) -> composer.StackT:  # type: ignore[override]
+class Connect[**ParamT, RetT](composer_.Connect[ParamT, RetT], throttle_.Connect[ParamT, RetT]): ...
+
+
+@typing.final
+@dataclasses.dataclass(frozen=True, kw_only=True)
+class Exit[**ParamT, RetT](composer_.Exit[ParamT, RetT], throttle_.Exit[ParamT, RetT]):
+    async def __call__(self, value: composer_.ValueT[ParamT, RetT], /) -> composer_.StackT:  # type: ignore[override]
         async with self.enter.condition:  # type: ignore[attr-defined]
             return await super().__call__(value)
 
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Enter[**ParamT, RetT](composer.Enter[ParamT, RetT], throttle_.Enter[ParamT, RetT]):
+class Enter[**ParamT, RetT](composer_.Enter[ParamT, RetT], throttle_.Enter[ParamT, RetT]):
     condition: _Condition = dataclasses.field(default_factory=asyncio.Condition)
 
-    async def __call__(self, value: composer.ValueT[ParamT, RetT], /) -> composer.StackT:  # type: ignore[override]
+    async def __call__(self, value: composer_.ValueT[ParamT, RetT], /) -> composer_.StackT:  # type: ignore[override]
         # TODO: this is mostly duplicate with the threading version. Try to consolidate.
         match value:
             case Param():
@@ -57,12 +57,12 @@ class Enter[**ParamT, RetT](composer.Enter[ParamT, RetT], throttle_.Enter[ParamT
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Composed[**ParamT, RetT](composer.Composed[ParamT, RetT], throttle_.Composed[ParamT, RetT]): ...
+class Composed[**ParamT, RetT](composer_.Composed[ParamT, RetT], throttle_.Composed[ParamT, RetT]): ...
 
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Throttle[**ParamT = ..., RetT = typing.Any](composer.Composer[ParamT, RetT], throttle_.Composer[ParamT, RetT]):
+class Throttle[**ParamT = ..., RetT = typing.Any](composer_.Composer[ParamT, RetT], throttle_.Composer[ParamT, RetT]):
     composee_t: typing.ClassVar = Composee
     connect_t: typing.ClassVar = Connect
     exit_t: typing.ClassVar = Exit

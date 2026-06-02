@@ -145,7 +145,7 @@ class Composed[**ParamT, RetT](abc.ABC):
         self,
         receiver: Composed[ReceiverParamT, ReceiverRetT],
         /,
-    ) -> Composed[ReceiverParamT, RetT]:
+    ) -> Composed[ParamT, ReceiverRetT]:
         return dataclasses.replace(
             self,
             __doc__=f"{self.__doc__}\n\n{receiver.__doc__}",
@@ -154,21 +154,6 @@ class Composed[**ParamT, RetT](abc.ABC):
                 return_annotation=receiver.__signature__.return_annotation,
             ),
             stack=(self.connect_t(composer=self.composer, receiver=receiver, sender=self), *self.stack),
-        )
-
-    def __lor__[**SenderParamT, SenderRetT](
-        self,
-        sender: Composed[SenderParamT, SenderRetT],
-        /,
-    ) -> Composed[SenderParamT, RetT]:
-        return dataclasses.replace(
-            self,
-            __doc__=f"{sender.__doc__}\n\n{self.__doc__}",
-            __signature__=inspect.Signature().replace(
-                parameters=tuple(sender.__signature__.parameters.values()),
-                return_annotation=self.__signature__.return_annotation,
-            ),
-            stack=(self.connect_t(composer=self.composer, receiver=self, sender=sender), *sender.stack),
         )
 
 

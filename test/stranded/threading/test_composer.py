@@ -2,7 +2,7 @@ from __future__ import absolute_import
 
 import pytest
 
-from stranded.threading.composer import Composer
+from stranded.threading.composer_ import Composer
 
 
 def test_or_calls_each_composee() -> None:
