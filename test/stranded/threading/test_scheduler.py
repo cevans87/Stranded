@@ -5,11 +5,46 @@ import threading
 
 import pytest
 
-from stranded.threading.scheduler import Scheduler
+from stranded.threading.composer_ import Composer
+from stranded.threading.scheduler_ import Scheduler
 
 
 def _raise() -> None:
     raise ValueError('boom')
+
+
+def test_scheduler_runs_composed_pipeline_on_its_context() -> None:
+    # Mirrors the canonical std::execution (C++26) example:
+    #
+    #   scheduler auto sch    = thread_pool.get_scheduler();
+    #   sender auto begin     = schedule(sch);
+    #   sender auto hi        = then(begin, []{ return 13; });
+    #   sender auto add_42    = then(hi, [](int v){ return v + 42; });
+    #   auto [i] = this_thread::sync_wait(add_42).value();   // i == 55
+    #
+    # Stranded analog: each Composer-wrapped callee is a "sender", `|` chains
+    # them (like `then`) into one Composed pipeline, the Scheduler transfers the
+    # whole pipeline onto its execution context (`on(sch, work)`), and the
+    # synchronous call blocks for the result (`sync_wait`). The Scheduler's Enter
+    # submits the nested pipeline to the pool, so every stage runs off the
+    # caller's thread.
+    caller = threading.get_ident()
+    ran_on: list[int] = []
+
+    @Composer()
+    def thirteen(_seed: int) -> int:
+        ran_on.append(threading.get_ident())
+        return 13
+
+    @Composer()
+    def add_42(v: int) -> int:
+        ran_on.append(threading.get_ident())
+        return v + 42
+
+    work = Scheduler(max_workers=2)(thirteen | add_42)
+
+    assert work(0) == 55
+    assert ran_on and all(tid != caller for tid in ran_on)
 
 
 def test_scheduler_blocks_on_thread_pool_result() -> None:

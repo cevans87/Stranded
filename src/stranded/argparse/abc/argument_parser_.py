@@ -7,7 +7,7 @@ import typing
 
 from stranded import types
 
-from stranded.abc import composer
+from stranded.abc import composer_
 from stranded.builtins import exception_
 
 
@@ -411,23 +411,23 @@ class Exception(exception_.Exception): ...  # noqa
 
 
 @typing.runtime_checkable
-class Composee[**ParamT, RetT](composer.Composee[ParamT, RetT], typing.Protocol): ...
+class Composee[**ParamT, RetT](composer_.Composee[ParamT, RetT], typing.Protocol): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Connect[**ParamT, RetT](composer.Connect[ParamT, RetT], abc.ABC): ...
+class Connect[**ParamT, RetT](composer_.Connect[ParamT, RetT], abc.ABC): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Exit[**ParamT, RetT](composer.Exit[ParamT, RetT], abc.ABC): ...
+class Exit[**ParamT, RetT](composer_.Exit[ParamT, RetT], abc.ABC): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Enter[**ParamT, RetT](composer.Enter[ParamT, RetT], abc.ABC): ...
+class Enter[**ParamT, RetT](composer_.Enter[ParamT, RetT], abc.ABC): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Composed[**ParamT, RetT](composer.Composed[ParamT, RetT], abc.ABC):
+class Composed[**ParamT, RetT](composer_.Composed[ParamT, RetT], abc.ABC):
     composee: Composee[ParamT, RetT]
     children: tuple[typing.Self, typing.Self] | None = None
 
@@ -473,7 +473,7 @@ class Composed[**ParamT, RetT](composer.Composed[ParamT, RetT], abc.ABC):
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class ArgumentParser[**ParamT, RetT](composer.Composer[ParamT, RetT], abc.ABC):
+class ArgumentParser[**ParamT, RetT](composer_.Composer[ParamT, RetT], abc.ABC):
     LogLevel = typing.Annotated[
         typing.Literal['INFO', 'DEBUG', 'WARNING', 'ERROR', 'CRITICAL'],
         'Log level to set.'

@@ -2,11 +2,11 @@ import dataclasses
 import typing
 
 from .abc import lru_cache_
-from .. import composer
+from .. import composer_
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class LruCache(composer.Composer[..., typing.Any], lru_cache_.LruCache[..., typing.Any]):
+class LruCache(composer_.Composer[..., typing.Any], lru_cache_.LruCache[..., typing.Any]):
     @property
     def future_t(self) -> type:
         raise NotImplementedError(

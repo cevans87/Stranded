@@ -39,7 +39,7 @@ def test_scheduler_nests_with_existing_composed() -> None:
 
 def test_scheduler_pool_is_shared_across_instances() -> None:
     # Same key → same pool.
-    from stranded.threading.scheduler import _shared_thread_pool
+    from stranded.threading.scheduler_ import _shared_thread_pool
     p1 = _shared_thread_pool(2, 'stranded')
     p2 = _shared_thread_pool(2, 'stranded')
     assert p1 is p2

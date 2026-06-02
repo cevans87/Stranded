@@ -5,37 +5,37 @@ import dataclasses
 import inspect
 import typing
 
-from . import composer
-from ..abc import scheduler as scheduler_
+from . import composer_
+from ..abc import scheduler_
 
 
-Raise = composer.Raise
-Stop = composer.Stop
-Param = composer.Param
-Return = composer.Return
+Raise = composer_.Raise
+Stop = composer_.Stop
+Param = composer_.Param
+Return = composer_.Return
 
 
 @typing.runtime_checkable
-class Composee[**ParamT, RetT](composer.Composee[ParamT, RetT], scheduler_.Composee[ParamT, RetT], typing.Protocol): ...
+class Composee[**ParamT, RetT](composer_.Composee[ParamT, RetT], scheduler_.Composee[ParamT, RetT], typing.Protocol): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Connect[**ParamT, RetT](composer.Connect[ParamT, RetT], scheduler_.Connect[ParamT, RetT]): ...
+class Connect[**ParamT, RetT](composer_.Connect[ParamT, RetT], scheduler_.Connect[ParamT, RetT]): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Exit[**ParamT, RetT](composer.Exit[ParamT, RetT], scheduler_.Exit[ParamT, RetT]): ...
+class Exit[**ParamT, RetT](composer_.Exit[ParamT, RetT], scheduler_.Exit[ParamT, RetT]): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Enter[**ParamT, RetT](composer.Enter[ParamT, RetT], scheduler_.Enter[ParamT, RetT]):
+class Enter[**ParamT, RetT](composer_.Enter[ParamT, RetT], scheduler_.Enter[ParamT, RetT]):
     @typing.overload  # type: ignore[override]
-    async def __call__(self, value: Param[ParamT], /) -> tuple[composer.Exit[ParamT, RetT], composer.Composee[ParamT, RetT]]: ...
+    async def __call__(self, value: Param[ParamT], /) -> tuple[composer_.Exit[ParamT, RetT], composer_.Composee[ParamT, RetT]]: ...
     @typing.overload
     async def __call__(self, value: Raise | Return[RetT] | Stop, /) -> tuple[()]: ...
     async def __call__(
         self, value: Param[ParamT] | Raise | Return[RetT] | Stop, /,
-    ) -> tuple[composer.Exit[ParamT, RetT], composer.Composee[ParamT, RetT]] | tuple[()]:
+    ) -> tuple[composer_.Exit[ParamT, RetT], composer_.Composee[ParamT, RetT]] | tuple[()]:
         if not isinstance(value, Param):
             return ()
         scheduler: Scheduler[ParamT, RetT] = typing.cast('Scheduler[ParamT, RetT]', self.composer)
@@ -44,15 +44,15 @@ class Enter[**ParamT, RetT](composer.Enter[ParamT, RetT], scheduler_.Enter[Param
         async def wrapped(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             return await scheduler.submit_async(inner, args, kwargs)
 
-        return self.exit_t(enter=self), typing.cast(composer.Composee[ParamT, RetT], wrapped)
+        return self.exit_t(enter=self), typing.cast(composer_.Composee[ParamT, RetT], wrapped)
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Composed[**ParamT, RetT](composer.Composed[ParamT, RetT], scheduler_.Composed[ParamT, RetT]): ...
+class Composed[**ParamT, RetT](composer_.Composed[ParamT, RetT], scheduler_.Composed[ParamT, RetT]): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Scheduler[**ParamT = ..., RetT = typing.Any](composer.Composer[ParamT, RetT], scheduler_.Scheduler[ParamT, RetT]):
+class Scheduler[**ParamT = ..., RetT = typing.Any](composer_.Composer[ParamT, RetT], scheduler_.Scheduler[ParamT, RetT]):
     composee_t: typing.ClassVar = Composee
     connect_t: typing.ClassVar = Connect
     exit_t: typing.ClassVar = Exit

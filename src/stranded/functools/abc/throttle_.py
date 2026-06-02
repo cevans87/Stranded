@@ -7,7 +7,7 @@ import sys
 import typing
 import weakref
 
-from ...abc import composer
+from ...abc import composer_
 from ...builtins import exception_
 
 
@@ -22,22 +22,22 @@ class State:
 
 
 @typing.runtime_checkable
-class Composee[**ParamT, RetT](composer.Composee[ParamT, RetT], typing.Protocol): ...
+class Composee[**ParamT, RetT](composer_.Composee[ParamT, RetT], typing.Protocol): ...
 
 
-Param = composer.Param
-Raise = composer.Raise
-Return = composer.Return
-Stop = composer.Stop
-
-
-@dataclasses.dataclass(frozen=True, kw_only=True)
-class Connect[**ParamT, RetT](composer.Connect[ParamT, RetT], abc.ABC): ...
+Param = composer_.Param
+Raise = composer_.Raise
+Return = composer_.Return
+Stop = composer_.Stop
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Exit[**ParamT, RetT](composer.Exit[ParamT, RetT], abc.ABC):
-    def __call__(self, value: composer.ValueT[ParamT, RetT], /) -> composer.StackT:
+class Connect[**ParamT, RetT](composer_.Connect[ParamT, RetT], abc.ABC): ...
+
+
+@dataclasses.dataclass(frozen=True, kw_only=True)
+class Exit[**ParamT, RetT](composer_.Exit[ParamT, RetT], abc.ABC):
+    def __call__(self, value: composer_.ValueT[ParamT, RetT], /) -> composer_.StackT:
         state = self.enter.state  # type: ignore[attr-defined]
         if isinstance(value, Raise) and state.num_running <= state.cap_running:
             state.cap_running //= 2
@@ -55,20 +55,20 @@ class Exit[**ParamT, RetT](composer.Exit[ParamT, RetT], abc.ABC):
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Enter[**ParamT, RetT](composer.Enter[ParamT, RetT], abc.ABC):
+class Enter[**ParamT, RetT](composer_.Enter[ParamT, RetT], abc.ABC):
     # Per-composition state lives on the Enter now that Enter/Exit no longer reach Composed.
     # Exit reads it back through self.enter; __get__ reinstalls a fresh-state Enter per instance.
     state: State = dataclasses.field(default_factory=State)
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Composed[**ParamT, RetT](composer.Composed[ParamT, RetT], abc.ABC):
+class Composed[**ParamT, RetT](composer_.Composed[ParamT, RetT], abc.ABC):
     composed_by_instance: weakref.WeakKeyDictionary[
-        composer.Instance, typing.Self,
+        composer_.Instance, typing.Self,
     ] = dataclasses.field(default_factory=weakref.WeakKeyDictionary)
     lock: threading.Lock = dataclasses.field(default_factory=threading.Lock)
 
-    def __get__(self, instance: composer.Instance, owner: type[object] | None) -> typing.Self:
+    def __get__(self, instance: composer_.Instance, owner: type[object] | None) -> typing.Self:
         with self.lock:
             if (composed := self.composed_by_instance.get(instance)) is not None:
                 return composed
@@ -87,7 +87,7 @@ class Composed[**ParamT, RetT](composer.Composed[ParamT, RetT], abc.ABC):
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Throttle[**ParamT, RetT](composer.Composer[ParamT, RetT], abc.ABC):
+class Throttle[**ParamT, RetT](composer_.Composer[ParamT, RetT], abc.ABC):
     # How many callees are allowed through concurrently before additional callees become waiters.
     max_running: int = sys.maxsize
 

@@ -3,17 +3,17 @@ import dataclasses
 import typing
 
 from ..abc import herd_
-from ...threading import composer
+from ...threading import composer_
 
 
-Raise = composer.Raise
-Stop = composer.Stop
-Param = composer.Param
-Return = composer.Return
+Raise = composer_.Raise
+Stop = composer_.Stop
+Param = composer_.Param
+Return = composer_.Return
 
 
 @typing.runtime_checkable
-class Composee[**ParamT, RetT](composer.Composee[ParamT, RetT], herd_.Composee[ParamT, RetT], typing.Protocol): ...
+class Composee[**ParamT, RetT](composer_.Composee[ParamT, RetT], herd_.Composee[ParamT, RetT], typing.Protocol): ...
 
 
 @typing.final
@@ -35,15 +35,15 @@ class Future[RetT](herd_.Future[RetT]):
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Connect[**ParamT, RetT](composer.Connect[ParamT, RetT], herd_.Connect[ParamT, RetT]): ...
+class Connect[**ParamT, RetT](composer_.Connect[ParamT, RetT], herd_.Connect[ParamT, RetT]): ...
 
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Exit[**ParamT, RetT](composer.Exit[ParamT, RetT], herd_.Exit[ParamT, RetT, Future[RetT]]):
+class Exit[**ParamT, RetT](composer_.Exit[ParamT, RetT], herd_.Exit[ParamT, RetT, Future[RetT]]):
     future: Future[RetT] = dataclasses.field(default_factory=Future)
 
-    def __call__(self, value: composer.ValueT[ParamT, RetT], /) -> composer.StackT:
+    def __call__(self, value: composer_.ValueT[ParamT, RetT], /) -> composer_.StackT:
         self.enter.future_by_key.pop(self.key, None)  # type: ignore[attr-defined]
         match value:
             case Param(): pass
@@ -54,11 +54,11 @@ class Exit[**ParamT, RetT](composer.Exit[ParamT, RetT], herd_.Exit[ParamT, RetT,
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Enter[**ParamT, RetT](composer.Enter[ParamT, RetT], herd_.Enter[ParamT, RetT, Future[RetT]]):
+class Enter[**ParamT, RetT](composer_.Enter[ParamT, RetT], herd_.Enter[ParamT, RetT, Future[RetT]]):
     @typing.override
     def __call__(
-        self, value: composer.ValueT[ParamT, RetT], /,
-    ) -> composer.StackT:
+        self, value: composer_.ValueT[ParamT, RetT], /,
+    ) -> composer_.StackT:
         match value:
             case Param(): return self._dispatch(*value.args, **value.kwargs)  # type: ignore[return-value]
             case _: return ()
@@ -66,12 +66,12 @@ class Enter[**ParamT, RetT](composer.Enter[ParamT, RetT], herd_.Enter[ParamT, Re
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Composed[**ParamT, RetT](composer.Composed[ParamT, RetT], herd_.Composed[ParamT, RetT]): ...
+class Composed[**ParamT, RetT](composer_.Composed[ParamT, RetT], herd_.Composed[ParamT, RetT]): ...
 
 
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Herd[**ParamT = ..., RetT = typing.Any](composer.Composer[ParamT, RetT], herd_.Herd[ParamT, RetT]):
+class Herd[**ParamT = ..., RetT = typing.Any](composer_.Composer[ParamT, RetT], herd_.Herd[ParamT, RetT]):
     composee_t: typing.ClassVar = Composee
     connect_t: typing.ClassVar = Connect
     exit_t: typing.ClassVar = Exit  # type: ignore[assignment]

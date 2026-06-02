@@ -9,31 +9,31 @@ import sqlite3
 import threading
 import typing
 
-from ...abc import composer
+from ...abc import composer_
 
 type GenerateKey = typing.Callable[..., Key]
 type Key = typing.Hashable
 
 
-Raise = composer.Raise
-Stop = composer.Stop
-Param = composer.Param
-Return = composer.Return
+Raise = composer_.Raise
+Stop = composer_.Stop
+Param = composer_.Param
+Return = composer_.Return
 
 
 @typing.runtime_checkable
-class Composee[**ParamT, RetT](composer.Composee[ParamT, RetT], typing.Protocol): ...
+class Composee[**ParamT, RetT](composer_.Composee[ParamT, RetT], typing.Protocol): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Connect[**ParamT, RetT](composer.Connect[ParamT, RetT], abc.ABC): ...
+class Connect[**ParamT, RetT](composer_.Connect[ParamT, RetT], abc.ABC): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Exit[**ParamT, RetT](composer.Exit[ParamT, RetT], abc.ABC):
+class Exit[**ParamT, RetT](composer_.Exit[ParamT, RetT], abc.ABC):
     key: str
 
-    def __call__(self, value: composer.ValueT[ParamT, RetT], /) -> composer.StackT:
+    def __call__(self, value: composer_.ValueT[ParamT, RetT], /) -> composer_.StackT:
         match value:
             case Param() | Raise() | Stop(): pass
             case Return():
@@ -51,15 +51,15 @@ class Exit[**ParamT, RetT](composer.Exit[ParamT, RetT], abc.ABC):
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Enter[**ParamT, RetT](composer.Enter[ParamT, RetT], abc.ABC):
+class Enter[**ParamT, RetT](composer_.Enter[ParamT, RetT], abc.ABC):
     # The connection and its per-composition metadata live on the Enter now that
     # Enter/Exit no longer reach Composed.
     connection: sqlite3.Connection
-    instance: composer.Instance
+    instance: composer_.Instance
     table_name: str
     lock: threading.Lock = dataclasses.field(default_factory=threading.Lock)
 
-    def __call__(self, value: composer.ValueT[ParamT, RetT], /) -> composer.StackT:
+    def __call__(self, value: composer_.ValueT[ParamT, RetT], /) -> composer_.StackT:
         match value:
             case Raise() | Return() | Stop(): return ()
             case Param():
@@ -80,8 +80,8 @@ class Enter[**ParamT, RetT](composer.Enter[ParamT, RetT], abc.ABC):
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Composed[**ParamT, RetT](composer.Composed[ParamT, RetT], abc.ABC):
-    def __get__(self, instance: composer.Instance, owner: type[object] | None) -> typing.Self:
+class Composed[**ParamT, RetT](composer_.Composed[ParamT, RetT], abc.ABC):
+    def __get__(self, instance: composer_.Instance, owner: type[object] | None) -> typing.Self:
         match self.stack[-1]:
             case Enter() as enter_:
                 return dataclasses.replace(
@@ -97,7 +97,7 @@ class Composed[**ParamT, RetT](composer.Composed[ParamT, RetT], abc.ABC):
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Db[**ParamT, RetT](composer.Composer[ParamT, RetT], abc.ABC):
+class Db[**ParamT, RetT](composer_.Composer[ParamT, RetT], abc.ABC):
     type Version = str
 
     deserialize: typing.Callable[[str], RetT] = ast.literal_eval

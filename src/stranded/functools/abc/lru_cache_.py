@@ -7,7 +7,7 @@ import typing
 import weakref
 import sys
 
-from ...abc import composer
+from ...abc import composer_
 from ...builtins import exception_
 
 
@@ -15,10 +15,10 @@ type GenerateKey = typing.Callable[..., Key]
 type Key = typing.Hashable
 
 
-Raise = composer.Raise
-Stop = composer.Stop
-Param = composer.Param
-Return = composer.Return
+Raise = composer_.Raise
+Stop = composer_.Stop
+Param = composer_.Param
+Return = composer_.Return
 
 
 class Exception(exception_.Exception): ...  # noqa
@@ -33,26 +33,26 @@ class Future[RetT](abc.ABC):
     @abc.abstractmethod
     def __call__(self, *args: typing.Any, **kwargs: typing.Any) -> typing.Any: ...
 
-    def __get__(self, instance: composer.Instance, owner: type[object] | None) -> typing.Self:
+    def __get__(self, instance: composer_.Instance, owner: type[object] | None) -> typing.Self:
         return self
 
 
 @typing.runtime_checkable
-class Composee[**ParamT, RetT](composer.Composee[ParamT, RetT], typing.Protocol): ...
+class Composee[**ParamT, RetT](composer_.Composee[ParamT, RetT], typing.Protocol): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Connect[**ParamT, RetT](composer.Connect[ParamT, RetT], abc.ABC): ...
+class Connect[**ParamT, RetT](composer_.Connect[ParamT, RetT], abc.ABC): ...
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Exit[**ParamT, RetT, FutureT](composer.Exit[ParamT, RetT], abc.ABC):
+class Exit[**ParamT, RetT, FutureT](composer_.Exit[ParamT, RetT], abc.ABC):
     future: FutureT
     key: Key
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Enter[**ParamT, RetT, FutureT](composer.Enter[ParamT, RetT], abc.ABC):
+class Enter[**ParamT, RetT, FutureT](composer_.Enter[ParamT, RetT], abc.ABC):
     future_by_key: collections.OrderedDict[Key, FutureT] = dataclasses.field(default_factory=collections.OrderedDict)
 
     @staticmethod
@@ -61,12 +61,12 @@ class Enter[**ParamT, RetT, FutureT](composer.Enter[ParamT, RetT], abc.ABC):
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Composed[**ParamT, RetT](composer.Composed[ParamT, RetT], abc.ABC):
+class Composed[**ParamT, RetT](composer_.Composed[ParamT, RetT], abc.ABC):
     composed_by_instance: weakref.WeakKeyDictionary[
-        composer.Instance, typing.Self,
+        composer_.Instance, typing.Self,
     ] = dataclasses.field(default_factory=weakref.WeakKeyDictionary)
 
-    def __get__(self, instance: composer.Instance, owner: type[object] | None) -> typing.Self:
+    def __get__(self, instance: composer_.Instance, owner: type[object] | None) -> typing.Self:
         if (composed := self.composed_by_instance.get(instance)) is not None:
             return composed
         match self.stack[-1]:
@@ -88,7 +88,7 @@ class Composed[**ParamT, RetT](composer.Composed[ParamT, RetT], abc.ABC):
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class LruCache[**ParamT, RetT](composer.Composer[ParamT, RetT], abc.ABC):
+class LruCache[**ParamT, RetT](composer_.Composer[ParamT, RetT], abc.ABC):
     size: int = sys.maxsize
 
     @property

@@ -5,7 +5,7 @@ import threading
 
 import pytest
 
-from stranded.asyncio.scheduler import Scheduler
+from stranded.asyncio.scheduler_ import Scheduler
 
 
 @pytest.mark.asyncio
