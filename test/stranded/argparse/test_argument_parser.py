@@ -433,5 +433,23 @@ def test_dict_is_parsed() -> None:
     assert calls == [{'a': {1: 'foo'}}]
 
 
+def test_resolves_unresolved_type_hints() -> None:
+
+    calls = []
+
+    @ArgumentParser()
+    def foo(
+        *,
+        a: "typing.Annotated[bool, 'Print help and exit.']" = False,
+    ) -> None:
+        calls.append({'a': a})
+
+    foo(*'-a'.split())
+
+    assert calls == [
+        {'a': True},
+    ]
+
+
 if __name__ == '__main__':
     pytest.main()

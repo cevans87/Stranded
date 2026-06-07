@@ -467,36 +467,35 @@ class Composed[**ParamT, RetT](composer_.Composed[ParamT, RetT], abc.ABC):
         ])
 
     def to_signature(self) -> _Signature:
-        return _Signature.of_signature(inspect.signature(self.composee)) if self.children is None else (
+        return _Signature.of_signature(inspect.signature(self.composee, eval_str=True)) if self.children is None else (
             _Signature.of_signatures(self.children[0].to_signature(), self.children[1].to_signature())
         )
 
 
-# Aliases for annotation use. The ArgumentParser ClassVars below shadow the class
-# names within ArgumentParser's scope, so annotations must reference these instead.
-type ComposeeT[**ParamT, RetT] = Composee[ParamT, RetT]
-type ConnectT[**ParamT, RetT] = Connect[ParamT, RetT]
-type ExitT[**ParamT, RetT] = Exit[ParamT, RetT]
-type EnterT[**ParamT, RetT] = Enter[ParamT, RetT]
-type ComposedT[**ParamT, RetT] = Composed[ParamT, RetT]
-
-
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class ArgumentParser[**ParamT, RetT](composer_.Composer[ParamT, RetT], abc.ABC):
-    LogLevel = typing.Annotated[
+    type HT = typing.Annotated[bool, 'Print help and exit.']
+    type LogLevelT = typing.Annotated[
         typing.Literal['INFO', 'DEBUG', 'WARNING', 'ERROR', 'CRITICAL'],
-        'Log level to set.'
+        'Log level to set.',
     ]
 
-    Signature: typing.ClassVar = _Signature
+    type ComposeeT = Composee[ParamT, RetT]
+    type ConnectT = Connect[ParamT, RetT]
+    type ExitT = Exit[ParamT, RetT]
+    type EnterT = Enter[ParamT, RetT]
+    type ComposedT = Composed[ParamT, RetT]
+    type ComposerT = ArgumentParser[ParamT, RetT]
 
+    Signature: typing.ClassVar = _Signature
     Composee: typing.ClassVar[type[Composee[typing.Any, typing.Any]]]
     Connect: typing.ClassVar[type[Connect[typing.Any, typing.Any]]]
     Exit: typing.ClassVar[type[Exit[typing.Any, typing.Any]]]
     Enter: typing.ClassVar[type[Enter[typing.Any, typing.Any]]]
     Composed: typing.ClassVar[type[Composed[typing.Any, typing.Any]]]
+    Composer: typing.ClassVar[type[ArgumentParser[typing.Any, typing.Any]]]
 
-    def __call__(self, composee: ComposeeT[ParamT, RetT], /) -> ComposedT[ParamT, RetT]:
+    def __call__(self, composee: ComposeeT, /) -> ComposedT:
         return self.Composed(  # type: ignore[return-value]
             __doc__=str(composee.__doc__),
             __module__=str(composee.__module__),
