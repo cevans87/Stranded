@@ -230,13 +230,13 @@ def test_call_calls_merged_argument_parsers() -> None:
 
 def test_call_parses_args() -> None:
 
-    calls = []
+    calls: list[dict[str, object]] = []
 
     @ArgumentParser()
     def foo(a: int) -> None: calls.append({'a': a})
 
     @ArgumentParser()
-    def bar(*args: str) -> None: calls.append({'args': args})  # type: ignore[dict-item]
+    def bar(*args: str) -> None: calls.append({'args': args})
 
     (foo | bar)(*'1 2 --b 3.0 --c 4.0'.split())  # type: ignore[operator]
 
@@ -248,13 +248,13 @@ def test_call_parses_args() -> None:
 
 def test_call_parses_kwargs() -> None:
 
-    calls = []
+    calls: list[dict[str, object]] = []
 
     @ArgumentParser()
     def foo(a: int) -> None: calls.append({'a': a})
 
     @ArgumentParser()
-    def bar(**kwargs: int) -> None: calls.append({'kwargs': kwargs})  # type: ignore[dict-item]
+    def bar(**kwargs: int) -> None: calls.append({'kwargs': kwargs})
 
     (foo | bar)(*'1 --b 2 --c 3'.split())  # type: ignore[operator]
 
@@ -266,16 +266,16 @@ def test_call_parses_kwargs() -> None:
 
 def test_call_parses_args_and_kwargs() -> None:
 
-    calls = []
+    calls: list[dict[str, object]] = []
 
     @ArgumentParser()
     def foo(a: int) -> None: calls.append({'a': a})
 
     @ArgumentParser()
-    def bar(*args: str) -> None: calls.append({'args': args})  # type: ignore[dict-item]
+    def bar(*args: str) -> None: calls.append({'args': args})
 
     @ArgumentParser()
-    def baz(**kwargs: float) -> None: calls.append({'kwargs': kwargs})  # type: ignore[dict-item]
+    def baz(**kwargs: float) -> None: calls.append({'kwargs': kwargs})
 
     (foo | bar | baz)(*'1 2 --b 3.0 --c 4.0'.split())  # type: ignore[operator]
 
@@ -288,7 +288,7 @@ def test_call_parses_args_and_kwargs() -> None:
 
 def test_args_passed_to_subcommand() -> None:
 
-    calls = []
+    calls: list[dict[str, object]] = []
 
     @ArgumentParser()
     def foo(subcommand: typing.Literal['bar', 'baz'], *args: str) -> None:
@@ -300,10 +300,10 @@ def test_args_passed_to_subcommand() -> None:
                 baz(*args)
 
     @ArgumentParser()
-    def bar(*args: str) -> None: calls.append({'args': args})  # type: ignore[dict-item]
+    def bar(*args: str) -> None: calls.append({'args': args})
 
     @ArgumentParser()
-    def baz(**kwargs: float) -> None: calls.append({'kwargs': kwargs})  # type: ignore[dict-item]
+    def baz(**kwargs: float) -> None: calls.append({'kwargs': kwargs})
 
     foo(*'bar --a 3.0 --b 4.0'.split())  # type: ignore[arg-type]
 
@@ -324,7 +324,7 @@ def test_args_passed_to_subcommand() -> None:
 
 def test_help_goes_to_subcommand() -> None:
 
-    calls = []
+    calls: list[dict[str, object]] = []
 
     @ArgumentParser()
     def help_flag(subcommand: typing.Literal['bar', 'baz'] = ..., /, *, help: bool = False) -> None:  # type: ignore[assignment]
@@ -354,10 +354,10 @@ def test_help_goes_to_subcommand() -> None:
                 (help_flag | baz)(*args)  # type: ignore[operator]
 
     @ArgumentParser()
-    def bar(*args: str) -> None: calls.append({'args': args})  # type: ignore[dict-item]
+    def bar(*args: str) -> None: calls.append({'args': args})
 
     @ArgumentParser()
-    def baz(**kwargs: float) -> None: calls.append({'kwargs': kwargs})  # type: ignore[dict-item]
+    def baz(**kwargs: float) -> None: calls.append({'kwargs': kwargs})
 
     with pytest.raises(AssertionError):
         (help_flag | foo)(*'-help'.split())  # type: ignore[operator]
@@ -388,7 +388,7 @@ def test_help_goes_to_subcommand() -> None:
 @pytest.mark.asyncio
 async def test_asyncio_runs_threading() -> None:
 
-    calls = []
+    calls: list[dict[str, object]] = []
 
     @ArgumentParser()
     def foo(a: int) -> None: calls.append({'a': a})
@@ -406,7 +406,7 @@ async def test_asyncio_runs_threading() -> None:
 
 def test_threading_runs_asyncio() -> None:
 
-    calls = []
+    calls: list[dict[str, object]] = []
 
     @ArgumentParser()
     async def foo(a: int) -> None: calls.append({'a': a})
@@ -423,7 +423,7 @@ def test_threading_runs_asyncio() -> None:
 
 
 def test_dict_is_parsed() -> None:
-    calls = []
+    calls: list[dict[str, object]] = []
 
     @ArgumentParser()
     def foo(a: dict[int, str]) -> None: calls.append({'a': a})
@@ -435,7 +435,7 @@ def test_dict_is_parsed() -> None:
 
 def test_required_subcommand_does_not_fail_earlier_parsers() -> None:
 
-    calls = []
+    calls: list[dict[str, object]] = []
 
     @ArgumentParser()
     async def h_handler(
@@ -449,7 +449,7 @@ def test_required_subcommand_does_not_fail_earlier_parsers() -> None:
         subcommand: typing.Annotated[typing.Literal['foo'], 'Subcommand'],
         /,
     ) -> None:
-        calls.append({'subcommand': subcommand})  # type: ignore[dict-item]
+        calls.append({'subcommand': subcommand})
 
     with pytest.raises(TypeError):
         (h_handler | subcommand_handler)(*'-h'.split())  # type: ignore[operator]
@@ -461,7 +461,7 @@ def test_required_subcommand_does_not_fail_earlier_parsers() -> None:
 
 def test_resolves_unresolved_type_hints() -> None:
 
-    calls = []
+    calls: list[dict[str, object]] = []
 
     @ArgumentParser()
     def foo(
