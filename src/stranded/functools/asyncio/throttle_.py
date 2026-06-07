@@ -50,7 +50,7 @@ class Enter[**ParamT, RetT](composer_.Enter[ParamT, RetT], throttle_.Enter[Param
                         state.num_waiting -= 1
                     state.num_running += 1
 
-                return self.exit_t(enter=self), self.composee,  # type: ignore[return-value]
+                return self.composer.Exit(enter=self), self.composee,  # type: ignore[return-value]
             case _:
                 return ()
 
@@ -63,11 +63,11 @@ class Composed[**ParamT, RetT](composer_.Composed[ParamT, RetT], throttle_.Compo
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Throttle[**ParamT = ..., RetT = typing.Any](composer_.Composer[ParamT, RetT], throttle_.Composer[ParamT, RetT]):
-    composee_t: typing.ClassVar = Composee
-    connect_t: typing.ClassVar = Connect
-    exit_t: typing.ClassVar = Exit
-    enter_t: typing.ClassVar = Enter
-    composed_t: typing.ClassVar = Composed
+    Composee: typing.ClassVar = Composee
+    Connect: typing.ClassVar = Connect
+    Exit: typing.ClassVar = Exit
+    Enter: typing.ClassVar = Enter
+    Composed: typing.ClassVar = Composed
 
 
 Composer = Throttle

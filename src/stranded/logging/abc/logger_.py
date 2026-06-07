@@ -69,7 +69,7 @@ class Enter[**ParamT, RetT](composer_.Enter[ParamT, RetT], abc.ABC):
                     bound_arguments,
                 )
 
-                return self.exit_t(enter=self, bound_arguments=bound_arguments), self.composee,  # type: ignore[call-arg]
+                return self.composer.Exit(enter=self, bound_arguments=bound_arguments), self.composee,  # type: ignore[call-arg]
             case _:
                 return ()
 

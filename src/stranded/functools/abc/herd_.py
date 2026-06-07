@@ -62,7 +62,7 @@ class Enter[**ParamT, RetT, FutureT](composer_.Enter[ParamT, RetT], abc.ABC):
         match future is None:
             case True:
                 future = self.future_by_key[key] = self.composer.future_t()  # type: ignore[attr-defined]
-                return self.exit_t(enter=self, future=future, key=key), self.composee  # type: ignore[call-arg, return-value]
+                return self.composer.Exit(enter=self, future=future, key=key), self.composee  # type: ignore[call-arg, return-value]
             case False:
                 return future,
         assert False, "Unreachable"
