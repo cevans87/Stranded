@@ -433,6 +433,32 @@ def test_dict_is_parsed() -> None:
     assert calls == [{'a': {1: 'foo'}}]
 
 
+def test_required_subcommand_does_not_fail_earlier_parsers() -> None:
+
+    calls = []
+
+    @ArgumentParser()
+    async def h_handler(
+        *,
+        h: typing.Annotated[bool, 'Print help and exit.'] = False,
+    ) -> None:
+        calls.append({'h': h})
+
+    @ArgumentParser()
+    def subcommand_handler(
+        subcommand: typing.Annotated[typing.Literal['foo'], 'Subcommand'],
+        /,
+    ) -> None:
+        calls.append({'subcommand': subcommand})  # type: ignore[dict-item]
+
+    with pytest.raises(TypeError):
+        (h_handler | subcommand_handler)(*'-h'.split())  # type: ignore[operator]
+
+    assert calls == [
+        {'h': True},
+    ]
+
+
 def test_resolves_unresolved_type_hints() -> None:
 
     calls = []
