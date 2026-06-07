@@ -47,7 +47,7 @@ class Enter[**ParamT, RetT](composer_.Enter[ParamT, RetT], scheduler_.Enter[Para
         def wrapped(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             return scheduler.submit_sync(inner, args, kwargs)
 
-        return self.exit_t(enter=self), typing.cast(composer_.Composee[ParamT, RetT], wrapped)
+        return self.composer.Exit(enter=self), typing.cast(composer_.Composee[ParamT, RetT], wrapped)
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -83,11 +83,11 @@ atexit.register(_shutdown_all)
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Scheduler[**ParamT = ..., RetT = typing.Any](composer_.Composer[ParamT, RetT], scheduler_.Scheduler[ParamT, RetT]):
-    composee_t: typing.ClassVar = Composee
-    connect_t: typing.ClassVar = Connect
-    exit_t: typing.ClassVar = Exit
-    enter_t: typing.ClassVar = Enter
-    composed_t: typing.ClassVar = Composed
+    Composee: typing.ClassVar = Composee
+    Connect: typing.ClassVar = Connect
+    Exit: typing.ClassVar = Exit
+    Enter: typing.ClassVar = Enter
+    Composed: typing.ClassVar = Composed
 
     max_workers: int | None = None
     thread_name_prefix: str = 'stranded'

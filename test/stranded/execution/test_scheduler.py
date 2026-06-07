@@ -49,10 +49,10 @@ def test_scheduler_pool_is_shared_across_instances() -> None:
 def test_top_level_scheduler_classvars_are_not_dataclass_fields() -> None:
     import dataclasses
     field_names = {f.name for f in dataclasses.fields(Scheduler)}
-    assert 'composee_t' not in field_names
-    assert 'enter_t' not in field_names
-    assert 'exit_t' not in field_names
-    assert 'composed_t' not in field_names
+    assert 'Composee' not in field_names
+    assert 'Enter' not in field_names
+    assert 'Exit' not in field_names
+    assert 'Composed' not in field_names
 
 
 if __name__ == '__main__':

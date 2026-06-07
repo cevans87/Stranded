@@ -71,14 +71,6 @@ class Exit[**ParamT, RetT](abc.ABC):
 
     @property
     def composer(self) -> Composer[typing.Any, typing.Any]: return self.enter.composer
-    @property
-    def composee_t(self) -> type[Composee[typing.Any, typing.Any]]: return self.composer.composee_t
-    @property
-    def exit_t(self) -> type[Exit[typing.Any, typing.Any]]: return self.composer.exit_t
-    @property
-    def enter_t(self) -> type[Enter[typing.Any, typing.Any]]: return self.composer.enter_t
-    @property
-    def composed_t(self) -> type[Composed[typing.Any, typing.Any]]: return self.composer.composed_t
 
     def __call__(self, value: ValueT[ParamT, RetT], /) -> StackT:
         return ()
@@ -89,19 +81,10 @@ class Enter[**ParamT, RetT](abc.ABC):
     composer: Composer[ParamT, RetT]
     composee: Composee[ParamT, RetT]
 
-    @property
-    def composee_t(self) -> type[Composee[typing.Any, typing.Any]]: return self.composer.composee_t
-    @property
-    def exit_t(self) -> type[Exit[typing.Any, typing.Any]]: return self.composer.exit_t
-    @property
-    def enter_t(self) -> type[Enter[typing.Any, typing.Any]]: return self.composer.enter_t
-    @property
-    def composed_t(self) -> type[Composed[typing.Any, typing.Any]]: return self.composer.composed_t
-
     def __call__(self, value: ValueT[ParamT, RetT], /) -> StackT:
         match value, self.composee:
-            case Param(), Composed() as composed_: return self.exit_t(enter=self), *composed_.stack
-            case Param(), composee_: return self.exit_t(enter=self), composee_,
+            case Param(), Composed() as composed_: return self.composer.Exit(enter=self), *composed_.stack
+            case Param(), composee_: return self.composer.Exit(enter=self), composee_,
             case _: return ()
 
 
@@ -114,17 +97,6 @@ class Composed[**ParamT, RetT](abc.ABC):
     __signature__: inspect.Signature
     composer: Composer[ParamT, RetT]
     stack: StackT
-
-    @property
-    def composee_t(self) -> type[Composee[typing.Any, typing.Any]]: return self.composer.composee_t
-    @property
-    def connect_t(self) -> type[Connect[typing.Any, typing.Any]]: return self.composer.connect_t
-    @property
-    def exit_t(self) -> type[Exit[typing.Any, typing.Any]]: return self.composer.exit_t
-    @property
-    def enter_t(self) -> type[Enter[typing.Any, typing.Any]]: return self.composer.enter_t
-    @property
-    def composed_t(self) -> type[Composed[typing.Any, typing.Any]]: return self.composer.composed_t
 
     @abc.abstractmethod
     def __call__(self, *args: ParamT.args, **kwargs: ParamT.kwargs) -> RetT: ...
@@ -153,38 +125,36 @@ class Composed[**ParamT, RetT](abc.ABC):
                 parameters=tuple(self.__signature__.parameters.values()),
                 return_annotation=receiver.__signature__.return_annotation,
             ),
-            stack=(self.connect_t(composer=self.composer, receiver=receiver, sender=self), *self.stack),
+            stack=(self.composer.Connect(composer=self.composer, receiver=receiver, sender=self), *self.stack),
         )
+
+
+# Aliases for annotation use. The Composer ClassVars below shadow the class names
+# within Composer's scope, so annotations must reference these instead.
+type ComposeeT[**ParamT, RetT] = Composee[ParamT, RetT]
+type ConnectT[**ParamT, RetT] = Connect[ParamT, RetT]
+type ExitT[**ParamT, RetT] = Exit[ParamT, RetT]
+type EnterT[**ParamT, RetT] = Enter[ParamT, RetT]
+type ComposedT[**ParamT, RetT] = Composed[ParamT, RetT]
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Composer[**ParamT, RetT](abc.ABC):
-
-    @property
-    @abc.abstractmethod
-    def composee_t(self) -> type[Composee[typing.Any, typing.Any]]: ...
-    @property
-    @abc.abstractmethod
-    def connect_t(self) -> type[Connect[typing.Any, typing.Any]]: ...
-    @property
-    @abc.abstractmethod
-    def exit_t(self) -> type[Exit[typing.Any, typing.Any]]: ...
-    @property
-    @abc.abstractmethod
-    def enter_t(self) -> type[Enter[typing.Any, typing.Any]]: ...
-    @property
-    @abc.abstractmethod
-    def composed_t(self) -> type[Composed[typing.Any, typing.Any]]: ...
+    Composee: typing.ClassVar[type[Composee[typing.Any, typing.Any]]]
+    Connect: typing.ClassVar[type[Connect[typing.Any, typing.Any]]]
+    Exit: typing.ClassVar[type[Exit[typing.Any, typing.Any]]]
+    Enter: typing.ClassVar[type[Enter[typing.Any, typing.Any]]]
+    Composed: typing.ClassVar[type[Composed[typing.Any, typing.Any]]]
 
     def __call__[**CallParamT, CallRetT](
-        self, composee: Composee[CallParamT, CallRetT], /,
-    ) -> Composed[CallParamT, CallRetT]:
-        return self.composed_t(
+        self, composee: ComposeeT[CallParamT, CallRetT], /,
+    ) -> ComposedT[CallParamT, CallRetT]:
+        return self.Composed(
             __doc__=str(composee.__doc__),
             __module__=str(composee.__module__),
             __name__=str(composee.__name__),
             __qualname__=str(composee.__qualname__),
             __signature__=inspect.signature(composee),
             composer=self,
-            stack=(self.enter_t(composer=self, composee=composee),)
+            stack=(self.Enter(composer=self, composee=composee),)
         )

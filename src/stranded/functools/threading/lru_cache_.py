@@ -64,7 +64,7 @@ class Enter[**ParamT, RetT](composer_.Enter[ParamT, RetT], lru_cache_.Enter[Para
                     while self.composer.size <= len(self.future_by_key):  # type: ignore[attr-defined]
                         self.future_by_key.popitem(last=False)
                     future = self.future_by_key[key] = self.composer.future_t()  # type: ignore[attr-defined]
-                    return self.exit_t(enter=self, future=future, key=key), self.composee  # type: ignore[call-arg, return-value]
+                    return self.composer.Exit(enter=self, future=future, key=key), self.composee  # type: ignore[call-arg, return-value]
                 self.future_by_key.move_to_end(key)
                 return future,
             case _: return ()
@@ -78,11 +78,11 @@ class Composed[**ParamT, RetT](composer_.Composed[ParamT, RetT], lru_cache_.Comp
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class LruCache[**ParamT = ..., RetT = typing.Any](composer_.Composer[ParamT, RetT], lru_cache_.Composer[ParamT, RetT]):
-    composee_t: typing.ClassVar = Composee
-    connect_t: typing.ClassVar = Connect
-    exit_t: typing.ClassVar = Exit  # type: ignore[assignment]
-    enter_t: typing.ClassVar = Enter
-    composed_t: typing.ClassVar = Composed
+    Composee: typing.ClassVar = Composee
+    Connect: typing.ClassVar = Connect
+    Exit: typing.ClassVar = Exit  # type: ignore[assignment]
+    Enter: typing.ClassVar = Enter
+    Composed: typing.ClassVar = Composed
 
     @property
     @typing.override

@@ -44,7 +44,7 @@ class Enter[**ParamT, RetT](composer_.Enter[ParamT, RetT], abc.ABC):
         match value:
             case Param() as param_:
                 new_self = dataclasses.replace(self, param=param_)
-                return new_self.exit_t(enter=new_self), self.composee
+                return new_self.composer.Exit(enter=new_self), self.composee
             case _: return ()
 
 

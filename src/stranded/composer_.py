@@ -10,11 +10,11 @@ from .abc import composer_
 class Composer[**ParamT, RetT](composer_.Composer[ParamT, RetT]):
     # Stub bindings for the agnostic dispatcher — never instantiated, since
     # __call__ delegates to the asyncio/threading concrete Composer.
-    composee_t: typing.ClassVar = composer_.Composee
-    connect_t: typing.ClassVar = composer_.Connect
-    exit_t: typing.ClassVar = composer_.Exit
-    enter_t: typing.ClassVar = composer_.Enter
-    composed_t: typing.ClassVar = composer_.Composed
+    Composee: typing.ClassVar = composer_.Composee
+    Connect: typing.ClassVar = composer_.Connect
+    Exit: typing.ClassVar = composer_.Exit
+    Enter: typing.ClassVar = composer_.Enter
+    Composed: typing.ClassVar = composer_.Composed
 
     def __call__[ComposeeT](self, composee: ComposeeT) -> ComposeeT:  # type: ignore[override]
         (name_parts := self.__module__.split('.')).insert(

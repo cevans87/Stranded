@@ -31,11 +31,11 @@ class Composed[**ParamT, RetT](composer_.Composed[ParamT, RetT], logger_.Compose
 @typing.final
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Logger[**ParamT, RetT](composer_.Composer[ParamT, RetT], logger_.Composer[ParamT, RetT]):
-    composee_t: typing.ClassVar = Composee
-    connect_t: typing.ClassVar = Connect
-    exit_t: typing.ClassVar = Exit  # type: ignore[assignment]
-    enter_t: typing.ClassVar = Enter
-    composed_t: typing.ClassVar = Composed
+    Composee: typing.ClassVar = Composee
+    Connect: typing.ClassVar = Connect
+    Exit: typing.ClassVar = Exit  # type: ignore[assignment]
+    Enter: typing.ClassVar = Enter
+    Composed: typing.ClassVar = Composed
 
 
 Composer = Logger

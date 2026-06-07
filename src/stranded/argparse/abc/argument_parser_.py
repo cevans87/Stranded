@@ -472,6 +472,15 @@ class Composed[**ParamT, RetT](composer_.Composed[ParamT, RetT], abc.ABC):
         )
 
 
+# Aliases for annotation use. The ArgumentParser ClassVars below shadow the class
+# names within ArgumentParser's scope, so annotations must reference these instead.
+type ComposeeT[**ParamT, RetT] = Composee[ParamT, RetT]
+type ConnectT[**ParamT, RetT] = Connect[ParamT, RetT]
+type ExitT[**ParamT, RetT] = Exit[ParamT, RetT]
+type EnterT[**ParamT, RetT] = Enter[ParamT, RetT]
+type ComposedT[**ParamT, RetT] = Composed[ParamT, RetT]
+
+
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class ArgumentParser[**ParamT, RetT](composer_.Composer[ParamT, RetT], abc.ABC):
     LogLevel = typing.Annotated[
@@ -481,24 +490,14 @@ class ArgumentParser[**ParamT, RetT](composer_.Composer[ParamT, RetT], abc.ABC):
 
     Signature: typing.ClassVar = _Signature
 
-    @property
-    @abc.abstractmethod
-    def composee_t(self) -> type[Composee[typing.Any, typing.Any]]: ...
-    @property
-    @abc.abstractmethod
-    def connect_t(self) -> type[Connect[typing.Any, typing.Any]]: ...
-    @property
-    @abc.abstractmethod
-    def exit_t(self) -> type[Exit[typing.Any, typing.Any]]: ...
-    @property
-    @abc.abstractmethod
-    def enter_t(self) -> type[Enter[typing.Any, typing.Any]]: ...
-    @property
-    @abc.abstractmethod
-    def composed_t(self) -> type[Composed[typing.Any, typing.Any]]: ...
+    Composee: typing.ClassVar[type[Composee[typing.Any, typing.Any]]]
+    Connect: typing.ClassVar[type[Connect[typing.Any, typing.Any]]]
+    Exit: typing.ClassVar[type[Exit[typing.Any, typing.Any]]]
+    Enter: typing.ClassVar[type[Enter[typing.Any, typing.Any]]]
+    Composed: typing.ClassVar[type[Composed[typing.Any, typing.Any]]]
 
-    def __call__(self, composee: Composee[ParamT, RetT], /) -> Composed[ParamT, RetT]:
-        return self.composed_t(  # type: ignore[return-value]
+    def __call__(self, composee: ComposeeT[ParamT, RetT], /) -> ComposedT[ParamT, RetT]:
+        return self.Composed(  # type: ignore[return-value]
             __doc__=str(composee.__doc__),
             __module__=str(composee.__module__),
             __name__=str(composee.__name__),
@@ -508,7 +507,7 @@ class ArgumentParser[**ParamT, RetT](composer_.Composer[ParamT, RetT], abc.ABC):
             ),
             composee=composee,
             composer=self,
-            stack=(self.enter_t(composer=self, composee=composee),),
+            stack=(self.Enter(composer=self, composee=composee),),
         )
 
 

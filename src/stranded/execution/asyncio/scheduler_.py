@@ -44,7 +44,7 @@ class Enter[**ParamT, RetT](composer_.Enter[ParamT, RetT], scheduler_.Enter[Para
         async def wrapped(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             return await scheduler.submit_async(inner, args, kwargs)
 
-        return self.exit_t(enter=self), typing.cast(composer_.Composee[ParamT, RetT], wrapped)
+        return self.composer.Exit(enter=self), typing.cast(composer_.Composee[ParamT, RetT], wrapped)
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -53,11 +53,11 @@ class Composed[**ParamT, RetT](composer_.Composed[ParamT, RetT], scheduler_.Comp
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Scheduler[**ParamT = ..., RetT = typing.Any](composer_.Composer[ParamT, RetT], scheduler_.Scheduler[ParamT, RetT]):
-    composee_t: typing.ClassVar = Composee
-    connect_t: typing.ClassVar = Connect
-    exit_t: typing.ClassVar = Exit
-    enter_t: typing.ClassVar = Enter
-    composed_t: typing.ClassVar = Composed
+    Composee: typing.ClassVar = Composee
+    Connect: typing.ClassVar = Connect
+    Exit: typing.ClassVar = Exit
+    Enter: typing.ClassVar = Enter
+    Composed: typing.ClassVar = Composed
 
     loop: asyncio.AbstractEventLoop | None = None
 
