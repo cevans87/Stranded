@@ -206,7 +206,7 @@ class _Signature:
         return self.return_annotation, *self.parameter_by_name.values()
 
     def __call__(self, *argv: str) -> _BoundSignature:
-        arg_stack = list(reversed(argv))
+        args = list(reversed(argv))
 
         required_positional_parameter_by_name = dict(self.required_positional_parameter_by_name)
         optional_positional_parameter_by_name = dict(self.optional_positional_parameter_by_name)
@@ -220,44 +220,55 @@ class _Signature:
         keyword_value_by_name = dict()
         variadic_keyword_value_by_name = dict()
 
-        while arg_stack:
-            arg = arg_stack.pop()
-            match arg.split('-'):
+        while args:
+            match args[-1].split('-'):
 
                 case ('', '', name) if parameter := required_keyword_parameter_by_name.pop(name, None):
-                    keyword_value_by_name[name] = parameter(arg_stack.pop())
+                    args.pop()
+                    keyword_value_by_name[name] = parameter(args.pop())
                 case ('', '', name) if parameter := optional_keyword_parameter_by_name.pop(name, None):  # type: ignore[assignment]
-                    keyword_value_by_name[name] = parameter(arg_stack.pop())
+                    args.pop()
+                    keyword_value_by_name[name] = parameter(args.pop())
                 case ('', '', name) if parameter := self.variadic_keyword_parameter:  # type: ignore[assignment]
-                    variadic_keyword_value_by_name[name] = parameter(arg_stack.pop())
+                    args.pop()
+                    variadic_keyword_value_by_name[name] = parameter(args.pop())
                 case ('', '', _) if parameter := self.variadic_positional_parameter:  # type: ignore[assignment]
-                    variadic_positional_values += [arg, parameter(arg_stack.pop())]
+                    variadic_positional_values += [args.pop(), parameter(args.pop())]
 
                 # Special cases of keyword arguments where type is bool.
                 case ('', name) if (
                     (parameter := required_keyword_parameter_by_name.pop(name, None))
                     and (parameter.t == bool)
                 ):
+                    args.pop()
                     keyword_value_by_name[name] = True
                 case ('', name) if (
                     (parameter := optional_keyword_parameter_by_name.pop(name, None))  # type: ignore[assignment]
                     and (parameter.t == bool)
                     and (parameter.default == False)
                 ):
+                    args.pop()
                     keyword_value_by_name[name] = True
                 case ('', name) if self.variadic_keyword_parameter and (self.variadic_keyword_parameter.t == bool):
+                    args.pop()
                     variadic_keyword_value_by_name[name] = True
                 case ('', _) if self.variadic_positional_parameter and (self.variadic_positional_parameter.t == bool):
+                    args.pop()
                     variadic_positional_values.append(True)
 
-                case (arg,) if required_positional_parameter_by_name:
+                case (_arg,):
+                    break
+
+        while args:
+            match args[-1]:
+                case arg if required_positional_parameter_by_name:
                     name, parameter = required_positional_parameter_by_name.popitem()  # type: ignore[assignment]
-                    positional_value_by_name[name] = parameter(arg)  # type: ignore[misc]
-                case (arg,) if optional_positional_parameter_by_name:
+                    positional_value_by_name[name] = parameter(args.pop())  # type: ignore[misc]
+                case arg if optional_positional_parameter_by_name:
                     name, parameter = optional_positional_parameter_by_name.popitem()  # type: ignore[assignment]
-                    positional_value_by_name[name] = parameter(arg)  # type: ignore[misc]
-                case (arg,) if parameter := self.variadic_positional_parameter:  # type: ignore[assignment]
-                    variadic_positional_values.append(parameter(arg))
+                    positional_value_by_name[name] = parameter(args.pop())  # type: ignore[misc]
+                case arg if parameter := self.variadic_positional_parameter:  # type: ignore[assignment]
+                    variadic_positional_values.append(parameter(args.pop()))
 
                 case _:
                     raise RuntimeError(f'Could not parse {arg=}.')

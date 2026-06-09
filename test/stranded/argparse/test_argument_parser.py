@@ -256,7 +256,7 @@ def test_call_parses_kwargs() -> None:
     @ArgumentParser()
     def bar(**kwargs: int) -> None: calls.append({'kwargs': kwargs})
 
-    (foo | bar)(*'1 --b 2 --c 3'.split())  # type: ignore[operator]
+    (foo | bar)(*'--b 2 --c 3 1'.split())  # type: ignore[operator]
 
     assert calls == [
         {'a': 1},
@@ -277,7 +277,7 @@ def test_call_parses_args_and_kwargs() -> None:
     @ArgumentParser()
     def baz(**kwargs: float) -> None: calls.append({'kwargs': kwargs})
 
-    (foo | bar | baz)(*'1 2 --b 3.0 --c 4.0'.split())  # type: ignore[operator]
+    (foo | bar | baz)(*'--b 3.0 --c 4.0 1 2'.split())  # type: ignore[operator]
 
     assert calls == [
         {'a': 1},
@@ -305,7 +305,7 @@ def test_args_passed_to_subcommand() -> None:
     @ArgumentParser()
     def baz(**kwargs: float) -> None: calls.append({'kwargs': kwargs})
 
-    foo(*'bar --a 3.0 --b 4.0'.split())  # type: ignore[arg-type]
+    foo(*'--a 3.0 --b 4.0 bar'.split())  # type: ignore[arg-type]
 
     assert calls == [
         {'subcommand': 'bar'},
@@ -314,7 +314,7 @@ def test_args_passed_to_subcommand() -> None:
 
     calls = []
 
-    foo(*'baz --a 3.0 --b 4.0'.split())  # type: ignore[arg-type]
+    foo(*'--a 3.0 --b 4.0 baz'.split())  # type: ignore[arg-type]
 
     assert calls == [
         {'subcommand': 'baz'},
@@ -323,65 +323,46 @@ def test_args_passed_to_subcommand() -> None:
 
 
 def test_help_goes_to_subcommand() -> None:
-
     calls: list[dict[str, object]] = []
 
     @ArgumentParser()
-    def help_flag(subcommand: typing.Literal['bar', 'baz'] = ..., /, *, help: bool = False) -> None:  # type: ignore[assignment]
-        calls.append({'subcommand': subcommand, 'help': help})
-        if help:
-            match subcommand:
-                case builtins.Ellipsis:
-                    subcommand = foo
-                case 'bar':
-                    subcommand = bar  # type: ignore[assignment]
-                case 'baz':
-                    subcommand = baz  # type: ignore[assignment]
-                case _:
-                    assert False, f'Invalid {subcommand=}'
-            print((help_flag | subcommand).to_long_str())  # type: ignore[operator]
-            assert False, 'In a normal Cli, this should be `sys.exit(0)`.'
+    def first_h_handler(
+        *,
+        h: typing.Annotated[bool, 'Print help and exit.'] = False,
+    ) -> None:
+        calls.append({'first_h_handler': h})
 
     @ArgumentParser()
-    def foo(subcommand: typing.Literal['bar', 'baz'] = ..., /, *args: str) -> None:  # type: ignore[assignment]
-        calls.append({'subcommand': subcommand})
+    def subcommand_handler(
+        subcommand: typing.Literal['foo'] = 'foo',  # type: ignore[assignment]
+        /,
+        *args: typing.Annotated[str, 'Subcommand args.']
+    ) -> None:
         match subcommand:
-            case  builtins.Ellipsis:
-                print((help_flag | foo).to_short_str())
-            case 'bar':
-                (help_flag | bar)(*args)  # type: ignore[operator]
-            case 'baz':
-                (help_flag | baz)(*args)  # type: ignore[operator]
+            case 'foo':
+                second_h_handler(*args)
+
 
     @ArgumentParser()
-    def bar(*args: str) -> None: calls.append({'args': args})
+    def second_h_handler(*, h: typing.Annotated[bool, 'Print help and exit.'] = False) -> None:
+        calls.append({'second_h_handler': h})
 
-    @ArgumentParser()
-    def baz(**kwargs: float) -> None: calls.append({'kwargs': kwargs})
-
-    with pytest.raises(AssertionError):
-        (help_flag | foo)(*'-help'.split())  # type: ignore[operator]
+    # A bare `-h` is handled by the first parser; the subcommand stays unset.
+    (first_h_handler | subcommand_handler)(*'-h'.split())  # type: ignore[operator]
 
     assert calls == [
-        {'subcommand': ..., 'help': True},
+        {'first_h_handler': True},
+        {'second_h_handler': False},
     ]
 
     calls = []
 
-    with pytest.raises(AssertionError):
-        (help_flag | foo)(*'bar -help'.split())  # type: ignore[operator]
+    # `foo -h` routes through the dispatcher, which forwards `-h` to the second parser.
+    (first_h_handler | subcommand_handler)(*'foo -h'.split())  # type: ignore[operator]
 
     assert calls == [
-        {'subcommand': 'bar', 'help': True},
-    ]
-
-    calls = []
-
-    with pytest.raises(AssertionError):
-        (help_flag | foo)(*'baz -help'.split())  # type: ignore[operator]
-
-    assert calls == [
-        {'subcommand': 'baz', 'help': True},
+        {'first_h_handler': False},
+        {'second_h_handler': True},
     ]
 
 
