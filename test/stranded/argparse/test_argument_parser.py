@@ -195,17 +195,38 @@ def test_signature_to_long_str() -> None:
 
     foo_bar = foo | bar  # type: ignore[operator]
     assert textwrap.dedent(foo_bar.to_signature().to_long_str()).strip() == textwrap.dedent('''
-        --d <d>                         # <class 'int'>  # Sets d.
-        --i <i>                         # <class 'int'>  # Sets i.
-        [--c <c(1)>]                    # <class 'int'>  # Sets c.
-        [--e <e(2)>]                    # <class 'int'>  # Sets e.
-        [--h <h(3)>]                    # <class 'int'>  # Sets h.
-        [--j <j(4)>]                    # <class 'int'>  # Sets j.
-        <a>                             # <class 'int'>  # Sets a.
-        <f>                             # <class 'int'>  # Sets f.
-        <g>                             # <class 'int'>  # Sets g.
-        [<b(0)>]                        # <class 'int'>  # Sets b.
-                                        # dict[str, int]  # Returns bar.
+        --d <d>
+            <class 'int'>
+            Sets d.
+        --i <i>
+            <class 'int'>
+            Sets i.
+        [--c <c(1)>]
+            <class 'int'>
+            Sets c.
+        [--e <e(2)>]
+            <class 'int'>
+            Sets e.
+        [--h <h(3)>]
+            <class 'int'>
+            Sets h.
+        [--j <j(4)>]
+            <class 'int'>
+            Sets j.
+        <a>
+            <class 'int'>
+            Sets a.
+        <f>
+            <class 'int'>
+            Sets f.
+        <g>
+            <class 'int'>
+            Sets g.
+        [<b(0)>]
+            <class 'int'>
+            Sets b.
+        dict[str, int]
+            Returns bar.
     ''').strip()
 
 

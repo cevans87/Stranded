@@ -31,7 +31,11 @@ class _Parameter[T](_Annotation[T], abc.ABC):
         return types.Convert(t=self.t)(arg)
 
     def to_long_str(self) -> str:
-        return f'    {self.to_short_str():<30}  # {self.t}  # {self.comment}'
+        return '\n'.join((
+            f'    {self.to_short_str()}',
+            f'        {self.t}',
+            *((f'        {self.comment}',) if self.comment else ()),
+        ))
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -154,7 +158,10 @@ class _ReturnAnnotation[T](_Annotation[T]):
         return ''
 
     def to_long_str(self) -> str:
-        return f'    {' ':<30}  # {self.t}  # {self.comment}'
+        return '\n'.join((
+            f'    {self.t}',
+            *((f'        {self.comment}',) if self.comment else ()),
+        ))
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
