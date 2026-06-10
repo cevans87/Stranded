@@ -199,7 +199,7 @@ class _Signature:
 
     @property
     def parameter_by_name(self) -> dict[str, _Parameter[typing.Any]]:
-        return self.variadic_parameter_by_name | self.keyword_parameter_by_name | self.positional_parameter_by_name  # type: ignore[no-any-return, operator]
+        return self.variadic_parameter_by_name | self.positional_parameter_by_name | self.keyword_parameter_by_name  # type: ignore[no-any-return, operator]
 
     @property
     def annotations(self) -> tuple[_Annotation[typing.Any], ...]:
