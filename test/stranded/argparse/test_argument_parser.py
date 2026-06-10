@@ -165,7 +165,7 @@ def test_signature_to_short_str() -> None:
     ) -> dict[str, int]: return locals()
 
     assert (foo | bar).to_signature().to_short_str() == (  # type: ignore[operator]
-        '<a> <f> <g> [<b(0)>] --d <d> --i <i> [--c <c(1)>] [--e <e(2)>] [--h <h(3)>] [--j <j(4)>]'
+        '--d <d> --i <i> [--c <c(1)>] [--e <e(2)>] [--h <h(3)>] [--j <j(4)>] <a> <f> <g> [<b(0)>]'
     )
 
 
@@ -195,16 +195,16 @@ def test_signature_to_long_str() -> None:
 
     foo_bar = foo | bar  # type: ignore[operator]
     assert textwrap.dedent(foo_bar.to_signature().to_long_str()).strip() == textwrap.dedent('''
-        <a>                             # <class 'int'>  # Sets a.
-        <f>                             # <class 'int'>  # Sets f.
-        <g>                             # <class 'int'>  # Sets g.
-        [<b(0)>]                        # <class 'int'>  # Sets b.
         --d <d>                         # <class 'int'>  # Sets d.
         --i <i>                         # <class 'int'>  # Sets i.
         [--c <c(1)>]                    # <class 'int'>  # Sets c.
         [--e <e(2)>]                    # <class 'int'>  # Sets e.
         [--h <h(3)>]                    # <class 'int'>  # Sets h.
         [--j <j(4)>]                    # <class 'int'>  # Sets j.
+        <a>                             # <class 'int'>  # Sets a.
+        <f>                             # <class 'int'>  # Sets f.
+        <g>                             # <class 'int'>  # Sets g.
+        [<b(0)>]                        # <class 'int'>  # Sets b.
                                         # dict[str, int]  # Returns bar.
     ''').strip()
 
