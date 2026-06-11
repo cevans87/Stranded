@@ -226,7 +226,7 @@ def test_signature_to_long_str() -> None:
         [<b(0)>]
             type: int
             Sets b.
-        dict[str, int]
+        return: dict[str, int]
             Returns bar.
     ''').strip()
 
@@ -253,7 +253,7 @@ def test_signature_to_long_str_prints_choices() -> None:
         [--color <color(Color.red)>]
             enum: {red, green, blue}
             Sets color.
-        None
+        return: None
     ''').strip()
 
 
