@@ -167,7 +167,7 @@ class _ReturnAnnotation[T](_Annotation[T]):
 
     def to_long_str(self) -> str:
         return '\n'.join((
-            f'    {self.t}',
+            f'    return: {self.t}',
             *((f'        {self.comment}',) if self.comment else ()),
         ))
 
