@@ -1,4 +1,5 @@
 import builtins
+import enum
 import inspect
 import logging
 import shlex
@@ -196,37 +197,63 @@ def test_signature_to_long_str() -> None:
     foo_bar = foo | bar  # type: ignore[operator]
     assert textwrap.dedent(foo_bar.to_signature().to_long_str()).strip() == textwrap.dedent('''
         --d <d>
-            <class 'int'>
+            type: int
             Sets d.
         --i <i>
-            <class 'int'>
+            type: int
             Sets i.
         [--c <c(1)>]
-            <class 'int'>
+            type: int
             Sets c.
         [--e <e(2)>]
-            <class 'int'>
+            type: int
             Sets e.
         [--h <h(3)>]
-            <class 'int'>
+            type: int
             Sets h.
         [--j <j(4)>]
-            <class 'int'>
+            type: int
             Sets j.
         <a>
-            <class 'int'>
+            type: int
             Sets a.
         <f>
-            <class 'int'>
+            type: int
             Sets f.
         <g>
-            <class 'int'>
+            type: int
             Sets g.
         [<b(0)>]
-            <class 'int'>
+            type: int
             Sets b.
         dict[str, int]
             Returns bar.
+    ''').strip()
+
+
+def test_signature_to_long_str_prints_choices() -> None:
+
+    class Color(enum.Enum):
+        red = 1
+        green = 2
+        blue = 3
+
+    @ArgumentParser()
+    def foo(
+        *,
+        level: typing.Annotated[typing.Literal['INFO', 'DEBUG', 'WARNING'], 'Log level to set.'] = 'INFO',
+        color: typing.Annotated[Color, 'Sets color.'] = Color.red,
+    ) -> None: ...
+
+    long_str = foo.to_signature().to_long_str()  # type: ignore[attr-defined]
+    assert textwrap.dedent(long_str).strip() == textwrap.dedent('''
+        [--level <level(INFO)>]
+            literal: {INFO, DEBUG, WARNING}
+            Log level to set.
+        [--color <color(Color.red)>]
+            enum: {red, green, blue}
+            Sets color.
+        None
     ''').strip()
 
 

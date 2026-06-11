@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import abc
 import dataclasses
+import enum
 import inspect
 import typing
 
@@ -13,7 +14,7 @@ from stranded.builtins import exception_
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class _Annotation[T](abc.ABC):
-    t: type[T]
+    t: T
     comment: str = ""
 
     @abc.abstractmethod
@@ -21,6 +22,13 @@ class _Annotation[T](abc.ABC):
 
     @abc.abstractmethod
     def to_long_str(self) -> str: ...
+
+    def to_type_str(self) -> str:
+        if typing.get_origin(self.t) is typing.Literal:
+            return f'literal: {{{', '.join(map(str, typing.get_args(self.t)))}}}'
+        if isinstance(self.t, type) and issubclass(self.t, enum.Enum):
+            return f'enum: {{{', '.join(self.t._member_names_)}}}'
+        return f'type: {self.t.__name__}'
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -33,7 +41,7 @@ class _Parameter[T](_Annotation[T], abc.ABC):
     def to_long_str(self) -> str:
         return '\n'.join((
             f'    {self.to_short_str()}',
-            f'        {self.t}',
+            f'        {self.to_type_str()}',
             *((f'        {self.comment}',) if self.comment else ()),
         ))
 
@@ -146,11 +154,11 @@ class _ReturnAnnotation[T](_Annotation[T]):
     def of_annotation(annotation: type) -> _ReturnAnnotation[typing.Any]:
         match annotation, typing.get_origin(annotation), typing.get_args(annotation):
             case t, None, ():
-                return _ReturnAnnotation[typing.Any](t=t)
+                return _ReturnAnnotation(t=t)
             case _, typing.Annotated, (t, *_, comment):
-                return _ReturnAnnotation[typing.Any](t=t, comment=comment)
+                return _ReturnAnnotation(t=t, comment=comment)
             case _, t, ts:
-                return _ReturnAnnotation[typing.Any](t=t[*ts])  # type: ignore[index]
+                return _ReturnAnnotation(t=t[*ts])  # type: ignore[index]
             case _:
                 raise RuntimeError(f'{annotation=}. Cannot create return annotation.')
 
