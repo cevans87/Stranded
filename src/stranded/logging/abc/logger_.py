@@ -37,7 +37,7 @@ class Exit[**ParamT, RetT](composer_.Exit[ParamT, RetT], abc.ABC):
     def __call__(self, value: composer_.ValueT[ParamT, RetT], /) -> composer_.StackT:
         match value:
             case Raise() as raise_:
-                self.enter.composer.logger.log(  # type: ignore[attr-defined]
+                logging.getLogger(self.enter.composer.name).log(  # type: ignore[attr-defined]
                     logging.getLevelNamesMapping()[self.enter.composer.err_level],  # type: ignore[attr-defined]
                     '%s :: %s !! %s',
                     inspect.signature(self.enter.composee),
@@ -45,7 +45,7 @@ class Exit[**ParamT, RetT](composer_.Exit[ParamT, RetT], abc.ABC):
                     raise_.exc_val,
                 )
             case Return(ret=ret):
-                self.enter.composer.logger.log(  # type: ignore[attr-defined]
+                logging.getLogger(self.enter.composer.name).log(  # type: ignore[attr-defined]
                     logging.getLevelNamesMapping()[self.enter.composer.ok_level],  # type: ignore[attr-defined]
                     '%s :: %s -> %s',
                     inspect.signature(self.enter.composee),
@@ -63,7 +63,7 @@ class Enter[**ParamT, RetT](composer_.Enter[ParamT, RetT], abc.ABC):
             case Param() as param_:
                 bound_arguments = inspect.signature(self.composee).bind(*param_.args, **param_.kwargs)
 
-                self.composer.logger.log(  # type: ignore[attr-defined]
+                logging.getLogger(self.composer.name).log(  # type: ignore[attr-defined]
                     logging.getLevelNamesMapping()[self.composer.call_level],  # type: ignore[attr-defined]
                     '%s',
                     bound_arguments,
@@ -80,7 +80,7 @@ class Composed[**ParamT, RetT](composer_.Composed[ParamT, RetT], abc.ABC): ...
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Logger[**ParamT, RetT](composer_.Composer[ParamT, RetT], abc.ABC):
-    logger: logging.Logger
+    name: str
     call_level: Level = 'DEBUG'
     err_level: Level = 'ERROR'
     ok_level: Level = 'INFO'
