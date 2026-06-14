@@ -30,17 +30,17 @@ def log_level_flag(*, log_level: Logger.Level = 'ERROR') -> None:
 
 
 @ArgumentParser()
-@Logger(logger=logger, call_level='DEBUG', ok_level='DEBUG')
+@Logger(name=__name__, call_level='DEBUG', ok_level='DEBUG')
 def bar_subcommand(b: int) -> dict[str, int]: return locals()
 
 
 @ArgumentParser()
-@Logger(logger=logger, call_level='DEBUG', ok_level='DEBUG')
+@Logger(name=__name__, call_level='DEBUG', ok_level='DEBUG')
 def baz_subcommand(c: float) -> dict[str, float]: return locals()
 
 
 @ArgumentParser()
-@Logger(logger=logger, call_level='DEBUG', ok_level='DEBUG')
+@Logger(name=__name__, call_level='DEBUG', ok_level='DEBUG')
 def main(prog: str, subcommand: typing.Literal['bar', 'baz'], /, *args: str) -> None:
     """This is foo documentation."""
     match subcommand:
