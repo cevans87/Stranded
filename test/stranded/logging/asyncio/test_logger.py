@@ -14,7 +14,7 @@ logger.setLevel(logging.INFO)
 @pytest.mark.asyncio
 async def test_zero_args() -> None:
 
-    @Logger(name=__name__)
+    @Logger()
     async def foo(bar: int) -> int:
         return 42
 
