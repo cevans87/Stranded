@@ -10,3 +10,4 @@ class Logger(composer_.Composer[..., typing.Any], logger_.Logger[..., typing.Any
 
 
 Composer = Logger
+logger = Logger()

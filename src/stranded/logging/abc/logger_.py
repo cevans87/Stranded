@@ -37,7 +37,7 @@ class Exit[**ParamT, RetT](composer_.Exit[ParamT, RetT], abc.ABC):
     def __call__(self, value: composer_.ValueT[ParamT, RetT], /) -> composer_.StackT:
         match value:
             case Raise() as raise_:
-                logging.getLogger(self.enter.composer.name).log(  # type: ignore[attr-defined]
+                logging.getLogger(f'{self.enter.composee.__module__}.{self.enter.composee.__name__}').log(
                     logging.getLevelNamesMapping()[self.enter.composer.err_level],  # type: ignore[attr-defined]
                     '%s :: %s !! %s',
                     inspect.signature(self.enter.composee),
@@ -45,8 +45,9 @@ class Exit[**ParamT, RetT](composer_.Exit[ParamT, RetT], abc.ABC):
                     raise_.exc_val,
                 )
             case Return(ret=ret):
-                logging.getLogger(self.enter.composer.name).log(  # type: ignore[attr-defined]
-                    logging.getLevelNamesMapping()[self.enter.composer.ok_level],  # type: ignore[attr-defined]
+                level = self.enter.composer.none_level if ret is None else self.enter.composer.ok_level  # type: ignore[attr-defined]
+                logging.getLogger(f'{self.enter.composee.__module__}.{self.enter.composee.__name__}').log(
+                    logging.getLevelNamesMapping()[level],
                     '%s :: %s -> %s',
                     inspect.signature(self.enter.composee),
                     self.bound_arguments.arguments,
@@ -63,7 +64,7 @@ class Enter[**ParamT, RetT](composer_.Enter[ParamT, RetT], abc.ABC):
             case Param() as param_:
                 bound_arguments = inspect.signature(self.composee).bind(*param_.args, **param_.kwargs)
 
-                logging.getLogger(self.composer.name).log(  # type: ignore[attr-defined]
+                logging.getLogger(f'{self.composee.__module__}.{self.composee.__name__}').log(
                     logging.getLevelNamesMapping()[self.composer.call_level],  # type: ignore[attr-defined]
                     '%s',
                     bound_arguments,
@@ -80,9 +81,9 @@ class Composed[**ParamT, RetT](composer_.Composed[ParamT, RetT], abc.ABC): ...
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Logger[**ParamT, RetT](composer_.Composer[ParamT, RetT], abc.ABC):
-    name: str
     call_level: Level = 'DEBUG'
     err_level: Level = 'ERROR'
+    none_level: Level = 'WARNING'
     ok_level: Level = 'INFO'
 
     Level: typing.ClassVar[type[Level]] = Level  # type: ignore[assignment, valid-type]
