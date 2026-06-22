@@ -4,6 +4,7 @@ import abc
 import dataclasses
 import inspect
 import logging
+import types
 import typing
 
 from ...abc import composer_
@@ -45,7 +46,12 @@ class Exit[**ParamT, RetT](composer_.Exit[ParamT, RetT], abc.ABC):
                     raise_.exc_val,
                 )
             case Return(ret=ret):
-                level = self.enter.composer.none_level if ret is None else self.enter.composer.ok_level  # type: ignore[attr-defined]
+                return_annotation = inspect.signature(self.enter.composee, eval_str=True).return_annotation
+                level = (  # type: ignore[attr-defined]
+                    self.enter.composer.none_level
+                    if ret is None and types.NoneType in typing.get_args(return_annotation)
+                    else self.enter.composer.ok_level
+                )
                 logging.getLogger(f'{self.enter.composee.__module__}.{self.enter.composee.__name__}').log(
                     logging.getLevelNamesMapping()[level],
                     '%s :: %s -> %s',
