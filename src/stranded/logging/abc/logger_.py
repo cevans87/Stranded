@@ -4,7 +4,6 @@ import abc
 import dataclasses
 import inspect
 import logging
-import types
 import typing
 
 from ...abc import composer_
@@ -39,18 +38,17 @@ class Exit[**ParamT, RetT](composer_.Exit[ParamT, RetT], abc.ABC):
         match value:
             case Raise() as raise_:
                 logging.getLogger(f'{self.enter.composee.__module__}.{self.enter.composee.__name__}').log(
-                    logging.getLevelNamesMapping()[self.enter.composer.err_level],  # type: ignore[attr-defined]
+                    logging.getLevelNamesMapping()[self.enter.composer.exception_level],  # type: ignore[attr-defined]
                     '%s :: %s !! %s',
                     inspect.signature(self.enter.composee),
                     self.bound_arguments.arguments,
                     raise_.exc_val,
                 )
             case Return(ret=ret):
-                return_annotation = inspect.signature(self.enter.composee, eval_str=True).return_annotation
-                level = (  # type: ignore[attr-defined]
-                    self.enter.composer.none_level
-                    if ret is None and types.NoneType in typing.get_args(return_annotation)
-                    else self.enter.composer.ok_level
+                level = (
+                    self.enter.composer.none_level  # type: ignore[attr-defined]
+                    if ret is None
+                    else self.enter.composer.return_level  # type: ignore[attr-defined]
                 )
                 logging.getLogger(f'{self.enter.composee.__module__}.{self.enter.composee.__name__}').log(
                     logging.getLevelNamesMapping()[level],
@@ -88,9 +86,9 @@ class Composed[**ParamT, RetT](composer_.Composed[ParamT, RetT], abc.ABC): ...
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Logger[**ParamT, RetT](composer_.Composer[ParamT, RetT], abc.ABC):
     call_level: Level = 'DEBUG'
-    err_level: Level = 'ERROR'
+    exception_level: Level = 'ERROR'
     none_level: Level = 'WARNING'
-    ok_level: Level = 'INFO'
+    return_level: Level = 'INFO'
 
     Level: typing.ClassVar[type[Level]] = Level  # type: ignore[assignment, valid-type]
 

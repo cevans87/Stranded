@@ -67,6 +67,8 @@ class Composed[**ParamT, RetT](composer_.Composed[ParamT, RetT], abc.ABC):
     ] = dataclasses.field(default_factory=weakref.WeakKeyDictionary)
 
     def __get__(self, instance: composer_.Instance, owner: type[object] | None) -> typing.Self:
+        if instance is None:
+            return self
         if (composed := self.composed_by_instance.get(instance)) is not None:
             return composed
         match self.stack[-1]:
