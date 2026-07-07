@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import abc
+import annotationlib
 import dataclasses
 import inspect
 import types
@@ -97,11 +98,19 @@ class Composed[**ParamT, RetT](abc.ABC):
     __signature__: inspect.Signature
     composer: Composer[ParamT, RetT]
     stack: StackT
+    owner: type[object] | None = None
+    name: str | None = None
 
     @abc.abstractmethod
     def __call__(self, *args: ParamT.args, **kwargs: ParamT.kwargs) -> RetT: ...
 
+    def __set_name__(self, owner: type[object], name: str) -> None:
+        object.__setattr__(self, 'owner', owner)
+        object.__setattr__(self, 'name', name)
+
     def __get__(self, instance: Instance, owner: type[object] | None) -> typing.Self:
+        if instance is None:
+            return self
         match self.stack[-1]:
             case Enter() as enter_:
                 return dataclasses.replace(
@@ -154,7 +163,7 @@ class Composer[**ParamT, RetT](abc.ABC):
             __module__=str(composee.__module__),
             __name__=str(composee.__name__),
             __qualname__=str(composee.__qualname__),
-            __signature__=inspect.signature(composee),
+            __signature__=inspect.signature(composee, annotation_format=annotationlib.Format.FORWARDREF),
             composer=self,
             stack=(self.Enter(composer=self, composee=composee),)
         )

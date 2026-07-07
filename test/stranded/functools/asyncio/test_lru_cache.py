@@ -1,4 +1,5 @@
 import asyncio
+import dataclasses
 
 import pytest
 
@@ -223,6 +224,31 @@ async def test_herds_only_call_once() -> None:
     await asyncio.gather(*futures)
 
     assert call_count == 1
+
+
+@pytest.mark.asyncio
+async def test_self_referential_return_annotation() -> None:
+
+    @dataclasses.dataclass(eq=False)
+    class Foo:
+        @LruCache()
+        async def foo(self) -> Foo | None:
+            return None
+
+    assert await Foo().foo() is None
+
+
+@pytest.mark.asyncio
+async def test_self_referential_return_annotation_classmethod() -> None:
+
+    @dataclasses.dataclass
+    class Foo:
+        @classmethod
+        @LruCache()
+        async def foo(cls) -> Foo | None:
+            return None
+
+    assert await Foo.foo() is None
 
 
 @pytest.mark.asyncio

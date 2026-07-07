@@ -1,79 +1,88 @@
+import dataclasses
 import logging
-import sys
-import typing
 
 import pytest
 
 from stranded.logging.asyncio import Logger
 
 
-logger = logging.getLogger(__name__)
-logger.addHandler(logging.StreamHandler(sys.stdout))
-logger.setLevel(logging.INFO)
-
-
-def _return_level(caplog: pytest.LogCaptureFixture) -> str:
-    (record,) = (record for record in caplog.records if '->' in record.getMessage())
-    return record.levelname
-
-
 @pytest.mark.asyncio
-async def test_zero_args() -> None:
+async def test_zero_args(log_capture_fixture: pytest.LogCaptureFixture) -> None:
 
     @Logger()
     async def foo(bar: int) -> int:
         return 42
 
-    await foo(777)
+    with log_capture_fixture.at_level(logging.DEBUG, logger=__name__):
+        await foo(777)
+
+    call_record, return_record = log_capture_fixture.records
+    assert call_record.levelname == 'DEBUG'
+    assert return_record.levelname == 'INFO'
 
 
 @pytest.mark.asyncio
-async def test_optional_return_none_logs_at_none_level(caplog: pytest.LogCaptureFixture) -> None:
+async def test_return_none_logs_at_none_level(log_capture_fixture: pytest.LogCaptureFixture) -> None:
 
     @Logger()
     async def foo() -> int | None:
         return None
 
-    with caplog.at_level(logging.DEBUG):
+    with log_capture_fixture.at_level(logging.DEBUG, logger=__name__):
         await foo()
 
-    assert _return_level(caplog) == 'WARNING'
+    call_record, return_record = log_capture_fixture.records
+    assert call_record.levelname == 'DEBUG'
+    assert return_record.levelname == 'WARNING'
 
 
 @pytest.mark.asyncio
-async def test_optional_return_value_logs_at_ok_level(caplog: pytest.LogCaptureFixture) -> None:
+async def test_return_value_logs_at_return_level(log_capture_fixture: pytest.LogCaptureFixture) -> None:
 
     @Logger()
     async def foo() -> int | None:
         return 42
 
-    with caplog.at_level(logging.DEBUG):
+    with log_capture_fixture.at_level(logging.DEBUG, logger=__name__):
         await foo()
 
-    assert _return_level(caplog) == 'INFO'
+    call_record, return_record = log_capture_fixture.records
+    assert call_record.levelname == 'DEBUG'
+    assert return_record.levelname == 'INFO'
 
 
 @pytest.mark.asyncio
-async def test_non_optional_return_none_logs_at_ok_level(caplog: pytest.LogCaptureFixture) -> None:
+async def test_self_referential_return_none_logs_at_none_level(log_capture_fixture: pytest.LogCaptureFixture) -> None:
 
-    @Logger()
-    async def foo() -> None:
-        return None
+    @dataclasses.dataclass
+    class Foo:
+        @Logger()
+        async def foo(self) -> Foo | None:
+            return None
 
-    with caplog.at_level(logging.DEBUG):
-        await foo()
+    with log_capture_fixture.at_level(logging.DEBUG, logger=__name__):
+        await Foo().foo()  # type: ignore[call-arg]
 
-    assert _return_level(caplog) == 'INFO'
+    call_record, return_record = log_capture_fixture.records
+    assert call_record.levelname == 'DEBUG'
+    assert return_record.levelname == 'WARNING'
 
 
 @pytest.mark.asyncio
-async def test_literal_none_return_none_logs_at_ok_level(caplog: pytest.LogCaptureFixture) -> None:
+async def test_self_referential_return_none_logs_at_none_level_classmethod(
+    log_capture_fixture: pytest.LogCaptureFixture,
+) -> None:
 
-    @Logger()
-    async def foo() -> typing.Literal['a', None]:
-        return None
+    @dataclasses.dataclass
+    class Foo:
+        @classmethod
+        @Logger()
+        async def foo(cls) -> Foo | None:
+            return None
 
-    with caplog.at_level(logging.DEBUG):
-        await foo()
+    with log_capture_fixture.at_level(logging.DEBUG, logger=__name__):
+        await Foo.foo()  # type: ignore[call-arg]
 
-    assert _return_level(caplog) == 'INFO'
+    call_record, return_record = log_capture_fixture.records
+    assert call_record.levelname == 'DEBUG'
+    assert return_record.levelname == 'WARNING'
