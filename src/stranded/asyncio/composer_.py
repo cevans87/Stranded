@@ -1,5 +1,6 @@
 import abc
 import dataclasses
+import inspect
 import typing
 
 from ..abc import composer_
@@ -40,6 +41,7 @@ class Enter[**ParamT, RetT](composer_.Enter[ParamT, RetT], abc.ABC):
     async def __call__(self, value: ValueT[ParamT, RetT], /) -> StackT: return super().__call__(value)
 
 
+@inspect.markcoroutinefunction
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Composed[**ParamT, RetT](composer_.Composed[ParamT, RetT], abc.ABC):
     async def __call__(self, *args: ParamT.args, **kwargs: ParamT.kwargs) -> RetT:
