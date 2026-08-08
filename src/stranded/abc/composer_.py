@@ -21,6 +21,18 @@ type StackT = tuple[
 ]
 
 
+def replace[T](obj: T, /, **changes: typing.Any) -> T:
+    """Copy `obj` - a frozen dataclass - with `changes` applied.
+
+    `dataclasses.replace` re-runs `__init__`, which costs several times as much as copying the
+    instance dict does. Binding a composition to an instance happens on every attribute access, so
+    it is worth copying directly.
+    """
+    copy = object.__new__(type(obj))
+    copy.__dict__.update(obj.__dict__, **changes)
+    return copy
+
+
 @dataclasses.dataclass(frozen=True)
 class Raise:
     exc_type: type[BaseException]
@@ -104,6 +116,22 @@ class Composed[**ParamT, RetT](abc.ABC):
     @abc.abstractmethod
     def __call__(self, *args: ParamT.args, **kwargs: ParamT.kwargs) -> RetT: ...
 
+    @property
+    def enter(self) -> Enter[ParamT, RetT]:
+        """The Enter at the bottom of the stack, which holds whatever state the composition has."""
+        match self.stack[-1]:
+            case Enter() as enter_: return enter_
+        assert False, "unreachable"
+
+    def create_enter(self, instance: Instance) -> Enter[ParamT, RetT]:
+        """Return the Enter that `instance`'s copy of this composition composes with.
+
+        Composers that keep per-instance state override this to hand each instance its own. Note
+        that whatever they hold it in must not refer back to `instance`, or the instance can never
+        be collected - which is why they hold Enters rather than whole bound compositions.
+        """
+        return self.enter
+
     def __set_name__(self, owner: type[object], name: str) -> None:
         object.__setattr__(self, 'owner', owner)
         object.__setattr__(self, 'name', name)
@@ -111,16 +139,10 @@ class Composed[**ParamT, RetT](abc.ABC):
     def __get__(self, instance: Instance, owner: type[object] | None) -> typing.Self:
         if instance is None:
             return self
-        match self.stack[-1]:
-            case Enter() as enter_:
-                return dataclasses.replace(
-                    self,
-                    stack=(
-                        *self.stack[:-1],
-                        dataclasses.replace(enter_, composee=enter_.composee.__get__(instance, owner)),
-                    )
-                )
-        assert False, "unreachable"
+        enter = self.create_enter(instance)
+        return replace(
+            self, stack=(*self.stack[:-1], replace(enter, composee=enter.composee.__get__(instance, owner))),
+        )
 
     def __or__[**ReceiverParamT, ReceiverRetT](
         self,

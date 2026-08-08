@@ -70,23 +70,19 @@ class Enter[**ParamT, RetT, FutureT](composer_.Enter[ParamT, RetT], abc.ABC):
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Composed[**ParamT, RetT](composer_.Composed[ParamT, RetT], abc.ABC):
-    composed_by_instance: weakref.WeakKeyDictionary[
-        composer_.Instance, typing.Self,
+    # Enters rather than whole bound compositions: a bound composition holds the bound composee,
+    # which refers back to the instance that keys it here, and so would outlive it forever.
+    enter_by_instance: weakref.WeakKeyDictionary[
+        composer_.Instance, composer_.EnterT[ParamT, RetT],
     ] = dataclasses.field(default_factory=weakref.WeakKeyDictionary)
 
-    def __get__(self, instance: composer_.Instance, owner: type[object] | None) -> typing.Self:
-        if (composed := self.composed_by_instance.get(instance)) is not None:
-            return composed
-        match self.stack:
-            case [*rest, Enter() as enter_]:
-                fresh_enter = dataclasses.replace(
-                    enter_,
-                    composee=enter_.composee.__get__(instance, owner),
-                    future_by_key={},
-                )
-                return self.composed_by_instance.setdefault(
-                    instance, dataclasses.replace(self, stack=(*rest, fresh_enter)),
-                )
+    @typing.override
+    def create_enter(self, instance: composer_.Instance) -> composer_.EnterT[ParamT, RetT]:
+        if (enter := self.enter_by_instance.get(instance)) is not None:
+            return enter
+        match self.enter:
+            case Enter() as enter_:
+                return self.enter_by_instance.setdefault(instance, dataclasses.replace(enter_, future_by_key={}))
         assert False, "unreachable"
 
 

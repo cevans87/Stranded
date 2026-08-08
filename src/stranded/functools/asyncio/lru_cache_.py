@@ -61,14 +61,10 @@ class Enter[**ParamT, RetT](composer_.Enter[ParamT, RetT], lru_cache_.Enter[Para
         match value:
             case Param():
                 key = self.create_key(*value.args, **value.kwargs)
-                future = self.future_by_key.get(key)
-                if future is None:
-                    while self.composer.size <= len(self.future_by_key):  # type: ignore[attr-defined]
-                        self.future_by_key.popitem(last=False)
-                    future = self.future_by_key[key] = self.composer.future_t()  # type: ignore[attr-defined]
-                    return self.composer.Exit(enter=self, future=future, key=key), self.composee  # type: ignore[call-arg, return-value]
-                self.future_by_key.move_to_end(key)
-                return future,
+                if (future := self.get_future(key)) is not None:
+                    return future,
+                future = self.set_future(key)
+                return self.composer.Exit(enter=self, future=future, key=key), self.composee  # type: ignore[call-arg, return-value]
             case _: return ()
 
 

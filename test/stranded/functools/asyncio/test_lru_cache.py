@@ -1,9 +1,20 @@
 import asyncio
+import collections
 import dataclasses
+import gc
+import typing
+import weakref
 
 import pytest
 
+from stranded.functools.abc import lru_cache_
 from stranded.functools.asyncio import LruCache
+
+
+def get_future_by_key(composed: typing.Any) -> collections.OrderedDict[lru_cache_.Key, typing.Any]:
+    enter = composed.stack[-1]
+    assert isinstance(enter, lru_cache_.Enter)
+    return enter.future_by_key
 
 
 @pytest.mark.asyncio
@@ -37,6 +48,103 @@ async def test_primitive_arg(arg: object) -> None:
 
 
 @pytest.mark.asyncio
+async def test_arg_is_not_kept_alive() -> None:
+    call_count = 0
+
+    class Arg: ...
+
+    @LruCache()
+    async def foo(_: object) -> int:
+        nonlocal call_count
+        call_count += 1
+        return call_count
+
+    arg = Arg()
+    arg_ref = weakref.ref(arg)
+    assert await foo(arg) == 1
+    assert await foo(arg) == 1
+    assert call_count == 1
+    assert len(get_future_by_key(foo)) == 1
+
+    del arg
+    gc.collect()
+    assert arg_ref() is None
+    assert len(get_future_by_key(foo)) == 0
+
+
+@pytest.mark.asyncio
+async def test_kwarg_is_not_kept_alive() -> None:
+
+    class Arg: ...
+
+    @LruCache()
+    async def foo(*, _: object) -> None: ...
+
+    arg = Arg()
+    arg_ref = weakref.ref(arg)
+    await foo(_=arg)
+    assert len(get_future_by_key(foo)) == 1
+
+    del arg
+    gc.collect()
+    assert arg_ref() is None
+    assert len(get_future_by_key(foo)) == 0
+
+
+@pytest.mark.asyncio
+async def test_arg_that_has_no_weak_reference_is_memoized() -> None:
+    call_count = 0
+
+    @LruCache()
+    async def foo(_: object) -> int:
+        nonlocal call_count
+        call_count += 1
+        return call_count
+
+    # Neither tuples nor their contents support weak references, so the key holds them strongly.
+    assert await foo((1, 'foo')) == 1
+    assert await foo((1, 'foo')) == 1
+    assert call_count == 1
+    assert len(get_future_by_key(foo)) == 1
+
+
+@pytest.mark.asyncio
+async def test_equal_args_share_a_memo() -> None:
+    call_count = 0
+
+    @dataclasses.dataclass(frozen=True)
+    class Arg:
+        value: int
+
+    @LruCache()
+    async def foo(_: object) -> int:
+        nonlocal call_count
+        call_count += 1
+        return call_count
+
+    # Equal arguments hit the same memo, which lives until the memoized argument itself dies.
+    arg, equal_arg, unequal_arg = Arg(value=0), Arg(value=0), Arg(value=1)
+    assert await foo(arg) == 1
+    assert await foo(equal_arg) == 1
+    assert await foo(unequal_arg) == 2
+    assert call_count == 2
+
+    del arg
+    gc.collect()
+    assert await foo(equal_arg) == 3
+
+
+@pytest.mark.asyncio
+async def test_unhashable_arg_raises() -> None:
+
+    @LruCache()
+    async def foo(_: object) -> None: ...
+
+    with pytest.raises(TypeError):
+        await foo([])
+
+
+@pytest.mark.asyncio
 async def test_method() -> None:
     call_count = 0
 
@@ -55,6 +163,25 @@ async def test_method() -> None:
     assert await foo1.foo() == 2
     assert await foo1.foo() == 2
     assert call_count == 2
+
+
+@pytest.mark.asyncio
+async def test_method_does_not_keep_its_instance_alive() -> None:
+
+    class Arg: ...
+
+    class Foo:
+        @LruCache()
+        async def foo(self, _: object) -> None: ...
+
+    foo, arg = Foo(), Arg()
+    await foo.foo(arg)  # type: ignore[arg-type, call-arg]
+    foo_ref, arg_ref = weakref.ref(foo), weakref.ref(arg)
+
+    del foo, arg
+    gc.collect()
+    assert foo_ref() is None
+    assert arg_ref() is None
 
 
 @pytest.mark.asyncio
