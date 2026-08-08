@@ -1,4 +1,6 @@
 import asyncio
+import gc
+import weakref
 
 import pytest
 
@@ -24,3 +26,19 @@ async def test_throttle_additive_increase_adds_1() -> None:
                     tg.create_task(foo())
                 assert n_running == i
                 event.set()
+
+
+@pytest.mark.asyncio
+async def test_method_does_not_keep_its_instance_alive() -> None:
+
+    class Foo:
+        @Throttle()
+        async def foo(self) -> None: ...
+
+    foo = Foo()
+    await foo.foo()  # type: ignore[call-arg]
+    foo_ref = weakref.ref(foo)
+
+    del foo
+    gc.collect()
+    assert foo_ref() is None

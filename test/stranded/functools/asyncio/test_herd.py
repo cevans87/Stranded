@@ -1,5 +1,7 @@
 import asyncio
+import gc
 import typing
+import weakref
 
 import pytest
 import pytest_asyncio
@@ -181,3 +183,19 @@ async def test_exceptions_are_not_memoized() -> None:
     with pytest.raises(FooException):
         await foo()
     assert call_count == 2
+
+
+@pytest.mark.asyncio
+async def test_method_does_not_keep_its_instance_alive() -> None:
+
+    class Foo:
+        @Herd()
+        async def foo(self) -> None: ...
+
+    foo = Foo()
+    await foo.foo()  # type: ignore[call-arg]
+    foo_ref = weakref.ref(foo)
+
+    del foo
+    gc.collect()
+    assert foo_ref() is None
