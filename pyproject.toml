@@ -1,3 +1,7 @@
+[build-system]
+build-backend = 'setuptools.build_meta'
+requires = ['setuptools>=77']
+
 [project]
 authors = [
     {name = 'Cameron Evans', email = 'c.d.evans87@gmail.com'},
@@ -8,10 +12,14 @@ classifiers = [
   'Topic :: Software Development :: Libraries',
   'Topic :: Software Development :: Libraries :: Python Modules',
   'Topic :: System :: Logging',
-  'License :: OSI Approved :: MIT License',
-  'Programming Language :: Python :: 3.12',
+  'Framework :: AsyncIO',
+  'Programming Language :: Python :: 3',
+  'Programming Language :: Python :: 3.13',
+  'Programming Language :: Python :: 3.14',
+  'Typing :: Typed',
 ]
 dependencies = []
+description = 'Composable decorators for caching, retrying, throttling, logging, and CLIs, for both sync and asyncio code'
 keywords = [
     'asyncio',
     'back pressure',
@@ -21,10 +29,11 @@ keywords = [
     'retry',
     'throttle',
 ]
-license = {file = 'LICENSE'}
+license = 'MIT'
+license-files = ['LICENSE']
 name = 'stranded'
 readme = 'README.md'
-requires-python = '>=3.12'
+requires-python = '>=3.13'
 version = '0.0.1'
 
 [project.optional-dependencies]
